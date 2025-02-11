@@ -7,7 +7,7 @@ namespace backend.src.OurTube.Domain.Entities
         [Key]
         public int VideoId { get; set; }
         [Key]
-        public int UserId{ get; set; }
+        public int ApplicationUserId { get; set; }
         [Required]
         public long EndTime { get; set; }
         [Required]
@@ -15,6 +15,6 @@ namespace backend.src.OurTube.Domain.Entities
 
         //Navigation
         public Video Video { get; set; }
-        public User User { get; set; }  
+        public ApplicationUser ApplicationUser { get; set; }  
     }
 }

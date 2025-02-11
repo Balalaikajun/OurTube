@@ -13,10 +13,10 @@ namespace backend.src.OurTube.Domain.Entities
         [Required]
         public string Description { get; set; }
         [Required]
-        public int UserId { get; set; }
+        public int ApplicationUserId { get; set; }
 
         //Navigation
-        public User User { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
         public ICollection<Video> Videos { get; set; }
     }
 }

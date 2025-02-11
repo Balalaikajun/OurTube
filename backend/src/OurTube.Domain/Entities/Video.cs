@@ -36,11 +36,10 @@ namespace backend.src.OurTube.Domain.Entities
         [Required]
         public string SourcePath { get; set; }
         [Required]
-        public int UserId { get; set; }
+        public int ApplicationUserId { get; set; }
 
         //Navigation
-        public User User { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
         public ICollection<VideoFile> Files { get; set; }
-        public ICollection<Playlist> Playlists { get; set; }
     }
 }
