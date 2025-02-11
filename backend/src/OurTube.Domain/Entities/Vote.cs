@@ -1,17 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
-namespace backend.src.OurTube.Domain.Entities
+namespace OurTube.Domain.Entities
 {
+    [PrimaryKey(nameof(VideoId), nameof(ApplicationUserId))]
     public class Vote
     {
-        [Key]
         public int VideoId { get; set; }
-        [Key]
-        public int ApplicationUserId { get; set; }
+        public string ApplicationUserId { get; set; }
         [Required]
-        public bool Type {  get; set; }
+        public bool Type { get; set; }
         [Required]
-        public DateTime Created {  get; set; }
+        public DateTime Created { get; set; }
 
         //Navigation
         public Video Video { get; set; }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend.src.OurTube.Domain.Entities
+namespace OurTube.Domain.Entities
 {
     public class Video
     {
@@ -36,7 +36,7 @@ namespace backend.src.OurTube.Domain.Entities
         [Required]
         public string SourcePath { get; set; }
         [Required]
-        public int ApplicationUserId { get; set; }
+        public string ApplicationUserId { get; set; }
 
         //Navigation
         public ApplicationUser ApplicationUser { get; set; }

@@ -1,13 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
-namespace backend.src.OurTube.Domain.Entities
+namespace OurTube.Domain.Entities
 {
+    [PrimaryKey(nameof(VideoId), nameof(ApplicationUserId))]
     public class View
     {
-        [Key]
         public int VideoId { get; set; }
-        [Key]
-        public int ApplicationUserId { get; set; }
+        public string ApplicationUserId { get; set; }
         [Required]
         public long EndTime { get; set; }
         [Required]
@@ -15,6 +15,6 @@ namespace backend.src.OurTube.Domain.Entities
 
         //Navigation
         public Video Video { get; set; }
-        public ApplicationUser ApplicationUser { get; set; }  
+        public ApplicationUser ApplicationUser { get; set; }
     }
 }

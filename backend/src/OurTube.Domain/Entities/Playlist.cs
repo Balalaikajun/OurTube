@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace backend.src.OurTube.Domain.Entities
+namespace OurTube.Domain.Entities
 {
     public class Playlist
     {
@@ -13,7 +13,7 @@ namespace backend.src.OurTube.Domain.Entities
         [Required]
         public string Description { get; set; }
         [Required]
-        public int ApplicationUserId { get; set; }
+        public string ApplicationUserId { get; set; }
 
         //Navigation
         public ApplicationUser ApplicationUser { get; set; }
