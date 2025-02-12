@@ -1,4 +1,5 @@
 using OurTube.Api;
+using OurTube.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 

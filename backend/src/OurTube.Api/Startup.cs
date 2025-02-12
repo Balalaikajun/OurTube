@@ -23,7 +23,9 @@ namespace OurTube.Api
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<IdentityDbContext<ApplicationUser>>(options =>
+            services.AddDbContext<AppIdentityDbContext>(options =>
+                options.UseNpgsql(connectionString));
+            services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -32,7 +34,7 @@ namespace OurTube.Api
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = true;
             })
-            .AddEntityFrameworkStores<UserDbContext>()
+            .AddEntityFrameworkStores<AppIdentityDbContext>()
             .AddDefaultTokenProviders();
             
 

@@ -14,6 +14,7 @@ namespace OurTube.Domain.Entities
         public ICollection<ApplicationUser> SubscribеTo { get; set; }
         public ICollection<Video> Videos { get; set; }
         public ICollection<View> Views { get; set; }
+        public ICollection<Vote> Votes { get; set; }
 
 
 

@@ -13,7 +13,8 @@ namespace OurTube.Infrastructure.Data
         public DbSet<ApplicationUser> applicationUsers {get; set;}
         public DbSet<Video> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
-        public DbSet<>
+        
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     }
 }
