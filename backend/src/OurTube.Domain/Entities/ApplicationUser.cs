@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OurTube.Domain.Entities
 {
-    public class ApplicationUser : IdentityUser
+    public class ApplicationUser 
     {
+        [ForeignKey(nameof(IdentityUser))] 
+        [Key]
+        public string Id{ get; set; }
         public DateTime Created { get; set; }
         [MaxLength(125)]
         public string? AvatarPath { get; set; }

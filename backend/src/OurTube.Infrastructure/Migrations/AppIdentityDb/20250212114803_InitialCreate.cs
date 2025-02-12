@@ -75,30 +75,6 @@ namespace OurTube.Infrastructure.Migrations.AppIdentityDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApplicationUserApplicationUser",
-                columns: table => new
-                {
-                    SubscribersId = table.Column<string>(type: "text", nullable: false),
-                    SubscribеToId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ApplicationUserApplicationUser", x => new { x.SubscribersId, x.SubscribеToId });
-                    table.ForeignKey(
-                        name: "FK_ApplicationUserApplicationUser_AspNetUsers_SubscribersId",
-                        column: x => x.SubscribersId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ApplicationUserApplicationUser_AspNetUsers_SubscribеToId",
-                        column: x => x.SubscribеToId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -183,139 +159,6 @@ namespace OurTube.Infrastructure.Migrations.AppIdentityDb
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Video",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
-                    LikesCount = table.Column<int>(type: "integer", nullable: false),
-                    DeslikeCount = table.Column<int>(type: "integer", nullable: false),
-                    CommentsCount = table.Column<int>(type: "integer", nullable: false),
-                    ViewsCount = table.Column<int>(type: "integer", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    PreviewPath = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    SourcePath = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Video", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Video_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Comment",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
-                    Text = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CommentId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Comment", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Comment_Comment_CommentId",
-                        column: x => x.CommentId,
-                        principalTable: "Comment",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Comment_Video_VideoId",
-                        column: x => x.VideoId,
-                        principalTable: "Video",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "VideoFile",
-                columns: table => new
-                {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    Resolution = table.Column<int>(type: "integer", nullable: false),
-                    VideoPath = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_VideoFile", x => new { x.VideoId, x.Resolution });
-                    table.ForeignKey(
-                        name: "FK_VideoFile_Video_VideoId",
-                        column: x => x.VideoId,
-                        principalTable: "Video",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "View",
-                columns: table => new
-                {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
-                    EndTime = table.Column<long>(type: "bigint", nullable: false),
-                    DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_View", x => new { x.VideoId, x.ApplicationUserId });
-                    table.ForeignKey(
-                        name: "FK_View_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_View_Video_VideoId",
-                        column: x => x.VideoId,
-                        principalTable: "Video",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Vote",
-                columns: table => new
-                {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<bool>(type: "boolean", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Vote", x => new { x.VideoId, x.ApplicationUserId });
-                    table.ForeignKey(
-                        name: "FK_Vote_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Vote_Video_VideoId",
-                        column: x => x.VideoId,
-                        principalTable: "Video",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ApplicationUserApplicationUser_SubscribеToId",
-                table: "ApplicationUserApplicationUser",
-                column: "SubscribеToId");
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -352,39 +195,11 @@ namespace OurTube.Infrastructure.Migrations.AppIdentityDb
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Comment_CommentId",
-                table: "Comment",
-                column: "CommentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Comment_VideoId",
-                table: "Comment",
-                column: "VideoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Video_ApplicationUserId",
-                table: "Video",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_View_ApplicationUserId",
-                table: "View",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vote_ApplicationUserId",
-                table: "Vote",
-                column: "ApplicationUserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ApplicationUserApplicationUser");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -401,22 +216,7 @@ namespace OurTube.Infrastructure.Migrations.AppIdentityDb
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Comment");
-
-            migrationBuilder.DropTable(
-                name: "VideoFile");
-
-            migrationBuilder.DropTable(
-                name: "View");
-
-            migrationBuilder.DropTable(
-                name: "Vote");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "Video");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

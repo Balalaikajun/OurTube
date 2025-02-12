@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OurTube.Infrastructure.Data;
@@ -11,9 +12,11 @@ using OurTube.Infrastructure.Data;
 namespace OurTube.Infrastructure.Migrations.AppIdentityDb
 {
     [DbContext(typeof(AppIdentityDbContext))]
-    partial class AppIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250212122312_NormilizeUser")]
+    partial class NormilizeUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,7 +137,7 @@ namespace OurTube.Infrastructure.Migrations.AppIdentityDb
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("IdentityUser", (string)null);
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>

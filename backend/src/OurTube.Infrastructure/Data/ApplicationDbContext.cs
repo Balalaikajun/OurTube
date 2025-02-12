@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using OurTube.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace OurTube.Infrastructure.Data
 
             // ApplicationUser 
             modelBuilder.Entity<ApplicationUser>()
-                .ToTable("ApplicationUser");
+                .ToTable(nameof(ApplicationUser));
 
             modelBuilder.Entity<ApplicationUser>()
                 .HasMany(u => u.SubscribedTo)
@@ -34,6 +35,8 @@ namespace OurTube.Infrastructure.Data
                 .WithOne(s => s.SubscribedTo)
                 .HasForeignKey(s => s.SubscribedToId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            
 
             // Subscription
             modelBuilder.Entity<Subscription>()
