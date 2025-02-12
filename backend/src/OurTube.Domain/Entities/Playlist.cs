@@ -17,6 +17,6 @@ namespace OurTube.Domain.Entities
 
         //Navigation
         public ApplicationUser ApplicationUser { get; set; }
-        public ICollection<Video> Videos { get; set; }
+        public ICollection<PlaylistElement> Videos { get; set; }
     }
 }

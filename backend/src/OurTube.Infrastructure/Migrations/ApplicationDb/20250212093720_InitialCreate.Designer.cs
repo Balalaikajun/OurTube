@@ -12,7 +12,7 @@ using OurTube.Infrastructure.Data;
 namespace OurTube.Infrastructure.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250212085657_InitialCreate")]
+    [Migration("20250212093720_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -37,7 +37,7 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
                     b.HasIndex("SubscribеToId");
 
-                    b.ToTable("Subscriptions", (string)null);
+                    b.ToTable("ApplicationUserApplicationUser");
                 });
 
             modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
@@ -96,7 +96,7 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("applicationUsers");
+                    b.ToTable("ApplicationUser", (string)null);
                 });
 
             modelBuilder.Entity("OurTube.Domain.Entities.Comment", b =>
@@ -129,6 +129,8 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("CommentId");
 
@@ -302,6 +304,12 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             modelBuilder.Entity("OurTube.Domain.Entities.Comment", b =>
                 {
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("OurTube.Domain.Entities.Comment", "Parent")
                         .WithMany("Childs")
                         .HasForeignKey("CommentId");
@@ -313,6 +321,8 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .IsRequired();
 
                     b.Navigation("Parent");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OurTube.Domain.Entities.Playlist", b =>

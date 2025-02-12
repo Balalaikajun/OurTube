@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OurTube.Infrastructure.Data;
@@ -11,9 +12,11 @@ using OurTube.Infrastructure.Data;
 namespace OurTube.Infrastructure.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250212101854_AddForeignKeyTruele")]
+    partial class AddForeignKeyTruele
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,18 +170,30 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             modelBuilder.Entity("OurTube.Domain.Entities.Subscription", b =>
                 {
-                    b.Property<string>("SubscriberId")
+                    b.Property<string>("SubscribedToId")
                         .HasColumnType("text");
 
-                    b.Property<string>("SubscribedToId")
+                    b.Property<string>("SubscriberId")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("SubscriberId", "SubscribedToId");
+                    b.Property<string>("SubscribedToId1")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("SubscribedToId");
+                    b.Property<string>("SubscriberId1")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("SubscribedToId", "SubscriberId");
+
+                    b.HasIndex("SubscribedToId1");
+
+                    b.HasIndex("SubscriberId");
+
+                    b.HasIndex("SubscriberId1");
 
                     b.ToTable("Subscription");
                 });
@@ -352,15 +367,27 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             modelBuilder.Entity("OurTube.Domain.Entities.Subscription", b =>
                 {
-                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "SubscribedTo")
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", null)
                         .WithMany("Subscribers")
                         .HasForeignKey("SubscribedToId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "Subscriber")
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "SubscribedTo")
+                        .WithMany()
+                        .HasForeignKey("SubscribedToId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", null)
                         .WithMany("SubscribedTo")
                         .HasForeignKey("SubscriberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "Subscriber")
+                        .WithMany()
+                        .HasForeignKey("SubscriberId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

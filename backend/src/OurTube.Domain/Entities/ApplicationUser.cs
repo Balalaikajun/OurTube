@@ -10,8 +10,8 @@ namespace OurTube.Domain.Entities
         public string? AvatarPath { get; set; }
 
         //Navigation
-        public ICollection<ApplicationUser> Subscribers { get; set; }
-        public ICollection<ApplicationUser> SubscribеTo { get; set; }
+        public ICollection<Subscription> Subscribers { get; set; }
+        public ICollection<Subscription> SubscribedTo { get; set; }
         public ICollection<Video> Videos { get; set; }
         public ICollection<View> Views { get; set; }
         public ICollection<Vote> Votes { get; set; }

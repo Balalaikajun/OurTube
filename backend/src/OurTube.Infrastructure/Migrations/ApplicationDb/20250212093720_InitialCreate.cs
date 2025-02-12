@@ -13,7 +13,7 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "applicationUsers",
+                name: "ApplicationUser",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -36,7 +36,31 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_applicationUsers", x => x.Id);
+                    table.PrimaryKey("PK_ApplicationUser", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ApplicationUserApplicationUser",
+                columns: table => new
+                {
+                    SubscribersId = table.Column<string>(type: "text", nullable: false),
+                    SubscribеToId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationUserApplicationUser", x => new { x.SubscribersId, x.SubscribеToId });
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserApplicationUser_ApplicationUser_SubscribersId",
+                        column: x => x.SubscribersId,
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserApplicationUser_ApplicationUser_SubscribеToId",
+                        column: x => x.SubscribеToId,
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -53,33 +77,9 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 {
                     table.PrimaryKey("PK_Playlists", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Playlists_applicationUsers_ApplicationUserId",
+                        name: "FK_Playlists_ApplicationUser_ApplicationUserId",
                         column: x => x.ApplicationUserId,
-                        principalTable: "applicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Subscriptions",
-                columns: table => new
-                {
-                    SubscribersId = table.Column<string>(type: "text", nullable: false),
-                    SubscribеToId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subscriptions", x => new { x.SubscribersId, x.SubscribеToId });
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_applicationUsers_SubscribersId",
-                        column: x => x.SubscribersId,
-                        principalTable: "applicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Subscriptions_applicationUsers_SubscribеToId",
-                        column: x => x.SubscribеToId,
-                        principalTable: "applicationUsers",
+                        principalTable: "ApplicationUser",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -106,16 +106,16 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 {
                     table.PrimaryKey("PK_Videos", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Videos_ApplicationUser_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Videos_Playlists_PlaylistId",
                         column: x => x.PlaylistId,
                         principalTable: "Playlists",
                         principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Videos_applicationUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "applicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -134,6 +134,12 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Comment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comment_ApplicationUser_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Comment_Comment_CommentId",
                         column: x => x.CommentId,
@@ -179,15 +185,15 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 {
                     table.PrimaryKey("PK_View", x => new { x.VideoId, x.ApplicationUserId });
                     table.ForeignKey(
-                        name: "FK_View_Videos_VideoId",
-                        column: x => x.VideoId,
-                        principalTable: "Videos",
+                        name: "FK_View_ApplicationUser_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "ApplicationUser",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_View_applicationUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "applicationUsers",
+                        name: "FK_View_Videos_VideoId",
+                        column: x => x.VideoId,
+                        principalTable: "Videos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -205,18 +211,28 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 {
                     table.PrimaryKey("PK_Vote", x => new { x.VideoId, x.ApplicationUserId });
                     table.ForeignKey(
+                        name: "FK_Vote_ApplicationUser_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Vote_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Vote_applicationUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "applicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUserApplicationUser_SubscribеToId",
+                table: "ApplicationUserApplicationUser",
+                column: "SubscribеToId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comment_ApplicationUserId",
+                table: "Comment",
+                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comment_CommentId",
@@ -232,11 +248,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 name: "IX_Playlists_ApplicationUserId",
                 table: "Playlists",
                 column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Subscriptions_SubscribеToId",
-                table: "Subscriptions",
-                column: "SubscribеToId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Videos_ApplicationUserId",
@@ -263,10 +274,10 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Comment");
+                name: "ApplicationUserApplicationUser");
 
             migrationBuilder.DropTable(
-                name: "Subscriptions");
+                name: "Comment");
 
             migrationBuilder.DropTable(
                 name: "VideoFile");
@@ -284,7 +295,7 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 name: "Playlists");
 
             migrationBuilder.DropTable(
-                name: "applicationUsers");
+                name: "ApplicationUser");
         }
     }
 }

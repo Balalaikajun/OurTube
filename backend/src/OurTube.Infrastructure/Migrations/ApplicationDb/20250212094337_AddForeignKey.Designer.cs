@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OurTube.Infrastructure.Data;
@@ -11,9 +12,11 @@ using OurTube.Infrastructure.Data;
 namespace OurTube.Infrastructure.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250212094337_AddForeignKey")]
+    partial class AddForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,21 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ApplicationUserApplicationUser", b =>
+                {
+                    b.Property<string>("SubscribersId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SubscribеToId")
+                        .HasColumnType("text");
+
+                    b.HasKey("SubscribersId", "SubscribеToId");
+
+                    b.HasIndex("SubscribеToId");
+
+                    b.ToTable("ApplicationUserApplicationUser");
+                });
 
             modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
                 {
@@ -150,39 +168,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.ToTable("Playlists");
                 });
 
-            modelBuilder.Entity("OurTube.Domain.Entities.PlaylistElement", b =>
-                {
-                    b.Property<int>("PlaylistId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VideoId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PlaylistId", "VideoId");
-
-                    b.HasIndex("VideoId");
-
-                    b.ToTable("PlaylistElement");
-                });
-
-            modelBuilder.Entity("OurTube.Domain.Entities.Subscription", b =>
-                {
-                    b.Property<string>("SubscriberId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SubscribedToId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("SubscriberId", "SubscribedToId");
-
-                    b.HasIndex("SubscribedToId");
-
-                    b.ToTable("Subscription");
-                });
-
             modelBuilder.Entity("OurTube.Domain.Entities.Video", b =>
                 {
                     b.Property<int>("Id")
@@ -212,6 +197,9 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Property<int>("LikesCount")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PlaylistId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("PreviewPath")
                         .IsRequired()
                         .HasMaxLength(125)
@@ -233,6 +221,8 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("PlaylistId");
 
                     b.ToTable("Videos");
                 });
@@ -297,6 +287,21 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.ToTable("Vote");
                 });
 
+            modelBuilder.Entity("ApplicationUserApplicationUser", b =>
+                {
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("SubscribersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("SubscribеToId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("OurTube.Domain.Entities.Comment", b =>
                 {
                     b.HasOne("OurTube.Domain.Entities.ApplicationUser", "User")
@@ -331,44 +336,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("OurTube.Domain.Entities.PlaylistElement", b =>
-                {
-                    b.HasOne("OurTube.Domain.Entities.Playlist", "Playlist")
-                        .WithMany("Videos")
-                        .HasForeignKey("PlaylistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OurTube.Domain.Entities.Video", "Video")
-                        .WithMany("Playlists")
-                        .HasForeignKey("VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Playlist");
-
-                    b.Navigation("Video");
-                });
-
-            modelBuilder.Entity("OurTube.Domain.Entities.Subscription", b =>
-                {
-                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "SubscribedTo")
-                        .WithMany("Subscribers")
-                        .HasForeignKey("SubscribedToId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "Subscriber")
-                        .WithMany("SubscribedTo")
-                        .HasForeignKey("SubscriberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SubscribedTo");
-
-                    b.Navigation("Subscriber");
-                });
-
             modelBuilder.Entity("OurTube.Domain.Entities.Video", b =>
                 {
                     b.HasOne("OurTube.Domain.Entities.ApplicationUser", "ApplicationUser")
@@ -376,6 +343,10 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.Playlist", null)
+                        .WithMany("Videos")
+                        .HasForeignKey("PlaylistId");
 
                     b.Navigation("ApplicationUser");
                 });
@@ -431,10 +402,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
                 {
-                    b.Navigation("SubscribedTo");
-
-                    b.Navigation("Subscribers");
-
                     b.Navigation("Videos");
 
                     b.Navigation("Views");
@@ -457,8 +424,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("Comments");
 
                     b.Navigation("Files");
-
-                    b.Navigation("Playlists");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,14 +8,50 @@ using System.Threading.Tasks;
 
 namespace OurTube.Infrastructure.Data
 {
-    public class ApplicationDbContext: DbContext
+    public class ApplicationDbContext : DbContext
     {
-        public DbSet<ApplicationUser> applicationUsers {get; set;}
+        public DbSet<ApplicationUser> applicationUsers { get; set; }
         public DbSet<Video> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
-        
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // ApplicationUser 
+            modelBuilder.Entity<ApplicationUser>()
+                .ToTable("ApplicationUser");
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(u => u.SubscribedTo)
+                .WithOne(s => s.Subscriber)
+                .HasForeignKey(s => s.SubscriberId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(u => u.Subscribers)
+                .WithOne(s => s.SubscribedTo)
+                .HasForeignKey(s => s.SubscribedToId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Subscription
+            modelBuilder.Entity<Subscription>()
+                .HasKey(s => new { s.SubscriberId, s.SubscribedToId }); // Установка составного ключа
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Subscriber)
+                .WithMany(u => u.SubscribedTo)
+                .HasForeignKey(s => s.SubscriberId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.SubscribedTo)
+                .WithMany(u => u.Subscribers)
+                .HasForeignKey(s => s.SubscribedToId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+        }
     }
 }

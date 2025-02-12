@@ -20,6 +20,7 @@ namespace OurTube.Domain.Entities
         public int? CommentId { get; set; }
 
         //Navigation
+        public ApplicationUser User { get; set; }
         public Comment? Parent { get; set; }
         public ICollection<Comment> Childs { get; set; }
 
