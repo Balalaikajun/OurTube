@@ -27,4 +27,8 @@
     <ProjectReference Include="..\OurTube.Domain\OurTube.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\ApplicationDb\" />
+  </ItemGroup>
+
 </Project>

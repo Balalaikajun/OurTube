@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OurTube.Infrastructure.Data
 {
-    internal class ApplicationDbContext: DbContext
+    public class ApplicationDbContext: DbContext
     {
         public DbSet<ApplicationUser> applicationUsers {get; set;}
         public DbSet<Video> Videos { get; set; }
@@ -16,5 +16,6 @@ namespace OurTube.Infrastructure.Data
         
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        
     }
 }
