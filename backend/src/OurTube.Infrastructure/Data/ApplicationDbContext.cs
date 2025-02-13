@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Domain.Entities;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace OurTube.Infrastructure.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         public DbSet<ApplicationUser> applicationUsers { get; set; }
         public DbSet<Video> Videos { get; set; }
@@ -19,6 +20,10 @@ namespace OurTube.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // IdentityUser
+            modelBuilder.Entity<IdentityUser>()
+                .ToTable(nameof(IdentityUser));
 
             // ApplicationUser 
             modelBuilder.Entity<ApplicationUser>()
@@ -36,6 +41,11 @@ namespace OurTube.Infrastructure.Data
                 .HasForeignKey(s => s.SubscribedToId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<ApplicationUser>()
+                .HasOne<IdentityUser>()
+                .WithOne()
+                .HasForeignKey<ApplicationUser>(a =>a.Id)
+                .OnDelete(DeleteBehavior.Cascade);
             
 
             // Subscription

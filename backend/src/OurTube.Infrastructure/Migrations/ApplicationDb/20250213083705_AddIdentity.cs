@@ -5,7 +5,7 @@
 namespace OurTube.Infrastructure.Migrations.ApplicationDb
 {
     /// <inheritdoc />
-    public partial class AddForeignKey : Migration
+    public partial class AddIdentity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -12,8 +12,8 @@ using OurTube.Infrastructure.Data;
 namespace OurTube.Infrastructure.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250212093720_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250213083857_AddIdentity2")]
+    partial class AddIdentity2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,22 +25,58 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ApplicationUserApplicationUser", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
-                    b.Property<string>("SubscribersId")
+                    b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("SubscribеToId")
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("text");
 
-                    b.HasKey("SubscribersId", "SubscribеToId");
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
-                    b.HasIndex("SubscribеToId");
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
-                    b.ToTable("ApplicationUserApplicationUser");
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -48,18 +84,13 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("AvatarPath")
-                        .HasMaxLength(125)
-                        .HasColumnType("character varying(125)");
-
                     b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .HasColumnType("text");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
@@ -71,10 +102,12 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NormalizedEmail")
-                        .HasColumnType("text");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedUserName")
-                        .HasColumnType("text");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
@@ -92,7 +125,113 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.ToTable("IdentityUser", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
                         .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AvatarPath")
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -168,6 +307,39 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.ToTable("Playlists");
                 });
 
+            modelBuilder.Entity("OurTube.Domain.Entities.PlaylistElement", b =>
+                {
+                    b.Property<int>("PlaylistId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VideoId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PlaylistId", "VideoId");
+
+                    b.HasIndex("VideoId");
+
+                    b.ToTable("PlaylistElement");
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.Subscription", b =>
+                {
+                    b.Property<string>("SubscriberId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SubscribedToId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("SubscriberId", "SubscribedToId");
+
+                    b.HasIndex("SubscribedToId");
+
+                    b.ToTable("Subscription");
+                });
+
             modelBuilder.Entity("OurTube.Domain.Entities.Video", b =>
                 {
                     b.Property<int>("Id")
@@ -197,9 +369,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Property<int>("LikesCount")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("PlaylistId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("PreviewPath")
                         .IsRequired()
                         .HasMaxLength(125)
@@ -221,8 +390,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("PlaylistId");
 
                     b.ToTable("Videos");
                 });
@@ -287,17 +454,62 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.ToTable("Vote");
                 });
 
-            modelBuilder.Entity("ApplicationUserApplicationUser", b =>
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
-                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
-                        .HasForeignKey("SubscribersId")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
-                        .HasForeignKey("SubscribеToId")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithOne()
+                        .HasForeignKey("OurTube.Domain.Entities.ApplicationUser", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -336,6 +548,44 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("ApplicationUser");
                 });
 
+            modelBuilder.Entity("OurTube.Domain.Entities.PlaylistElement", b =>
+                {
+                    b.HasOne("OurTube.Domain.Entities.Playlist", "Playlist")
+                        .WithMany("Videos")
+                        .HasForeignKey("PlaylistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.Video", "Video")
+                        .WithMany("Playlists")
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Playlist");
+
+                    b.Navigation("Video");
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.Subscription", b =>
+                {
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "SubscribedTo")
+                        .WithMany("Subscribers")
+                        .HasForeignKey("SubscribedToId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "Subscriber")
+                        .WithMany("SubscribedTo")
+                        .HasForeignKey("SubscriberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SubscribedTo");
+
+                    b.Navigation("Subscriber");
+                });
+
             modelBuilder.Entity("OurTube.Domain.Entities.Video", b =>
                 {
                     b.HasOne("OurTube.Domain.Entities.ApplicationUser", "ApplicationUser")
@@ -343,10 +593,6 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("OurTube.Domain.Entities.Playlist", null)
-                        .WithMany("Videos")
-                        .HasForeignKey("PlaylistId");
 
                     b.Navigation("ApplicationUser");
                 });
@@ -402,6 +648,10 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             modelBuilder.Entity("OurTube.Domain.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("SubscribedTo");
+
+                    b.Navigation("Subscribers");
+
                     b.Navigation("Videos");
 
                     b.Navigation("Views");
@@ -424,6 +674,8 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("Comments");
 
                     b.Navigation("Files");
+
+                    b.Navigation("Playlists");
                 });
 #pragma warning restore 612, 618
         }

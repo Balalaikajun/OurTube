@@ -23,10 +23,13 @@ namespace OurTube.Api
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<AppIdentityDbContext>(options =>
-                options.UseNpgsql(connectionString));
+            //services.AddDbContext<AppIdentityDbContext>(options =>
+            //    options.UseNpgsql(connectionString));
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
+
+            
+         
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
@@ -34,8 +37,9 @@ namespace OurTube.Api
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = true;
             })
-            .AddEntityFrameworkStores<AppIdentityDbContext>()
-            .AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders()
+            .AddApiEndpoints();
             
 
 
@@ -96,6 +100,7 @@ namespace OurTube.Api
             app.UseEndpoints(s =>
             {
                 s.MapControllers();
+                s.MapIdentityApi<IdentityUser>();
             });
         }
     }

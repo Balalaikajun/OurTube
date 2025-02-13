@@ -6,7 +6,6 @@ namespace OurTube.Domain.Entities
 {
     public class ApplicationUser 
     {
-        [ForeignKey(nameof(IdentityUser))] 
         [Key]
         public string Id{ get; set; }
         public DateTime Created { get; set; }
