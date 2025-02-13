@@ -8,7 +8,8 @@ namespace OurTube.Domain.Entities
     {
         [Key]
         public string Id{ get; set; }
-        public DateTime Created { get; set; }
+        [Required]
+        public DateTime Created { get; set; } = DateTime.Now;
         [MaxLength(125)]
         public string? AvatarPath { get; set; }
 

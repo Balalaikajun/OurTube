@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Domain.Entities;
 using OurTube.Infrastructure;
 using OurTube.Infrastructure.Data;
+using OurTube.Infrastructure.Other;
 
 
 namespace OurTube.Api
@@ -36,12 +38,14 @@ namespace OurTube.Api
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = true;
+                options.SignIn.RequireConfirmedEmail = true;
+                options.Tokens.AuthenticatorIssuer = null;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders()
             .AddApiEndpoints();
-            
 
+            services.AddTransient<IEmailSender, EmailSender>();
 
             services.AddCors(options =>
             {
@@ -69,11 +73,12 @@ namespace OurTube.Api
 
             
 
-            // Добавьте Swagger и другие сервисы
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddControllers();
-
+            
+            // Добавление аутентификации по токену
+            //services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
