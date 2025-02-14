@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
+using OurTube.Infrastructure.Other;
 
 namespace OurTube.Api.Controllers
 {
@@ -38,6 +40,13 @@ namespace OurTube.Api.Controllers
         [HttpGet]
         public IActionResult Get()
         {
+            return Ok();
+        }
+
+        [HttpGet("mail")]
+        public async Task<IActionResult> TestMail([FromServices] IEmailSender emailSender)
+        {
+            await emailSender.SendEmailAsync("andrejkluev774@gmail.com", "Привет друг, не бойся", "<h1>Добро пожаловать!</h1>");
             return Ok();
         }
 
