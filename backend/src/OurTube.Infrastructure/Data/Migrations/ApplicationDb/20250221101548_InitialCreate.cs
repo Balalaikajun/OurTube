@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace OurTube.Infrastructure.Migrations.ApplicationDb
+namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -269,12 +269,10 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     Title = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
                     LikesCount = table.Column<int>(type: "integer", nullable: false),
-                    DeslikeCount = table.Column<int>(type: "integer", nullable: false),
+                    DislikeCount = table.Column<int>(type: "integer", nullable: false),
                     CommentsCount = table.Column<int>(type: "integer", nullable: false),
                     ViewsCount = table.Column<int>(type: "integer", nullable: false),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    PreviewPath = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    SourcePath = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
                     ApplicationUserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -368,6 +366,58 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_VideoPlaylist_Videos_VideoId",
+                        column: x => x.VideoId,
+                        principalTable: "Videos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VideoPreview",
+                columns: table => new
+                {
+                    VideoId = table.Column<int>(type: "integer", nullable: false),
+                    FileName = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
+                    FileDirInStorage = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
+                    BucketId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VideoPreview", x => x.VideoId);
+                    table.ForeignKey(
+                        name: "FK_VideoPreview_Bucket_BucketId",
+                        column: x => x.BucketId,
+                        principalTable: "Bucket",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VideoPreview_Videos_VideoId",
+                        column: x => x.VideoId,
+                        principalTable: "Videos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VideoSource",
+                columns: table => new
+                {
+                    VideoId = table.Column<int>(type: "integer", nullable: false),
+                    FileName = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
+                    FileDirInStorage = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
+                    BucketId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VideoSource", x => x.VideoId);
+                    table.ForeignKey(
+                        name: "FK_VideoSource_Bucket_BucketId",
+                        column: x => x.BucketId,
+                        principalTable: "Bucket",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VideoSource_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
@@ -504,9 +554,19 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                 column: "BucketId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VideoPreview_BucketId",
+                table: "VideoPreview",
+                column: "BucketId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Videos_ApplicationUserId",
                 table: "Videos",
                 column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VideoSource_BucketId",
+                table: "VideoSource",
+                column: "BucketId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_View_ApplicationUserId",
@@ -551,6 +611,12 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
 
             migrationBuilder.DropTable(
                 name: "VideoPlaylist");
+
+            migrationBuilder.DropTable(
+                name: "VideoPreview");
+
+            migrationBuilder.DropTable(
+                name: "VideoSource");
 
             migrationBuilder.DropTable(
                 name: "View");

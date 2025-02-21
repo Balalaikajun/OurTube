@@ -64,7 +64,18 @@ namespace OurTube.Infrastructure.Data
                 .HasForeignKey(s => s.SubscribedToId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Video
+            modelBuilder.Entity<Video>()
+                .HasOne(v => v.VideoPreview)
+                .WithOne(vp => vp.Video)
+                .HasForeignKey<VideoPreview>(vp => vp.VideoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Video>()
+                .HasOne(v => v.VideoSource)
+                .WithOne(vp => vp.Video)
+                .HasForeignKey<VideoSource>(vp => vp.VideoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

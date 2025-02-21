@@ -9,6 +9,10 @@ namespace OurTube.Domain.Entities
         [Key]
         public string Id{ get; set; }
         [Required]
+        public int SubscribersCount { get; set; }
+        [Required]
+        public int SubscribedToCount { get; set; }
+        [Required]
         public DateTime Created { get; set; } = DateTime.Now;
 
         //Navigation
@@ -17,7 +21,7 @@ namespace OurTube.Domain.Entities
         public ICollection<Video> Videos { get; set; }
         public ICollection<View> Views { get; set; }
         public ICollection<Vote> Votes { get; set; }
-        public UserAvatar UserAvatars { get; set; }
+        public UserAvatar? UserAvatars { get; set; }
 
 
     }

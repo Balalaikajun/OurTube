@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OurTube.Api;
 using OurTube.Domain.Entities;
+using OurTube.Infrastructure.Other;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,4 +12,4 @@ var app = builder.Build();
 
 startup.Configure(app, app.Environment);
 
-app.Run(); 
+app.Run();

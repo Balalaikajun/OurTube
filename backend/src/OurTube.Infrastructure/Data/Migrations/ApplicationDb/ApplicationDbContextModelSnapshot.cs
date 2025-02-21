@@ -2,21 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OurTube.Infrastructure.Data;
 
 #nullable disable
 
-namespace OurTube.Infrastructure.Migrations.ApplicationDb
+namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250221074042_InitialCreate")]
-    partial class InitialCreate
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -402,21 +399,11 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                         .HasMaxLength(5000)
                         .HasColumnType("character varying(5000)");
 
-                    b.Property<int>("DeslikeCount")
+                    b.Property<int>("DislikeCount")
                         .HasColumnType("integer");
 
                     b.Property<int>("LikesCount")
                         .HasColumnType("integer");
-
-                    b.Property<string>("PreviewPath")
-                        .IsRequired()
-                        .HasMaxLength(125)
-                        .HasColumnType("character varying(125)");
-
-                    b.Property<string>("SourcePath")
-                        .IsRequired()
-                        .HasMaxLength(125)
-                        .HasColumnType("character varying(125)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -459,6 +446,56 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.HasIndex("BucketId");
 
                     b.ToTable("VideoPlaylist");
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.VideoPreview", b =>
+                {
+                    b.Property<int>("VideoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BucketId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileDirInStorage")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.HasKey("VideoId");
+
+                    b.HasIndex("BucketId");
+
+                    b.ToTable("VideoPreview");
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.VideoSource", b =>
+                {
+                    b.Property<int>("VideoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BucketId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileDirInStorage")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.HasKey("VideoId");
+
+                    b.HasIndex("BucketId");
+
+                    b.ToTable("VideoSource");
                 });
 
             modelBuilder.Entity("OurTube.Domain.Entities.View", b =>
@@ -684,6 +721,44 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("Video");
                 });
 
+            modelBuilder.Entity("OurTube.Domain.Entities.VideoPreview", b =>
+                {
+                    b.HasOne("OurTube.Domain.Entities.Bucket", "Bucket")
+                        .WithMany()
+                        .HasForeignKey("BucketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.Video", "Video")
+                        .WithOne("VideoPreview")
+                        .HasForeignKey("OurTube.Domain.Entities.VideoPreview", "VideoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bucket");
+
+                    b.Navigation("Video");
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.VideoSource", b =>
+                {
+                    b.HasOne("OurTube.Domain.Entities.Bucket", "Bucket")
+                        .WithMany()
+                        .HasForeignKey("BucketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.Video", "Video")
+                        .WithOne("VideoSource")
+                        .HasForeignKey("OurTube.Domain.Entities.VideoSource", "VideoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bucket");
+
+                    b.Navigation("Video");
+                });
+
             modelBuilder.Entity("OurTube.Domain.Entities.View", b =>
                 {
                     b.HasOne("OurTube.Domain.Entities.ApplicationUser", "ApplicationUser")
@@ -755,6 +830,12 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("Files");
 
                     b.Navigation("Playlists");
+
+                    b.Navigation("VideoPreview")
+                        .IsRequired();
+
+                    b.Navigation("VideoSource")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

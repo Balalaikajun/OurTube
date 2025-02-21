@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,6 +10,8 @@ using OurTube.Domain.Entities;
 using OurTube.Infrastructure;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
+using OurTube.Application.Mapping;
+using OurTube.Application.Services;
 
 
 namespace OurTube.Api
@@ -30,9 +33,6 @@ namespace OurTube.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
-            
-         
-
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -46,6 +46,12 @@ namespace OurTube.Api
             .AddApiEndpoints();
 
             services.AddTransient<IEmailSender, EmailSender>();
+
+            services.AddAutoMapper(typeof(VideoProfile).Assembly);
+            services.AddAutoMapper(typeof(UserProfile).Assembly);
+
+            services.AddScoped<VideoService>();
+
 
             services.AddCors(options =>
             {

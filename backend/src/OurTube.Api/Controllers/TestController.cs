@@ -27,8 +27,6 @@ namespace OurTube.Api.Controllers
             {
                 Title = "asd",
                 Description = "sadf",
-                PreviewPath = "asdf",
-                SourcePath = "sadfsd",
                 ApplicationUser = context.ApplicationUsers.Find("f2dac030-9c50-407b-aedb-87e2459402f6")
             };
             context.Videos.Add(video);
