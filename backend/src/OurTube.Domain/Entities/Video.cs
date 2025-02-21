@@ -40,7 +40,7 @@ namespace OurTube.Domain.Entities
 
         //Navigation
         public ApplicationUser ApplicationUser { get; set; }
-        public ICollection<VideoPlaylist> Files { get; set; }
+        public ICollection<VideoFile> Files { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public ICollection<PlaylistElement> Playlists { get; set;}
     }

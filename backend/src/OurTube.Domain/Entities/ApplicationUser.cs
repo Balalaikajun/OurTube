@@ -10,6 +10,8 @@ namespace OurTube.Domain.Entities
         public string Id{ get; set; }
         [Required]
         public DateTime Created { get; set; } = DateTime.Now;
+        [MaxLength(125)]
+        public string? AvatarPath { get; set; }
 
         //Navigation
         public ICollection<Subscription> Subscribers { get; set; }
@@ -17,7 +19,7 @@ namespace OurTube.Domain.Entities
         public ICollection<Video> Videos { get; set; }
         public ICollection<View> Views { get; set; }
         public ICollection<Vote> Votes { get; set; }
-        public UserAvatar UserAvatars { get; set; }
+
 
 
     }
