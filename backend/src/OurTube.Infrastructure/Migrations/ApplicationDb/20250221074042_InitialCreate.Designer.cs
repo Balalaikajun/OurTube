@@ -12,8 +12,8 @@ using OurTube.Infrastructure.Data;
 namespace OurTube.Infrastructure.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250213093750_AutoDateToUser")]
-    partial class AutoDateToUser
+    [Migration("20250221074042_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -226,16 +226,30 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("AvatarPath")
-                        .HasMaxLength(125)
-                        .HasColumnType("character varying(125)");
-
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.ToTable("ApplicationUser", (string)null);
+                });
+
+            modelBuilder.Entity("OurTube.Domain.Entities.Bucket", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bucket");
                 });
 
             modelBuilder.Entity("OurTube.Domain.Entities.Comment", b =>
@@ -340,6 +354,31 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.ToTable("Subscription");
                 });
 
+            modelBuilder.Entity("OurTube.Domain.Entities.UserAvatar", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("BucketId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileDirInStorage")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("BucketId");
+
+                    b.ToTable("UserAvatar");
+                });
+
             modelBuilder.Entity("OurTube.Domain.Entities.Video", b =>
                 {
                     b.Property<int>("Id")
@@ -394,7 +433,7 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.ToTable("Videos");
                 });
 
-            modelBuilder.Entity("OurTube.Domain.Entities.VideoFile", b =>
+            modelBuilder.Entity("OurTube.Domain.Entities.VideoPlaylist", b =>
                 {
                     b.Property<int>("VideoId")
                         .HasColumnType("integer");
@@ -402,14 +441,24 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Property<int>("Resolution")
                         .HasColumnType("integer");
 
-                    b.Property<string>("VideoPath")
+                    b.Property<int>("BucketId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileDirInStorage")
+                        .IsRequired()
+                        .HasMaxLength(125)
+                        .HasColumnType("character varying(125)");
+
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(125)
                         .HasColumnType("character varying(125)");
 
                     b.HasKey("VideoId", "Resolution");
 
-                    b.ToTable("VideoFile");
+                    b.HasIndex("BucketId");
+
+                    b.ToTable("VideoPlaylist");
                 });
 
             modelBuilder.Entity("OurTube.Domain.Entities.View", b =>
@@ -586,6 +635,25 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("Subscriber");
                 });
 
+            modelBuilder.Entity("OurTube.Domain.Entities.UserAvatar", b =>
+                {
+                    b.HasOne("OurTube.Domain.Entities.Bucket", "Bucket")
+                        .WithMany()
+                        .HasForeignKey("BucketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OurTube.Domain.Entities.ApplicationUser", "User")
+                        .WithOne("UserAvatars")
+                        .HasForeignKey("OurTube.Domain.Entities.UserAvatar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bucket");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OurTube.Domain.Entities.Video", b =>
                 {
                     b.HasOne("OurTube.Domain.Entities.ApplicationUser", "ApplicationUser")
@@ -597,13 +665,21 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("ApplicationUser");
                 });
 
-            modelBuilder.Entity("OurTube.Domain.Entities.VideoFile", b =>
+            modelBuilder.Entity("OurTube.Domain.Entities.VideoPlaylist", b =>
                 {
+                    b.HasOne("OurTube.Domain.Entities.Bucket", "Bucket")
+                        .WithMany()
+                        .HasForeignKey("BucketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("OurTube.Domain.Entities.Video", "Video")
                         .WithMany("Files")
                         .HasForeignKey("VideoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Bucket");
 
                     b.Navigation("Video");
                 });
@@ -651,6 +727,9 @@ namespace OurTube.Infrastructure.Migrations.ApplicationDb
                     b.Navigation("SubscribedTo");
 
                     b.Navigation("Subscribers");
+
+                    b.Navigation("UserAvatars")
+                        .IsRequired();
 
                     b.Navigation("Videos");
 
