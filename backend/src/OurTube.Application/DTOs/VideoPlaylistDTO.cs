@@ -11,7 +11,6 @@ namespace OurTube.Application.DTOs
     {
         public int Resolution { get; set; }
         public string FileName { get; set; }
-        public string FileDirInStorage { get; set; }
         public string BucketName { get; set; }
     }
 }

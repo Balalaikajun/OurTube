@@ -19,7 +19,7 @@ namespace OurTube.Application.DTOs
         public DateTime Created { get; set; }
         public string ApplicationUserId { get; set; }
         public VideoPreviewDTO Preview { get; set; }
-        public List<VideoPlaylistDTO> Playlists { get; set; }
+        public List<VideoPlaylistDTO> Files { get; set; }
         public ApplicationUserDTO User { get; set; }
 
     }

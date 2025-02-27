@@ -11,11 +11,11 @@ namespace OurTube.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public ActionResult<VideoDTO> Get(int id, VideoService videoService)
+        public async Task<ActionResult<VideoDTO>> Get(int id, VideoService videoService)
         {
             try
             {
-                return Ok(videoService.GetVideoById(id));
+                return Ok(await videoService.GetVideoById(id));
             }
             catch (InvalidOperationException)
             {

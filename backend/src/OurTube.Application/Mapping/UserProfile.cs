@@ -13,7 +13,8 @@ namespace OurTube.Application.Mapping
     {
         public UserProfile()
         {
-            CreateMap<ApplicationUser, ApplicationUserDTO>();
+            CreateMap<ApplicationUser, ApplicationUserDTO>()
+                .ForMember(dest => dest.UserAvatar, opt => opt.MapFrom(src => src.UserAvatars));
 
             CreateMap<UserAvatar, UserAvatarDTO>()
                 .ForMember(dest => dest.BucketName, opt => opt.MapFrom(src => src.Bucket.Name));

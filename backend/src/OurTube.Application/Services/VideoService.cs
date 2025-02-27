@@ -7,6 +7,7 @@ using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OurTube.Application.Services
 {
@@ -39,14 +40,19 @@ namespace OurTube.Application.Services
 
         }
 
-        public VideoDTO GetVideoById(int id)
+        public async Task<VideoDTO> GetVideoById(int id)
         {
-            return _mapper.Map<VideoDTO>(
-                _context.Videos
+            Video video = await _context.Videos
                 .Include(v => v.VideoPreview)
-                .Include(v => v.Playlists)
+                    .ThenInclude(vp => vp.Bucket)
+                .Include(v => v.Files)
+                    .ThenInclude(f => f.Bucket)
                 .Include(v => v.ApplicationUser)
-                .FirstAsync(v => v.Id == id));
+                    .ThenInclude(u => u.UserAvatars)
+                        .ThenInclude(ua => ua.Bucket)
+                .FirstAsync(v => v.Id == id);
+
+            return _mapper.Map<VideoDTO>(video);
         }
 
         public async Task PostVideo(
