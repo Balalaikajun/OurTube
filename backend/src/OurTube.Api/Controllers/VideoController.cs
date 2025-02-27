@@ -15,21 +15,32 @@ namespace OurTube.Api.Controllers
         {
             try
             {
-                return Ok(videoService.GetVideoDTO(id));
+                return Ok(videoService.GetVideoById(id));
             }
             catch (InvalidOperationException)
             {
                 return NotFound();
             }
         }
-        //[HttpPost]
-        //public ActionResult Post(
-        //    [FromForm] VideoPostDTO videoPostDTO,
-        //    [FromForm] IFormFile videoFile,
-        //    [FromForm] IFormFile previewFile)
-        //{
 
-        //}
+        [HttpPost("Post")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult> Post(
+            [FromForm] VideoUploadDTO videoUploadDTO,
+            [FromServices] VideoService videoService,
+            [FromServices] IConfiguration configuration)
+        {
+            try
+            {
+                await videoService.PostVideo(videoUploadDTO, "1", configuration["Minio:Endpoint"]);
+                return Created();
+            }
+            catch(FormatException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
+        }
 
 
 

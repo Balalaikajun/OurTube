@@ -15,6 +15,7 @@ namespace OurTube.Infrastructure.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Video> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
+        public DbSet<Bucket> Buckets { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,12 +1,15 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Minio;
+using OurTube.Domain.Interfaces;
 using System.Threading;
 
 namespace HostingPrototype.Services
 {
     public class MinioService
     {
+        private IMinioClient _minioClient;
+
         private readonly string _accessKey;
         private readonly string _secretKey;
         private readonly string _endpoint; // Обязательно так
@@ -19,58 +22,37 @@ namespace HostingPrototype.Services
             _secretKey = configuration["Minio:SecretKey"];
             _endpoint = configuration["Minio:Endpoint"];
             _bucketName = configuration["Minio:VideoBucket"];
-        }
 
-        public async Task UploadSlicedVideo(string localDir, string videoId, int height)
-        {
-            //Локальное расположение
-            string localPlaylistPath = Path.Combine(localDir, height.ToString(), "playlist.m3u8");
-            string localSegmentsDir = Path.Combine(localDir, height.ToString(), "segments");
-
-            //Расположение в MinIO
-            string minioPlaylistPath = Path.Combine( videoId, height.ToString(), "playlist.m3u8")
-                .Replace(Path.DirectorySeparatorChar, '/');
-            string minioSegmentsDir = Path.Combine(videoId, height.ToString(), "segments")
-                .Replace(Path.DirectorySeparatorChar, '/');
-
-
-            //Проверка наличия плейлиста
-            if (!File.Exists(localPlaylistPath))
-                throw new FileNotFoundException("Playlist was not found.");
-
-            //Проверка количества сегментов
-            int segmentsCount = File.ReadLines(localPlaylistPath).Where(x => x.StartsWith("#EXTINF")).Count();
-            if (Directory.GetFiles(localSegmentsDir).Length != segmentsCount)
-                throw new FileNotFoundException($"Segments count in playlist does not match with count files in {localSegmentsDir}");
-
-            using var client = new MinioClient()
+            _minioClient = new MinioClient()
                 .WithEndpoint(_endpoint)
                 .WithCredentials(_accessKey, _secretKey)
                 .Build();
+        }
 
-
+        public async Task UploadFiles(string[] inputFiles, string bucket, string prefix)
+        {
             //Загрузка сегментов, аж асинхронно
-            List<Task> tasks = new List<Task>();
-            foreach (string segmentPath in Directory.GetFiles(localSegmentsDir))
+            Task[] tasks = inputFiles.Select(async f =>
             {
-                tasks.Add(
-                    client.PutObjectAsync(
-                        new Minio.DataModel.Args.PutObjectArgs()
-                        .WithBucket(_bucketName)
-                        .WithObject(minioSegmentsDir+"/"+Path.GetFileName(segmentPath))
-                        .WithFileName(segmentPath)));
-            }
+                await UploadFile(
+                    f,
+                    Path.Combine(prefix, Path.GetFileName(f)).Replace(@"\", @"/"),
+                    bucket);
+            }).ToArray();
             await Task.WhenAll(tasks);
+        }
 
-
-            //Загрузка плейлиста
-            await client.PutObjectAsync(
-                        new Minio.DataModel.Args.PutObjectArgs()
-                        .WithBucket(_bucketName)
-                        .WithObject(minioPlaylistPath)
-                        .WithFileName(localPlaylistPath));
-
-
+        public async Task UploadFile(string input, string objejtName, string bucket)
+        {
+            using (var fileStream = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                await _minioClient.PutObjectAsync(
+                    new Minio.DataModel.Args.PutObjectArgs()
+                    .WithBucket(bucket)
+                    .WithStreamData(fileStream)
+                    .WithObject(objejtName)
+                    .WithObjectSize(fileStream.Length));
+            }
         }
     }
 }

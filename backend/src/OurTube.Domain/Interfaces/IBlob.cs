@@ -10,7 +10,6 @@ namespace OurTube.Domain.Interfaces
     public interface IBlob
     {
         string FileName { get; set; }
-        string FileDirInStorage { get; set; }
         int BucketId { get; set; }
         Bucket Bucket { get; set; }
     }

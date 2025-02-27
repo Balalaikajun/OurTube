@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,13 +12,11 @@ namespace OurTube.Domain.Entities
     public class VideoPreview:IBlob
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int VideoId { get; set; }
         [Required]
         [MaxLength(125)]
         public string FileName { get; set; }
-        [Required]
-        [MaxLength(125)]
-        public string FileDirInStorage { get; set; }
         [Required]
         public int BucketId { get; set; }
 

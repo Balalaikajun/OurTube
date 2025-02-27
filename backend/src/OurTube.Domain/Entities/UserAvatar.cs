@@ -14,6 +14,7 @@ namespace OurTube.Domain.Entities
     public class UserAvatar: IBlob
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string UserId { get; set; }
         [Required]
         [MaxLength(125)]

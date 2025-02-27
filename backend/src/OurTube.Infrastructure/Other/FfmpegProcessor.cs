@@ -1,6 +1,7 @@
 ﻿using OurTube.Domain.Entities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,8 +19,9 @@ namespace OurTube.Infrastructure.Other
             var inputVideoMediaInfo = await FFmpeg.GetMediaInfo(inputVideo);
             string localSegmentsPath = Path.Combine(outputDir, "segments", "segment_%03d.ts"); // Путь до сегментов в локальной папке
             string localPlaylistPath = Path.Combine(outputDir, "playlist.m3u8");
+            string segmentsFullUri = Path.Combine(segmentsUri, "segments/").Replace(@"\", @"/");
 
-            Directory.CreateDirectory(Path.Combine(outputDir, videoHeight.ToString(), "segments"));
+            Directory.CreateDirectory(Path.Combine(outputDir, "segments"));
 
             Xabe.FFmpeg.FFmpeg.SetExecutablesPath(@"C:\FFmpeg");
             await FFmpeg.Conversions.New()
@@ -30,7 +32,7 @@ namespace OurTube.Infrastructure.Other
                 .AddParameter($"-c:a aac -b:a 128k")           // Кодируем аудио
                 .AddParameter($"-hls_time 10 -hls_list_size 0") // HLS настройким
                 .AddParameter($"-hls_segment_filename \"{localSegmentsPath}\"")
-                .AddParameter($"-hls_base_url \"{segmentsUri}\"")
+                .AddParameter($"-hls_base_url \"{segmentsFullUri}\"")
                 .SetOutput(localPlaylistPath)
                 .Start();
         }

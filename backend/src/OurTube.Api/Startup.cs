@@ -12,6 +12,7 @@ using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using OurTube.Application.Mapping;
 using OurTube.Application.Services;
+using HostingPrototype.Services;
 
 
 namespace OurTube.Api
@@ -51,6 +52,11 @@ namespace OurTube.Api
             services.AddAutoMapper(typeof(UserProfile).Assembly);
 
             services.AddScoped<VideoService>();
+            services.AddScoped<MinioService>();
+            services.AddScoped<FfmpegProcessor>();
+
+            services.AddScoped<LocalFilesService>();
+            services.AddScoped<VideoValidationService>();
 
 
             services.AddCors(options =>

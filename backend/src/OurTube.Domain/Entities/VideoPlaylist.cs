@@ -13,9 +13,6 @@ namespace OurTube.Domain.Entities
         [MaxLength(125)]
         public string FileName { get; set; }
         [Required]
-        [MaxLength(125)]
-        public string FileDirInStorage{ get; set; }
-        [Required]
         public int BucketId { get; set; }
 
         //Navigation
