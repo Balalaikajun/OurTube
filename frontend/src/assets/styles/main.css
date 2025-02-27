@@ -1,0 +1,6 @@
+@import './reset.css';
+@import './normalize.css';
+
+body {
+    background: #100E0E;
+}

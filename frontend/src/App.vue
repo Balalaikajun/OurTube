@@ -1,47 +1,31 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+    import VideoPlayer from "@/components/VideoPlayer.vue";
+    import Auth from "./views/Auth.vue";
+    import Reg from "./views/Reg.vue";
+    import FogPass from "./views/FogPass.vue";
+
+    import { computed } from "vue";
+    import { useRoute } from 'vue-router';
+    const route = useRoute();
+    const authRoutes = ["/login"];
+    const regRoutes = ["/register"];
+    const fogPassRoutes = ["/forgot-password"];
+    const showAuth = computed(() => authRoutes.includes(route.path));
+    const showReg = computed(() => regRoutes.includes(route.path));
+    const showFogPass = computed(() => fogPassRoutes.includes(route.path));
+    const showVideoPlayer = computed(() => route.path.startsWith("/video/"));
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+    <div>
+        <VideoPlayer v-if="showVideoPlayer" />
+        <Auth v-if="showAuth" />
+        <Reg v-if="showReg"/>
+        <FogPass v-if="showFogPass"/>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+    
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
+    
 </style>
