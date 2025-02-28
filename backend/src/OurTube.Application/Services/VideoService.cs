@@ -7,6 +7,7 @@ using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace OurTube.Application.Services
@@ -182,7 +183,11 @@ namespace OurTube.Application.Services
             }
             finally
             {
-                await Task.Run(() => _localFilesService.DeleteDirectory(tempVideoDir));
+                await Task.Run(() =>
+                {
+                    if (Directory.Exists(tempVideoDir))
+                        Directory.Delete(tempVideoDir, true);
+                });
             }
         }
     }

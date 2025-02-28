@@ -19,11 +19,5 @@ namespace OurTube.Application.Services
             await file.CopyToAsync(stream);
             return filePath;
         }
-
-        public void DeleteDirectory(string directory)
-        {
-            if (Directory.Exists(directory))
-                Directory.Delete(directory, true);
-        }
     }
 }

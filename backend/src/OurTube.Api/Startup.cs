@@ -29,8 +29,7 @@ namespace OurTube.Api
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            //services.AddDbContext<AppIdentityDbContext>(options =>
-            //    options.UseNpgsql(connectionString));
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
@@ -39,11 +38,11 @@ namespace OurTube.Api
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = true;
-                options.SignIn.RequireConfirmedEmail = true;
                 options.Tokens.AuthenticatorIssuer = null;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders()
+            .AddUserManager<ApplicationUserManager>()
             .AddApiEndpoints();
 
             services.AddTransient<IEmailSender, EmailSender>();

@@ -9,11 +9,11 @@ namespace OurTube.Domain.Entities
         [Key]
         public string Id{ get; set; }
         [Required]
-        public int SubscribersCount { get; set; }
+        public int SubscribersCount { get; set; } = 0;
         [Required]
-        public int SubscribedToCount { get; set; }
+        public int SubscribedToCount { get; set; } = 0;
         [Required]
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime Created { get; set; } = DateTime.UtcNow;
 
         //Navigation
         public ICollection<Subscription> Subscribers { get; set; }
