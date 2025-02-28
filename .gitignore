@@ -1,8 +1,80 @@
-bin/
-obj/
+# Visual Studio-specific
+.vs/
 *.user
 *.suo
-*.vs
-.vs/
-*.db
+*.userosscache
+*.sln.docstates
+*.filters
+*.VC.db
+
+# Build output
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+*.appx
+*.appxbundle
+*.build.cs
+*.csproj.user
+*.msbuilds
+*.nupkg
+*.snupkg
+*.psmdcp
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+project.lock.json
+project.assets.json
+global.json
+
+# ASP.NET-specific
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Production.json
+appsettings.Staging.json
+secrets.json
+
+# Entity Framework
+**/Migrations/
+
+# Logs and debugging
 *.log
+*.tlog
+*.ide.log
+*.sourcemap
+log/
+logs/
+*.psess
+*.pyc
+*.pyo
+
+# User settings
+*.swp
+*.swo
+*.sln.cache
+
+# Coverage and test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.code-workspace
+
+# Node.js (if using frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnp/
+.pnp.js
+
+# Docker
+**/[Dd]ockerfile
+**/[Dd]ockerignore
+
+# JetBrains Rider
+.idea/
+*.sln.iml
