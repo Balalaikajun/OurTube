@@ -3,6 +3,7 @@
     import Auth from "./views/Auth.vue";
     import Reg from "./views/Reg.vue";
     import FogPass from "./views/FogPass.vue";
+    import VideoBlock from "./components/VideoBlockCard.vue";
 
     import { computed } from "vue";
     import { useRoute } from 'vue-router';
@@ -18,6 +19,7 @@
 
 <template>
     <div>
+        <VideoBlock />
         <VideoPlayer v-if="showVideoPlayer" />
         <Auth v-if="showAuth" />
         <Reg v-if="showReg"/>
