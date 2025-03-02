@@ -3,6 +3,7 @@
     import Auth from "./views/Auth.vue";
     import Reg from "./views/Reg.vue";
     import FogPass from "./views/FogPass.vue";
+    import MainPage from "./views/MainPage.vue";
     import VideoBlock from "./components/VideoBlockCard.vue";
 
     import { computed } from "vue";
@@ -11,6 +12,7 @@
     const authRoutes = ["/login"];
     const regRoutes = ["/register"];
     const fogPassRoutes = ["/forgot-password"];
+    const mainPage = ["/"];
     const showAuth = computed(() => authRoutes.includes(route.path));
     const showReg = computed(() => regRoutes.includes(route.path));
     const showFogPass = computed(() => fogPassRoutes.includes(route.path));
@@ -19,7 +21,7 @@
 
 <template>
     <div>
-        <VideoBlock />
+        <MainPage v-if="mainPage" />
         <VideoPlayer v-if="showVideoPlayer" />
         <Auth v-if="showAuth" />
         <Reg v-if="showReg"/>

@@ -1,26 +1,39 @@
 <script setup>
-    import { ref, computed, onMounted } from "vue";
+    import { defineProps } from "vue";
+
+    // Принимаем данные через props
+    const props = defineProps({
+        video: {
+            type: Object,
+            required: true,
+        },
+    });
 </script>
 <template>
     <div class="video-card">
         <div class="video-block">
+            <!-- Значок времени -->
             <div class="thumbnail-overlay-badge">
-                <div class="badge" role="img" aria-label="3 минуты 49 секунд">
-                    <div class="badge-text">3:49</div>
+                <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
+                <div class="badge-text">{{ video.duration }}</div>
                 </div>
             </div>
-            <img src="" alt="">
+            <!-- Изображение -->
+            <img :src="video.preview.fileName" :alt="video.title" />
         </div>
         <div class="bottom-block">
             <div class="video-info">
-                <h3 class="video-title">укеыуеыуыукыупsrssfdgsdfgsdfgsffffffff</h3>
-                <p class="channel-name">ffffffffffffffssssssssaaaaaaa</p>
+                <!-- Заголовок видео -->
+                <h3 class="video-title">{{ video.title }}</h3>
+                <!-- Название канала -->
+                <p class="channel-name">{{ video.user.name }}</p>
             </div>
+            <!-- Кнопка управления -->
             <button class="control-button">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path fill="#F3F0E9"
-                        d="M10 16.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zM8.5 12c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5zm0-6c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5z">
-                    </path>
+                <path fill="#F3F0E9"
+                    d="M10 16.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zM8.5 12c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5zm0-6c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5z">
+                </path>
                 </svg>
             </button>
         </div>
