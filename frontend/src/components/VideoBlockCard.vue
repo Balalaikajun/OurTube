@@ -19,14 +19,14 @@
                 </div>
             </div>
             <!-- Изображение -->
-            <img :src="video.preview.fileName" :alt="video.title" />
+            <img class="video-thumbnail" :src="video.preview.fileName" :alt="video.title" />
         </div>
         <div class="bottom-block">
             <div class="video-info">
                 <!-- Заголовок видео -->
                 <h3 class="video-title">{{ video.title }}</h3>
                 <!-- Название канала -->
-                <p class="channel-name">{{ video.user.name }}</p>
+                <p class="channel-name">Мистер Макс</p>
             </div>
             <!-- Кнопка управления -->
             <button class="control-button">
@@ -59,6 +59,13 @@
         color: #F3F0E9;
         font-size: 12px;
     }
+    .video-thumbnail {
+  width: 100%; /* Ширина изображения */
+  height: 18vh; /* Высота изображения */
+  background: #F39E60; /* Фон, если изображение не загружено */
+  object-fit: cover; /* Изображение заполняет блок, сохраняя пропорции */
+  display: block; /* Убираем лишние отступы */
+}
     .control-button {
         display: flex;
         position: relative;
