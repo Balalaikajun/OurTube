@@ -13,14 +13,14 @@ namespace OurTube.Application.Services
         public void ValidateVideo(VideoUploadDTO video)
         {
             // Валидация данных
-            if (video.VideoFile.ContentType.StartsWith("video/"))
+            if (!video.VideoFile.ContentType.StartsWith("video/"))
             {
-                throw new FormatException("Данный формат файла не поддерживается");
+                throw new FormatException($"Формат файла: {video.VideoFile.ContentType} - не поддерживается");
             }
 
-            if (video.PreviewFile.ContentType.StartsWith("image/"))
+            if (!video.PreviewFile.ContentType.StartsWith("image/"))
             {
-                throw new FormatException("Данный формат файла не поддерживается");
+                throw new FormatException($"Формат файла: {video.PreviewFile.ContentType} - не поддерживается");
             }
 
             if (video.VideoPostDTO.Title == "con")

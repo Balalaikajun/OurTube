@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs;
 using OurTube.Application.Services;
+using System.Security.Claims;
 
 namespace OurTube.Api.Controllers
 {
@@ -23,6 +25,7 @@ namespace OurTube.Api.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("Post")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult> Post(
@@ -32,7 +35,10 @@ namespace OurTube.Api.Controllers
         {
             try
             {
-                await videoService.PostVideo(videoUploadDTO, "1", configuration["Minio:Endpoint"]);
+                await videoService.PostVideo(
+                    videoUploadDTO,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    configuration["Minio:Endpoint"]);
                 return Created();
             }
             catch(FormatException ex)
