@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OurTube.Domain.Entities
 {
     public class Video
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [MaxLength(150)]
@@ -19,7 +21,7 @@ namespace OurTube.Domain.Entities
         public int LikesCount { get; set; } = 0;
 
         [Required]
-        public int DeslikeCount { get; set; } = 0;
+        public int DislikeCount { get; set; } = 0;
 
         [Required]
         public int CommentsCount { get; set; } = 0;
@@ -29,18 +31,15 @@ namespace OurTube.Domain.Entities
 
         [Required]
         public DateTime Created { get; set; } = DateTime.UtcNow;
-        [MaxLength(125)]
-        [Required]
-        public string PreviewPath { get; set; }
-        [MaxLength(125)]
-        [Required]
-        public string SourcePath { get; set; }
-        [Required]
-        public string ApplicationUserId { get; set; }
 
         //Navigation
+        [Required]
         public ApplicationUser ApplicationUser { get; set; }
-        public ICollection<VideoFile> Files { get; set; }
+        [Required]
+        public VideoPreview VideoPreview { get; set; }
+        [Required]
+        public VideoSource VideoSource { get; set; }
+        public ICollection<VideoPlaylist> Files { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public ICollection<PlaylistElement> Playlists { get; set;}
     }

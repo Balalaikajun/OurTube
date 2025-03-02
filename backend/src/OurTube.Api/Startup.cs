@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,6 +10,9 @@ using OurTube.Domain.Entities;
 using OurTube.Infrastructure;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
+using OurTube.Application.Mapping;
+using OurTube.Application.Services;
+using HostingPrototype.Services;
 
 
 namespace OurTube.Api
@@ -25,27 +29,34 @@ namespace OurTube.Api
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            //services.AddDbContext<AppIdentityDbContext>(options =>
-            //    options.UseNpgsql(connectionString));
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
-
-            
-         
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = true;
-                options.SignIn.RequireConfirmedEmail = true;
                 options.Tokens.AuthenticatorIssuer = null;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders()
+            .AddUserManager<ApplicationUserManager>()
             .AddApiEndpoints();
 
             services.AddTransient<IEmailSender, EmailSender>();
+
+            services.AddAutoMapper(typeof(VideoProfile).Assembly);
+            services.AddAutoMapper(typeof(UserProfile).Assembly);
+
+            services.AddScoped<VideoService>();
+            services.AddScoped<MinioService>();
+            services.AddScoped<FfmpegProcessor>();
+
+            services.AddScoped<LocalFilesService>();
+            services.AddScoped<VideoValidationService>();
+
 
             services.AddCors(options =>
             {
