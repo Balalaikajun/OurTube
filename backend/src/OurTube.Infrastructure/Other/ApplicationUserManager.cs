@@ -35,7 +35,8 @@ namespace OurTube.Infrastructure.Other
 
                 _applicationDbContext.ApplicationUsers.Add(new ApplicationUser()
                 {
-                    Id = user.Id
+                    Id = user.Id,
+                    UserName = user.UserName
                 });
 
                 try

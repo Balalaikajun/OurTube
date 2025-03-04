@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.ApplicationUser;
+using OurTube.Application.DTOs.UserAvatar;
 using OurTube.Domain.Entities;
 using System;
 using System.Collections.Generic;

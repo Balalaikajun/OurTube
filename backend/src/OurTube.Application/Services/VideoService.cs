@@ -2,7 +2,8 @@
 using HostingPrototype.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.Validators;
+using OurTube.Application.DTOs.Video;
 using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
@@ -18,7 +19,7 @@ namespace OurTube.Application.Services
         private IMapper _mapper;
         private FfmpegProcessor _videoProcessor;
         private MinioService _minioService;
-        private VideoValidationService _validator;
+        private VideoValidator _validator;
         private LocalFilesService _localFilesService;
 
         private readonly int[] _videoResolutions;
@@ -27,7 +28,7 @@ namespace OurTube.Application.Services
             IMapper mapper,
             FfmpegProcessor videoProcessor,
             IConfiguration configuration,
-            VideoValidationService validator,
+            VideoValidator validator,
             LocalFilesService localFilesService,
             MinioService minioService)
         {

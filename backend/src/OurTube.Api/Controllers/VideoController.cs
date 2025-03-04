@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.Video;
 using OurTube.Application.Services;
 using System.Security.Claims;
 
@@ -19,9 +19,9 @@ namespace OurTube.Api.Controllers
             {
                 return Ok(await videoService.GetVideoById(id));
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
         }
 

@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OurTube.Domain.Entities;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.Video;
+using OurTube.Application.DTOs.VideoPlaylist;
+using OurTube.Application.DTOs.VideoPreview;
 
 namespace OurTube.Application.Mapping
 {

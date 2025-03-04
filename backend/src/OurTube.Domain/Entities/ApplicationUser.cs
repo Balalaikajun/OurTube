@@ -8,6 +8,9 @@ namespace OurTube.Domain.Entities
     {
         [Key]
         public string Id{ get; set; }
+        [MaxLength(256)]
+        [Required]
+        public string UserName { get; set; }
         [Required]
         public int SubscribersCount { get; set; } = 0;
         [Required]
