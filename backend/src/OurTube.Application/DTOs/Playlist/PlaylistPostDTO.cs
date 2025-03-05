@@ -14,6 +14,6 @@ namespace OurTube.Application.DTOs.Playlist
         public string Title { get; set; }
         [MaxLength(5000)]
         [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } = "";
     }
 }

@@ -13,7 +13,7 @@ namespace OurTube.Domain.Entities
         public string Title { get; set; }
         [MaxLength(5000)]
         [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } = "";
         [Required]
         public int Count { get; set; }
         [Required]

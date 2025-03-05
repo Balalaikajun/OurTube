@@ -94,9 +94,6 @@ namespace OurTube.Application.Services
             if (_dbContext.Videos.FirstOrDefault(v => v.Id == videoId) == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            if (playlist.PlaylistElements.Any(pe => pe.VideoId == videoId))
-                throw new InvalidOperationException("Видео уже добавлено в плейлист");
-
 
             playlist.PlaylistElements.Add(new PlaylistElement() 
             {

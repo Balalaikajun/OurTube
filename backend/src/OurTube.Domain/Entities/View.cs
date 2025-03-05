@@ -11,7 +11,7 @@ namespace OurTube.Domain.Entities
         [Required]
         public long EndTime { get; set; }
         [Required]
-        public DateTime DateTime { get; set; } = DateTime.Now;
+        public DateTime DateTime { get; set; } = DateTime.UtcNow;
 
         //Navigation
         public Video Video { get; set; }

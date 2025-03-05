@@ -54,6 +54,7 @@ namespace OurTube.Api
             services.AddScoped<UserService>();
             services.AddScoped<PlaylistService>();
             services.AddScoped<VoteService>();
+            services.AddScoped<ViewService>();
             services.AddScoped<MinioService>();
             services.AddScoped<FfmpegProcessor>();
 

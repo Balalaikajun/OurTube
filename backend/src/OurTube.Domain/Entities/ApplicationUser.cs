@@ -24,6 +24,7 @@ namespace OurTube.Domain.Entities
         public ICollection<Video> Videos { get; set; }
         public ICollection<View> Views { get; set; }
         public ICollection<Vote> Votes { get; set; }
+        public ICollection<Playlist> Playlists { get; set; }
         public UserAvatar? UserAvatars { get; set; }
 
 
