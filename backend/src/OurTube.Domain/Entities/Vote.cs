@@ -11,7 +11,7 @@ namespace OurTube.Domain.Entities
         [Required]
         public bool Type { get; set; }
         [Required]
-        public DateTime Created { get; set; }
+        public DateTime Created { get; set; } = DateTime.UtcNow;
 
         //Navigation
         public Video Video { get; set; }

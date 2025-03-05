@@ -15,9 +15,14 @@ namespace OurTube.Api.Controllers
         [HttpGet("{id}")]
         public  ActionResult<VideoDTO> Get(int id, VideoService videoService)
         {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             try
             {
-                return Ok(videoService.GetVideoById(id));
+                if (userId != null)
+                    return Ok(videoService.GetVideoById(id, userId));
+                else
+                    return Ok(videoService.GetVideoById(id));
             }
             catch (InvalidOperationException ex)
             {

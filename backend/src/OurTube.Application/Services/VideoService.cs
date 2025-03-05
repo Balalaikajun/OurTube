@@ -51,9 +51,33 @@ namespace OurTube.Application.Services
                 .Include(v => v.ApplicationUser)
                     .ThenInclude(u => u.UserAvatars)
                         .ThenInclude(ua => ua.Bucket)
-                .First(v => v.Id == id);
+                .FirstOrDefault(v => v.Id == id);
 
-            return _mapper.Map<VideoDTO>(video);
+            if (video == null)
+                throw new InvalidOperationException("Видео не найдено");
+
+
+            VideoDTO videoDTO = _mapper.Map<VideoDTO>(video);
+
+            return videoDTO;
+        }
+
+        public VideoDTO GetVideoById(int id, string userId)
+        {
+            VideoDTO videoDTO = GetVideoById(id);
+
+            ApplicationUser applicationUser = _context.ApplicationUsers
+                .Include(au => au.Votes)
+                .FirstOrDefault(au => au.Id == userId);
+
+            Vote vote = applicationUser
+                .Votes
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (vote != null)
+                videoDTO.Vote = vote.Type;
+
+            return videoDTO;
         }
 
         public async Task PostVideo(

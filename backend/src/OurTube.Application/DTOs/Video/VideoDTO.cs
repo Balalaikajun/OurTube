@@ -19,6 +19,7 @@ namespace OurTube.Application.DTOs.Video
         public int DislikeCount { get; set; } 
         public int CommentsCount { get; set; }
         public int ViewsCount { get; set; }
+        public bool? Vote { get; set; }
         public DateTime Created { get; set; }
         public VideoPreviewDTO Preview { get; set; }
         public List<VideoPlaylistDTO> Files { get; set; }
