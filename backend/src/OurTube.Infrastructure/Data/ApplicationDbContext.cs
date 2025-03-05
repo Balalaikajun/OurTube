@@ -18,6 +18,7 @@ namespace OurTube.Infrastructure.Data
         public DbSet<PlaylistElement> PlaylistElements { get; set; }
         public DbSet<Bucket> Buckets { get; set; }
 
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

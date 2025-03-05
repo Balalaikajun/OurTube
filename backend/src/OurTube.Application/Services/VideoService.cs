@@ -51,10 +51,18 @@ namespace OurTube.Application.Services
                 .Include(v => v.ApplicationUser)
                     .ThenInclude(u => u.UserAvatars)
                         .ThenInclude(ua => ua.Bucket)
+                .Include(v => v.Votes)
+                .Include(v => v.Comments)
+                .Include(v => v.Views)
                 .FirstOrDefault(v => v.Id == id);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
+
+            video.LikesCount = video.Votes.Where(v => v.Type == true).Count();
+            video.DislikeCount = video.Votes.Where(v => v.Type == false).Count();
+            video.CommentsCount = video.Comments.Count;
+            video.ViewsCount= video.ViewsCount;
 
 
             VideoDTO videoDTO = _mapper.Map<VideoDTO>(video);
@@ -214,5 +222,7 @@ namespace OurTube.Application.Services
                 });
             }
         }
+
+        
     }
 }
