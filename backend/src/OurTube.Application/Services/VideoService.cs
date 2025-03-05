@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
-using HostingPrototype.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using OurTube.Application.DTOs.Validators;
 using OurTube.Application.DTOs.Video;
+using OurTube.Application.Validators;
 using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
@@ -42,9 +41,9 @@ namespace OurTube.Application.Services
 
         }
 
-        public async Task<VideoDTO> GetVideoById(int id)
+        public VideoDTO GetVideoById(int id)
         {
-            Video video = await _context.Videos
+            Video video = _context.Videos
                 .Include(v => v.VideoPreview)
                     .ThenInclude(vp => vp.Bucket)
                 .Include(v => v.Files)
@@ -52,7 +51,7 @@ namespace OurTube.Application.Services
                 .Include(v => v.ApplicationUser)
                     .ThenInclude(u => u.UserAvatars)
                         .ThenInclude(ua => ua.Bucket)
-                .FirstAsync(v => v.Id == id);
+                .First(v => v.Id == id);
 
             return _mapper.Map<VideoDTO>(video);
         }

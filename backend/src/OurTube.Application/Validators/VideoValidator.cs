@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xabe.FFmpeg;
 
-namespace OurTube.Application.DTOs.Validators
+namespace OurTube.Application.Validators
 {
     public class VideoValidator
     {

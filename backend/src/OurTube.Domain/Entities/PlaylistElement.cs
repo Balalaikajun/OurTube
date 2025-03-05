@@ -13,6 +13,8 @@ namespace OurTube.Domain.Entities
         public int PlaylistId { get; set; }
         public int VideoId { get; set; }
 
+        public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+
         //Navigation
         public Playlist Playlist { get; set; }
         public Video Video { get; set; }

@@ -12,8 +12,7 @@ using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using OurTube.Application.Mapping;
 using OurTube.Application.Services;
-using HostingPrototype.Services;
-using OurTube.Application.DTOs.Validators;
+using OurTube.Application.Validators;
 
 
 namespace OurTube.Api
@@ -53,6 +52,7 @@ namespace OurTube.Api
 
             services.AddScoped<VideoService>();
             services.AddScoped<UserService>();
+            services.AddScoped<PlaylistService>();
             services.AddScoped<MinioService>();
             services.AddScoped<FfmpegProcessor>();
 

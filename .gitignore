@@ -78,3 +78,4 @@ yarn-error.log
 # JetBrains Rider
 .idea/
 *.sln.iml
+/backend/src/OurTube.Api/appsettings.json

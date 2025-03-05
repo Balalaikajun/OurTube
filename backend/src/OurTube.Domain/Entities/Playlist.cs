@@ -15,10 +15,12 @@ namespace OurTube.Domain.Entities
         [Required]
         public string Description { get; set; }
         [Required]
+        public int Count { get; set; }
+        [Required]
         public string ApplicationUserId { get; set; }
 
         //Navigation
         public ApplicationUser ApplicationUser { get; set; }
-        public ICollection<PlaylistElement> Videos { get; set; }
+        public ICollection<PlaylistElement> PlaylistElements { get; set; }
     }
 }

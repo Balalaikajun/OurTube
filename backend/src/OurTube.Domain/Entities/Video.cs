@@ -41,6 +41,5 @@ namespace OurTube.Domain.Entities
         public VideoSource VideoSource { get; set; }
         public ICollection<VideoPlaylist> Files { get; set; }
         public ICollection<Comment> Comments { get; set; }
-        public ICollection<PlaylistElement> Playlists { get; set;}
     }
 }
