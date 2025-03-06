@@ -51,9 +51,11 @@ namespace OurTube.Api
             services.AddAutoMapper(typeof(UserProfile).Assembly);
 
             services.AddScoped<VideoService>();
-            services.AddScoped<UserService>();
             services.AddScoped<PlaylistService>();
-            services.AddScoped<VoteService>();
+            services.AddScoped<VideoVoteService>();
+            services.AddScoped<UserService>();
+            services.AddScoped<CommentService>();
+            services.AddScoped<CommentVoteService>();
             services.AddScoped<ViewService>();
             services.AddScoped<MinioService>();
             services.AddScoped<FfmpegProcessor>();

@@ -9,13 +9,12 @@ using System.Security.Claims;
 namespace OurTube.Api.Controllers
 {
     [Route("api/Video")]
-    [ApiController]
-    public class VoteController : ControllerBase
+    public class VideoVoteController : ControllerBase
     {
 
         [Authorize]
         [HttpPost("{videoId}/like")]
-        public async Task<ActionResult> PostLike(int videoId, VoteService voteService)
+        public async Task<ActionResult> PostLike(int videoId, [FromServices]VideoVoteService voteService)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -33,7 +32,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPost("{videoId}/deslike")]
-        public async Task<ActionResult> PostDeslike(int videoId, VoteService voteService)
+        public async Task<ActionResult> PostDeslike(int videoId, [FromServices] VideoVoteService voteService)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -51,7 +50,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{videoId}/like")]
-        public async Task<ActionResult> DeleteLike(int videoId, VoteService voteService)
+        public async Task<ActionResult> DeleteLike(int videoId, [FromServices] VideoVoteService voteService)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -70,7 +69,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{videoId}/deslike")]
-        public async Task<ActionResult> DeleteDeslike(int videoId, VoteService voteService)
+        public async Task<ActionResult> DeleteDeslike(int videoId, [FromServices] VideoVoteService voteService)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

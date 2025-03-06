@@ -152,7 +152,7 @@ namespace OurTube.Application.Services
                 .Take(limit)
                 .Select(pe =>
                 {
-                pe.Video = _videoService.GetVideoById(pe.Video.Id);
+                pe.Video = _videoService.GetMinVideoById(pe.Video.Id,userId);
                     return pe;
                 })
                 .ToList();

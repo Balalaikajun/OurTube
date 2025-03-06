@@ -11,6 +11,6 @@ namespace OurTube.Application.DTOs.PlaylistElement
     {
 
         public DateTime AddedAt { get; set; } = DateTime.UtcNow;
-        public VideoDTO Video { get; set; }
+        public VideoMinGetDTO Video { get; set; }
     }
 }

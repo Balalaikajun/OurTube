@@ -1,12 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace OurTube.Domain.Entities
 {
-    [PrimaryKey(nameof(VideoId), nameof(ApplicationUserId))]
-    public class Vote
+    [PrimaryKey(nameof(CommentId), nameof(ApplicationUserId))]
+    public class CommentVote
     {
-        public int VideoId { get; set; }
+        public int CommentId { get; set; }
         public string ApplicationUserId { get; set; }
         [Required]
         public bool Type { get; set; }
@@ -14,7 +19,7 @@ namespace OurTube.Domain.Entities
         public DateTime Created { get; set; } = DateTime.UtcNow;
 
         //Navigation
-        public Video Video { get; set; }
+        public Comment Comment { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
     }
 }

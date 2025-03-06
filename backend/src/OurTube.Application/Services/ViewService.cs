@@ -34,7 +34,9 @@ namespace OurTube.Application.Services
             if (applicationUser == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            if(_dbContext.Videos.FirstOrDefault(v => v.Id ==videoId)== null)
+            Video video = _dbContext.Videos.FirstOrDefault(v => v.Id == videoId);
+
+            if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
             View view = applicationUser.Views.FirstOrDefault(v => v.VideoId == videoId);
@@ -51,6 +53,7 @@ namespace OurTube.Application.Services
                    VideoId = videoId,
                    EndTime = endTime
                 });
+                video.ViewsCount++;
             }
 
             await _dbContext.SaveChangesAsync();
@@ -112,7 +115,7 @@ namespace OurTube.Application.Services
             foreach(View view in history)
             {
                 ViewGetDTO viewDTO = _mapper.Map<ViewGetDTO>(view);
-                viewDTO.Video = _videoService.GetVideoById(view.VideoId);
+                viewDTO.Video = _videoService.GetMinVideoById(view.VideoId,userId);
                 result.Add(viewDTO);
             }
 

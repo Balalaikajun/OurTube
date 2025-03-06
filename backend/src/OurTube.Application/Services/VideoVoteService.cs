@@ -4,12 +4,12 @@ using OurTube.Infrastructure.Data;
 
 namespace OurTube.Application.Services
 {
-    public class VoteService
+    public class VideoVoteService
     {
         private ApplicationDbContext _dbContext;
         private PlaylistService _playlistService;
 
-        public VoteService(ApplicationDbContext dbContext, PlaylistService playlistService)
+        public VideoVoteService(ApplicationDbContext dbContext, PlaylistService playlistService)
         {
             _dbContext = dbContext;
             _playlistService = playlistService;
@@ -23,28 +23,49 @@ namespace OurTube.Application.Services
                 throw new InvalidOperationException("Видео не найдено");
 
             ApplicationUser applicationUser = _dbContext.ApplicationUsers
-                .Include(u => u.Votes)
+                .Include(u => u.VideoVotes)
                 .Include(u => u.Playlists)
                 .FirstOrDefault(au => au.Id == userId);
 
             if (applicationUser == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            Vote vote = applicationUser.Votes
+            VideoVote vote = applicationUser.VideoVotes
                 .FirstOrDefault(v => v.VideoId == videoId);
 
             if (vote == null)
             {
-                applicationUser.Votes.Add(new Vote()
+                applicationUser.VideoVotes.Add(new VideoVote()
                 {
                     ApplicationUserId = userId,
                     VideoId = videoId,
                     Type = type
                 });
+
+                if (type == true)
+                {
+                    video.LikesCount++;
+                }
+                else
+                {
+                    video.DislikeCount++;
+                }
             }
             else if (vote.Type != type)
             {
                 vote.Type = type;
+
+                if (type == true)
+                {
+                    video.DislikeCount--;
+                    video.LikesCount++;
+                }
+                else
+                {
+                    video.DislikeCount++;
+                    video.LikesCount--;
+
+                }
             }
             else
             {
@@ -80,24 +101,34 @@ namespace OurTube.Application.Services
 
             ApplicationUser applicationUser = _dbContext.ApplicationUsers
                 .Include(u => u.Playlists)
-                .Include(u => u.Votes)
+                .Include(u => u.VideoVotes)
                 .FirstOrDefault(au => au.Id == userId);
 
             if (applicationUser == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            Vote vote = applicationUser.Votes
+            VideoVote vote = applicationUser.VideoVotes
                 .FirstOrDefault(v => v.VideoId == videoId);
 
             if (vote == null)
                 return;
 
-            applicationUser.Votes.Remove(vote);
+            if (vote.Type == true)
+            {
+                video.LikesCount--;
+            }
+            else
+            {
+                video.DislikeCount--;
+            }
+
+            applicationUser.VideoVotes.Remove(vote);
 
             await _dbContext.SaveChangesAsync();
 
             Playlist playlist = applicationUser.Playlists
                 .FirstOrDefault(p => p.Title == "Понравившееся");
+
             if (playlist == null)
                 await _playlistService.Create(new DTOs.Playlist.PlaylistPostDTO { Title = "Понравившееся" }, userId);
 

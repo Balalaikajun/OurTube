@@ -40,7 +40,7 @@ namespace OurTube.Domain.Entities
         [Required]
         public VideoSource VideoSource { get; set; }
         public ICollection<VideoPlaylist> Files { get; set; }
-        public ICollection<Vote> Votes { get; set; }
+        public ICollection<VideoVote> Votes { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public ICollection<View> Views { get; set; }
     }

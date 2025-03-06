@@ -15,9 +15,13 @@ namespace OurTube.Application.Mapping
     {
         public VideoProfile()
         {
-            CreateMap<Video, VideoDTO>()
+            CreateMap<Video, VideoGetDTO>()
                 .ForMember(dest => dest.Preview, opt => opt.MapFrom(src => src.VideoPreview))
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser)); ;
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser));
+
+            CreateMap<Video, VideoMinGetDTO>()
+                .ForMember(dest => dest.Preview, opt => opt.MapFrom(src => src.VideoPreview))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser));
 
             CreateMap<VideoPlaylist, VideoPlaylistDTO>()
                 .ForMember(dest => dest.BucketName, opt => opt.MapFrom(src => src.Bucket.Name));

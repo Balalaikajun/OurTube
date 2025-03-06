@@ -13,7 +13,7 @@ namespace OurTube.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public  ActionResult<VideoDTO> Get(int id, VideoService videoService)
+        public  ActionResult<VideoGetDTO> Get(int id, VideoService videoService)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

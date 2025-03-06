@@ -121,7 +121,11 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult> Get(int id, [FromServices] PlaylistService playlistService, [FromQuery] int limit = 10, [FromQuery] int after = 0)
+        public async Task<ActionResult> Get(
+            int id,
+            [FromServices] PlaylistService playlistService, 
+            [FromQuery] int limit = 10,
+            [FromQuery] int after = 0)
         {
             try
             {

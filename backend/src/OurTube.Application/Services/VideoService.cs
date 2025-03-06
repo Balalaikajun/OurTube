@@ -7,8 +7,6 @@ using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace OurTube.Application.Services
 {
@@ -41,7 +39,7 @@ namespace OurTube.Application.Services
 
         }
 
-        public VideoDTO GetVideoById(int id)
+        public VideoGetDTO GetVideoById(int id)
         {
             Video video = _context.Videos
                 .Include(v => v.VideoPreview)
@@ -51,39 +49,82 @@ namespace OurTube.Application.Services
                 .Include(v => v.ApplicationUser)
                     .ThenInclude(u => u.UserAvatars)
                         .ThenInclude(ua => ua.Bucket)
-                .Include(v => v.Votes)
-                .Include(v => v.Comments)
-                .Include(v => v.Views)
                 .FirstOrDefault(v => v.Id == id);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            video.LikesCount = video.Votes.Where(v => v.Type == true).Count();
-            video.DislikeCount = video.Votes.Where(v => v.Type == false).Count();
-            video.CommentsCount = video.Comments.Count;
-            video.ViewsCount= video.ViewsCount;
-
-
-            VideoDTO videoDTO = _mapper.Map<VideoDTO>(video);
+            VideoGetDTO videoDTO = _mapper.Map<VideoGetDTO>(video);
 
             return videoDTO;
         }
 
-        public VideoDTO GetVideoById(int id, string userId)
+        public VideoGetDTO GetVideoById(int id, string userId)
         {
-            VideoDTO videoDTO = GetVideoById(id);
+            VideoGetDTO videoDTO = GetVideoById(id);
 
             ApplicationUser applicationUser = _context.ApplicationUsers
-                .Include(au => au.Votes)
+                .Include(au => au.VideoVotes)
+                .Include(au => au.Views)
                 .FirstOrDefault(au => au.Id == userId);
 
-            Vote vote = applicationUser
-                .Votes
+            VideoVote vote = applicationUser
+                .VideoVotes
                 .FirstOrDefault(v => v.VideoId == id);
 
             if (vote != null)
                 videoDTO.Vote = vote.Type;
+
+            View view = applicationUser.Views
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (vote != null)
+                videoDTO.EndTime = view.EndTime;
+
+            return videoDTO;
+        }
+
+        public VideoMinGetDTO GetMinVideoById(int id)
+        {
+            Video video = _context.Videos
+                .Include(v => v.VideoPreview)
+                    .ThenInclude(vp => vp.Bucket)
+                .Include(v => v.Files)
+                    .ThenInclude(f => f.Bucket)
+                .Include(v => v.ApplicationUser)
+                    .ThenInclude(u => u.UserAvatars)
+                        .ThenInclude(ua => ua.Bucket)
+                .FirstOrDefault(v => v.Id == id);
+
+            if (video == null)
+                throw new InvalidOperationException("Видео не найдено");
+
+            VideoMinGetDTO videoDTO = _mapper.Map<VideoMinGetDTO>(video);
+
+            return videoDTO;
+        }
+
+        public VideoMinGetDTO GetMinVideoById(int id, string userId)
+        {
+            VideoMinGetDTO videoDTO = GetMinVideoById(id);
+
+            ApplicationUser applicationUser = _context.ApplicationUsers
+                .Include(au => au.Views)
+                .Include(au => au.VideoVotes)
+                .FirstOrDefault(au => au.Id == userId);
+
+            VideoVote vote = applicationUser
+                .VideoVotes
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (vote != null)
+                videoDTO.Vote = vote.Type;
+
+            View view = applicationUser.Views
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (vote != null)
+                videoDTO.EndTime = view.EndTime;
 
             return videoDTO;
         }
@@ -223,6 +264,6 @@ namespace OurTube.Application.Services
             }
         }
 
-        
+
     }
 }
