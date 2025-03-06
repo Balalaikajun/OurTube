@@ -19,6 +19,7 @@ namespace OurTube.Infrastructure.Data
         public DbSet<Bucket> Buckets { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<CommentVote> CommentVotes { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }

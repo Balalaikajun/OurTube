@@ -27,7 +27,8 @@ namespace OurTube.Application.Services
             IConfiguration configuration,
             VideoValidator validator,
             LocalFilesService localFilesService,
-            MinioService minioService)
+            MinioService minioService,
+            SubscriptionService subscriptionService)
         {
             _context = context;
             _mapper = mapper;
@@ -36,7 +37,6 @@ namespace OurTube.Application.Services
             _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
             _validator = validator;
             _localFilesService = localFilesService;
-
         }
 
         public VideoGetDTO GetVideoById(int id)
@@ -78,8 +78,11 @@ namespace OurTube.Application.Services
             View view = applicationUser.Views
                 .FirstOrDefault(v => v.VideoId == id);
 
-            if (vote != null)
+            if (view != null)
                 videoDTO.EndTime = view.EndTime;
+
+            if (applicationUser.SubscribedTo.FirstOrDefault(s => s.SubscribedToId == videoDTO.User.Id) != null)
+                videoDTO.User.IsSubscribed = true;
 
             return videoDTO;
         }
@@ -111,6 +114,7 @@ namespace OurTube.Application.Services
             ApplicationUser applicationUser = _context.ApplicationUsers
                 .Include(au => au.Views)
                 .Include(au => au.VideoVotes)
+                .Include(au => au.SubscribedTo)
                 .FirstOrDefault(au => au.Id == userId);
 
             VideoVote vote = applicationUser
@@ -123,8 +127,11 @@ namespace OurTube.Application.Services
             View view = applicationUser.Views
                 .FirstOrDefault(v => v.VideoId == id);
 
-            if (vote != null)
+            if (view != null)
                 videoDTO.EndTime = view.EndTime;
+
+            if (applicationUser.SubscribedTo.FirstOrDefault(s => s.SubscribedToId == videoDTO.User.Id) != null)
+                videoDTO.User.IsSubscribed = true;
 
             return videoDTO;
         }

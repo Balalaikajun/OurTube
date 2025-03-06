@@ -10,6 +10,7 @@ namespace OurTube.Application.DTOs.ApplicationUser
         [Required]
         public string UserName { get; set; }
         [Required]
+        public bool IsSubscribed { get; set; }
         public int SubscribersCount { get; set; } = 0;
         public UserAvatarDTO? UserAvatar { get; set; }
     }

@@ -16,7 +16,7 @@ namespace OurTube.Domain.Entities
         public string SubscribedToId { get; set; }
         public string SubscriberId { get; set; }
         [Required]
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime Created { get; set; } = DateTime.UtcNow;
 
         //Navigation
         [ForeignKey("SubscribedToId")]
