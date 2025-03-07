@@ -21,7 +21,7 @@
 
 <template>
     <div>
-        <MainPage v-if="mainPage" />
+        <!-- <MainPage v-if="mainPage" /> -->
         <VideoPlayer v-if="showVideoPlayer" />
         <Auth v-if="showAuth" />
         <Reg v-if="showReg"/>

@@ -60,12 +60,12 @@
         font-size: 12px;
     }
     .video-thumbnail {
-  width: 100%; /* Ширина изображения */
-  height: 18vh; /* Высота изображения */
-  background: #F39E60; /* Фон, если изображение не загружено */
-  object-fit: cover; /* Изображение заполняет блок, сохраняя пропорции */
-  display: block; /* Убираем лишние отступы */
-}
+        width: 100%; /* Ширина изображения */
+        height: 18vh; /* Высота изображения */
+        background: #F39E60; /* Фон, если изображение не загружено */
+        object-fit: cover; /* Изображение заполняет блок, сохраняя пропорции */
+        display: block; /* Убираем лишние отступы */
+    }
     .control-button {
         display: flex;
         position: relative;

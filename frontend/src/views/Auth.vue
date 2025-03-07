@@ -15,7 +15,7 @@
 
         try {
             // Back
-            const response = await fetch("https://your-backend.com/api/login", {
+            const response = await fetch("http://localhost:5090/login?useCookies=false&useSessionCookies=false", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -85,9 +85,9 @@
 
 <style scoped>
     .error {
-    color: red;
-    text-align: center;
-    margin-top: 10px;
+        color: red;
+        text-align: center;
+        margin-top: 10px;
     }
 
     .content {
@@ -110,7 +110,7 @@
         display: flex;
         flex-direction: column;
         width: 100%;
-        height: 40vh;
+        height: 50vh;
     }
 
     label, button{
@@ -131,8 +131,11 @@
     .content button:hover {
         color: #100E0E;
         background: #F39E60;
+        cursor: pointer;
     }
     .main-page-block input {
+        width: 15vw;
+        height: 3vh;
         align-self: center;
         color: #100E0E;
         background-color: #F3F0E9;
@@ -153,7 +156,7 @@
     }
     .main-page-block input:first-of-type {
         margin-top: auto;
-        margin-bottom: 10px;
+        margin-bottom: 11vh;
     }
 
     .other-content {
@@ -161,7 +164,7 @@
         flex-direction: column;
         align-items: center;
         width: 25vw;
-        height: 24vh;
+        height: 34vh;
     }
     .other-content button:first-of-type {
         margin-top: 0;
