@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations;
 namespace OurTube.Domain.Entities
 {
     [PrimaryKey(nameof(VideoId), nameof(ApplicationUserId))]
-    public class Vote
+    public class VideoVote
     {
         public int VideoId { get; set; }
         public string ApplicationUserId { get; set; }
         [Required]
         public bool Type { get; set; }
         [Required]
-        public DateTime Created { get; set; }
+        public DateTime Created { get; set; } = DateTime.UtcNow;
 
         //Navigation
         public Video Video { get; set; }

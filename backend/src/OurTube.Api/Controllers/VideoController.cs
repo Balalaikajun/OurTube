@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.Video;
 using OurTube.Application.Services;
 using System.Security.Claims;
 
@@ -13,15 +13,20 @@ namespace OurTube.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<VideoDTO>> Get(int id, VideoService videoService)
+        public  ActionResult<VideoGetDTO> Get(int id, VideoService videoService)
         {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             try
             {
-                return Ok(await videoService.GetVideoById(id));
+                if (userId != null)
+                    return Ok(videoService.GetVideoById(id, userId));
+                else
+                    return Ok(videoService.GetVideoById(id));
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
         }
 

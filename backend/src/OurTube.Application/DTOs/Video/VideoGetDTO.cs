@@ -1,13 +1,16 @@
-﻿using System;
+﻿using OurTube.Application.DTOs.ApplicationUser;
+using OurTube.Application.DTOs.VideoPlaylist;
+using OurTube.Application.DTOs.VideoPreview;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OurTube.Application.DTOs
+namespace OurTube.Application.DTOs.Video
 {
-    public class VideoDTO
+    public class VideoGetDTO
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -16,8 +19,9 @@ namespace OurTube.Application.DTOs
         public int DislikeCount { get; set; } 
         public int CommentsCount { get; set; }
         public int ViewsCount { get; set; }
+        public bool? Vote { get; set; }
+        public long? EndTime { get; set; }
         public DateTime Created { get; set; }
-        public string ApplicationUserId { get; set; }
         public VideoPreviewDTO Preview { get; set; }
         public List<VideoPlaylistDTO> Files { get; set; }
         public ApplicationUserDTO User { get; set; }

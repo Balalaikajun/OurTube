@@ -8,6 +8,9 @@ namespace OurTube.Domain.Entities
     {
         [Key]
         public string Id{ get; set; }
+        [MaxLength(256)]
+        [Required]
+        public string UserName { get; set; }
         [Required]
         public int SubscribersCount { get; set; } = 0;
         [Required]
@@ -20,7 +23,9 @@ namespace OurTube.Domain.Entities
         public ICollection<Subscription> SubscribedTo { get; set; }
         public ICollection<Video> Videos { get; set; }
         public ICollection<View> Views { get; set; }
-        public ICollection<Vote> Votes { get; set; }
+        public ICollection<VideoVote> VideoVotes { get; set; }
+        public ICollection<CommentVote> CommentVotes { get; set; }
+        public ICollection<Playlist> Playlists { get; set; }
         public UserAvatar? UserAvatars { get; set; }
 
 

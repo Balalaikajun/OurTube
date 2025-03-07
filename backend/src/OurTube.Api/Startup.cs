@@ -12,7 +12,7 @@ using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using OurTube.Application.Mapping;
 using OurTube.Application.Services;
-using HostingPrototype.Services;
+using OurTube.Application.Validators;
 
 
 namespace OurTube.Api
@@ -51,11 +51,19 @@ namespace OurTube.Api
             services.AddAutoMapper(typeof(UserProfile).Assembly);
 
             services.AddScoped<VideoService>();
+            services.AddScoped<PlaylistService>();
+            services.AddScoped<VideoVoteService>();
+            services.AddScoped<UserService>();
+            services.AddScoped<CommentService>();
+            services.AddScoped<CommentVoteService>();
+            services.AddScoped<ViewService>();
+            services.AddScoped<RecomendationService>();
+            services.AddScoped<SubscriptionService>();
             services.AddScoped<MinioService>();
             services.AddScoped<FfmpegProcessor>();
 
             services.AddScoped<LocalFilesService>();
-            services.AddScoped<VideoValidationService>();
+            services.AddScoped<VideoValidator>();
 
 
             services.AddCors(options =>
@@ -113,10 +121,13 @@ namespace OurTube.Api
             app.UseAuthentication();
             app.UseAuthorization();
 
+            
+
             app.UseEndpoints(s =>
             {
                 s.MapControllers();
-                s.MapIdentityApi<IdentityUser>();
+                s.MapGroup("/identity")
+                    .MapIdentityApi<IdentityUser>();
             });
         }
     }

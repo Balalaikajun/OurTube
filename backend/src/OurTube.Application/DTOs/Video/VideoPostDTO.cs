@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OurTube.Application.DTOs
+namespace OurTube.Application.DTOs.Video
 {
     public class VideoPostDTO
     {

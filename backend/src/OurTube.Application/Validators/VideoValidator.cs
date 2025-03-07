@@ -1,4 +1,4 @@
-﻿using OurTube.Application.DTOs;
+﻿using OurTube.Application.DTOs.Video;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Xabe.FFmpeg;
 
-namespace OurTube.Application.Services
+namespace OurTube.Application.Validators
 {
-    public class VideoValidationService
+    public class VideoValidator
     {
         public void ValidateVideo(VideoUploadDTO video)
         {

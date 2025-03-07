@@ -15,7 +15,12 @@ namespace OurTube.Infrastructure.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Video> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
+        public DbSet<PlaylistElement> PlaylistElements { get; set; }
         public DbSet<Bucket> Buckets { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<CommentVote> CommentVotes { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -76,6 +81,22 @@ namespace OurTube.Infrastructure.Data
                 .HasOne(v => v.VideoSource)
                 .WithOne(vp => vp.Video)
                 .HasForeignKey<VideoSource>(vp => vp.VideoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            
+
+            // Playlist
+            modelBuilder.Entity<Playlist>()
+                .HasMany(p => p.PlaylistElements)
+                .WithOne(pe => pe.Playlist)
+                .HasForeignKey(pe => pe.PlaylistId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // PlaylistElement
+            modelBuilder.Entity<PlaylistElement>()
+                .HasOne(pe => pe.Video)
+                .WithMany()
+                .HasForeignKey(pe => pe.VideoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
         }

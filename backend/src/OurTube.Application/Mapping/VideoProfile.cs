@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OurTube.Domain.Entities;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.Video;
+using OurTube.Application.DTOs.VideoPlaylist;
+using OurTube.Application.DTOs.VideoPreview;
 
 namespace OurTube.Application.Mapping
 {
@@ -13,9 +15,13 @@ namespace OurTube.Application.Mapping
     {
         public VideoProfile()
         {
-            CreateMap<Video, VideoDTO>()
+            CreateMap<Video, VideoGetDTO>()
                 .ForMember(dest => dest.Preview, opt => opt.MapFrom(src => src.VideoPreview))
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser)); ;
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser));
+
+            CreateMap<Video, VideoMinGetDTO>()
+                .ForMember(dest => dest.Preview, opt => opt.MapFrom(src => src.VideoPreview))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser));
 
             CreateMap<VideoPlaylist, VideoPlaylistDTO>()
                 .ForMember(dest => dest.BucketName, opt => opt.MapFrom(src => src.Bucket.Name));

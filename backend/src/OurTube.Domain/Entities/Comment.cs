@@ -12,19 +12,28 @@ namespace OurTube.Domain.Entities
         public int VideoId { get; set; }
         [Required]
         public string ApplicationUserId { get; set; }
-        [MaxLength(5000)]
+        [MaxLength(1500)]
         [Required]
         public string Text { get; set; }
         [Required]
-        public DateTime Created { get; set; } = DateTime.Now;
+        public DateTime Created { get; set; } = DateTime.UtcNow;
         [Required]
-        public DateTime Updated { get; set; } = DateTime.Now;
-        public int? CommentId { get; set; }
+        public DateTime Updated { get; set; } = DateTime.UtcNow;
+        public int? ParentId { get; set; }
+        [Required]
+        public bool Edited { get; set; } = false;
+        [Required]
+        public int LikesCount { get; set; } = 0;
+        [Required]
+        public int DisLikesCount { get; set; } = 0;
+
+
 
         //Navigation
         public ApplicationUser User { get; set; }
         public Comment? Parent { get; set; }
         public ICollection<Comment> Childs { get; set; }
+        public ICollection<CommentVote> Votes { get; set; }
 
     }
 }

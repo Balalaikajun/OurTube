@@ -1,5 +1,4 @@
-﻿using HostingPrototype.Services;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -42,19 +41,7 @@ namespace OurTube.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("mail")]
-        public async Task<IActionResult> TestMail([FromServices] IEmailSender emailSender)
-        {
-            await emailSender.SendEmailAsync("andrejkluev774@gmail.com", "Привет друг, не бойся", "<h1>Добро пожаловать!</h1>");
-            return Ok();
-        }
-
-        [HttpGet("videoUpload")]
-        public async Task<IActionResult> VideoUploadTest([FromServices] MinioService minioService)
-        {
-            await minioService.UploadFile(@"C:\Users\user\Downloads\mark2.jpg", "test/1.jpg", "carimages");
-            return Ok();
-        }
+        
 
     }
 }

@@ -4,7 +4,7 @@ using Minio;
 using OurTube.Domain.Interfaces;
 using System.Threading;
 
-namespace HostingPrototype.Services
+namespace OurTube.Infrastructure.Other
 {
     public class MinioService
     {

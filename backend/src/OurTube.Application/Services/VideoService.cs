@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
-using HostingPrototype.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using OurTube.Application.DTOs;
+using OurTube.Application.DTOs.Video;
+using OurTube.Application.Validators;
 using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace OurTube.Application.Services
 {
@@ -18,7 +16,7 @@ namespace OurTube.Application.Services
         private IMapper _mapper;
         private FfmpegProcessor _videoProcessor;
         private MinioService _minioService;
-        private VideoValidationService _validator;
+        private VideoValidator _validator;
         private LocalFilesService _localFilesService;
 
         private readonly int[] _videoResolutions;
@@ -27,9 +25,10 @@ namespace OurTube.Application.Services
             IMapper mapper,
             FfmpegProcessor videoProcessor,
             IConfiguration configuration,
-            VideoValidationService validator,
+            VideoValidator validator,
             LocalFilesService localFilesService,
-            MinioService minioService)
+            MinioService minioService,
+            SubscriptionService subscriptionService)
         {
             _context = context;
             _mapper = mapper;
@@ -38,12 +37,11 @@ namespace OurTube.Application.Services
             _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
             _validator = validator;
             _localFilesService = localFilesService;
-
         }
 
-        public async Task<VideoDTO> GetVideoById(int id)
+        public VideoGetDTO GetVideoById(int id)
         {
-            Video video = await _context.Videos
+            Video video = _context.Videos
                 .Include(v => v.VideoPreview)
                     .ThenInclude(vp => vp.Bucket)
                 .Include(v => v.Files)
@@ -51,9 +49,91 @@ namespace OurTube.Application.Services
                 .Include(v => v.ApplicationUser)
                     .ThenInclude(u => u.UserAvatars)
                         .ThenInclude(ua => ua.Bucket)
-                .FirstAsync(v => v.Id == id);
+                .FirstOrDefault(v => v.Id == id);
 
-            return _mapper.Map<VideoDTO>(video);
+            if (video == null)
+                throw new InvalidOperationException("Видео не найдено");
+
+            VideoGetDTO videoDTO = _mapper.Map<VideoGetDTO>(video);
+
+            return videoDTO;
+        }
+
+        public VideoGetDTO GetVideoById(int id, string userId)
+        {
+            VideoGetDTO videoDTO = GetVideoById(id);
+
+            ApplicationUser applicationUser = _context.ApplicationUsers
+                .Include(au => au.VideoVotes)
+                .Include(au => au.Views)
+                .FirstOrDefault(au => au.Id == userId);
+
+            VideoVote vote = applicationUser
+                .VideoVotes
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (vote != null)
+                videoDTO.Vote = vote.Type;
+
+            View view = applicationUser.Views
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (view != null)
+                videoDTO.EndTime = view.EndTime;
+
+            if (applicationUser.SubscribedTo.FirstOrDefault(s => s.SubscribedToId == videoDTO.User.Id) != null)
+                videoDTO.User.IsSubscribed = true;
+
+            return videoDTO;
+        }
+
+        public VideoMinGetDTO GetMinVideoById(int id)
+        {
+            Video video = _context.Videos
+                .Include(v => v.VideoPreview)
+                    .ThenInclude(vp => vp.Bucket)
+                .Include(v => v.Files)
+                    .ThenInclude(f => f.Bucket)
+                .Include(v => v.ApplicationUser)
+                    .ThenInclude(u => u.UserAvatars)
+                        .ThenInclude(ua => ua.Bucket)
+                .FirstOrDefault(v => v.Id == id);
+
+            if (video == null)
+                throw new InvalidOperationException("Видео не найдено");
+
+            VideoMinGetDTO videoDTO = _mapper.Map<VideoMinGetDTO>(video);
+
+            return videoDTO;
+        }
+
+        public VideoMinGetDTO GetMinVideoById(int id, string userId)
+        {
+            VideoMinGetDTO videoDTO = GetMinVideoById(id);
+
+            ApplicationUser applicationUser = _context.ApplicationUsers
+                .Include(au => au.Views)
+                .Include(au => au.VideoVotes)
+                .Include(au => au.SubscribedTo)
+                .FirstOrDefault(au => au.Id == userId);
+
+            VideoVote vote = applicationUser
+                .VideoVotes
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (vote != null)
+                videoDTO.Vote = vote.Type;
+
+            View view = applicationUser.Views
+                .FirstOrDefault(v => v.VideoId == id);
+
+            if (view != null)
+                videoDTO.EndTime = view.EndTime;
+
+            if (applicationUser.SubscribedTo.FirstOrDefault(s => s.SubscribedToId == videoDTO.User.Id) != null)
+                videoDTO.User.IsSubscribed = true;
+
+            return videoDTO;
         }
 
         public async Task PostVideo(
@@ -190,5 +270,7 @@ namespace OurTube.Application.Services
                 });
             }
         }
+
+
     }
 }

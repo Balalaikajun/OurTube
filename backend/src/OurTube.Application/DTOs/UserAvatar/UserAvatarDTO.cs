@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OurTube.Application.DTOs
+namespace OurTube.Application.DTOs.UserAvatar
 {
-    public class VideoPlaylistDTO
+    public class UserAvatarDTO
     {
-        public int Resolution { get; set; }
         public string FileName { get; set; }
+        public string FileDirInStorage { get; set; }
         public string BucketName { get; set; }
     }
 }
