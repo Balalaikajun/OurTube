@@ -16,7 +16,7 @@
 
         try {
             // Запрос на бэкенд для регистрации
-            const response = await fetch("http://localhost:5090/register", {
+            const response = await fetch("http://localhost:5090/identity/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -140,7 +140,6 @@
         color: #f3f0e9;
         font-size: 36px;
         background: #100e0e;
-        cursor: pointer;
     }
 
     .content button {
@@ -151,6 +150,7 @@
     .content button:hover {
         color: #100e0e;
         background: #f39e60;
+        cursor: pointer;
     }
 
     .main-page-block input {
