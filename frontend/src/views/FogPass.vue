@@ -17,6 +17,7 @@
                     name="email"
                     placeholder="Почта"
                     required
+                    autocomplete="new-email"
                 />
                 <p class="instruction-text">
                     На указанную почту будет отправлена форма для смены пароля.

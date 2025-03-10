@@ -8,9 +8,9 @@ import FogPass from '../views/FogPass.vue';
 const routes = [
     { path: '/', component: MainPage },
     { path: '/video/:id', component: VideoPage },
-    { path: '/login', component: Auth },
-    { path: '/register', component: Reg },
-    { path: '/forgot-password', component: FogPass },
+    { path: '/identity/login', component: Auth },
+    { path: '/identity/register', component: Reg },
+    { path: '/identity/forgot-password', component: FogPass },
 ];
 
 const router = createRouter({

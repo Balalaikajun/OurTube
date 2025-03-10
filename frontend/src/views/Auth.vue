@@ -26,10 +26,9 @@
                 })
             });
 
-            const result = await response.json();
-
             if (!response.ok) {
-                throw new Error(result.message || "Ошибка авторизации");
+                //const result = await response.json();
+                throw new Error("Ошибка входа");
             }
 
             alert("Успешный вход!");
@@ -55,6 +54,7 @@
                     name="user_email" 
                     placeholder="Почта" 
                     required 
+                    autocomplete="new-email"
                 >
                 <input 
                     type="password" 
@@ -62,6 +62,7 @@
                     name="user_password" 
                     placeholder="Пароль" 
                     required
+                    autocomplete="new-password"
                 >
                 <button type="submit" :disabled="loading">
                     {{ loading ? "Загрузка..." : "Вход" }}

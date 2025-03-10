@@ -22,16 +22,15 @@
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    username: username.value,
+                    //username: username.value, //нельзя задать
                     email: email.value,
                     password: password.value,
-                }),
+                }), 
             });
 
-            const result = await response.json();
-
             if (!response.ok) {
-                throw new Error(result.message || "Ошибка регистрации");
+                //const result = await response.json();
+                throw new Error("Ошибка регистрации");
             }
 
             alert("Регистрация успешна!");
@@ -50,19 +49,22 @@
         <div class="reg">
             <form @submit.prevent="submitForm" class="main-page-block">
                 <label>Регистрация</label>
-                <input
+                <input 
                     type="text"
                     v-model="username"
                     name="username"
                     placeholder="Логин"
                     required
-                />
+                    disabled
+                    autocomplete="off"
+                /> <!--Пока нет возможности-->
                 <input
                     type="email"
                     v-model="email"
                     name="email"
                     placeholder="Почта"
                     required
+                    autocomplete="new-email"
                 />
                 <input
                     type="password"
@@ -70,6 +72,7 @@
                     name="password"
                     placeholder="Пароль"
                     required
+                    autocomplete="new-password"
                 />
                 <button type="submit" :disabled="loading">
                     {{ loading ? "Загрузка..." : "Зарегистрироваться" }}

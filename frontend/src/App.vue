@@ -9,9 +9,9 @@
     import { computed } from "vue";
     import { useRoute } from 'vue-router';
     const route = useRoute();
-    const authRoutes = ["/login"];
-    const regRoutes = ["/register"];
-    const fogPassRoutes = ["/forgot-password"];
+    const authRoutes = ["/identity/login"];
+    const regRoutes = ["/identity/register"];
+    const fogPassRoutes = ["/identity/forgot-password"];
     const mainPage = ["/"];
     const showAuth = computed(() => authRoutes.includes(route.path));
     const showReg = computed(() => regRoutes.includes(route.path));
@@ -21,7 +21,7 @@
 
 <template>
     <div>
-        <!-- <MainPage v-if="mainPage" /> -->
+        <MainPage v-if="mainPage" />
         <VideoPlayer v-if="showVideoPlayer" />
         <Auth v-if="showAuth" />
         <Reg v-if="showReg"/>
