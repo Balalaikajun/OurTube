@@ -15,7 +15,8 @@
 
         try {
             // Back
-            const response = await fetch("http://localhost:5090/login?useCookies=false&useSessionCookies=false", {
+            // Эндпоинты менять не забывайте
+            const response = await fetch("http://localhost:5090/identity/login?useCookies=false&useSessionCookies=false", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
