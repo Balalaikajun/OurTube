@@ -15,15 +15,15 @@
 
         try {
             // Запрос к API для получения списка видео
-            const response = await fetch("http://localhost:5090/api/Video/2");
+            const response = await fetch("http://localhost:5090/api/Video/");
             const data = await response.json();
             
             if (!response.ok) {
             throw new Error(data.message || "Ошибка при загрузке видео");
             }
 
-            videos.value.push(data) // Сохраняем данные в массив
-            console.log(videos[0]);
+            videos.value = [...data]; // Сохраняем данные в массив
+            // console.log(videos[0]);
         } catch (error) {
             errorMessage.value = error.message;
             console.log("Нот гуд");
