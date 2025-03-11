@@ -2,11 +2,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OurTube.Infrastructure.Data
 {
@@ -20,6 +15,7 @@ namespace OurTube.Infrastructure.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<CommentVote> CommentVotes { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<View> Views { get; set; }
 
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
@@ -50,9 +46,9 @@ namespace OurTube.Infrastructure.Data
             modelBuilder.Entity<ApplicationUser>()
                 .HasOne<IdentityUser>()
                 .WithOne()
-                .HasForeignKey<ApplicationUser>(a =>a.Id)
+                .HasForeignKey<ApplicationUser>(a => a.Id)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
 
             // Subscription
             modelBuilder.Entity<Subscription>()
@@ -72,18 +68,22 @@ namespace OurTube.Infrastructure.Data
 
             // Video
             modelBuilder.Entity<Video>()
-                .HasOne(v => v.VideoPreview)
+                .HasOne(v => v.Preview)
                 .WithOne(vp => vp.Video)
                 .HasForeignKey<VideoPreview>(vp => vp.VideoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Video>()
-                .HasOne(v => v.VideoSource)
+                .HasOne(v => v.Source)
                 .WithOne(vp => vp.Video)
                 .HasForeignKey<VideoSource>(vp => vp.VideoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            
+            // Views
+            modelBuilder.Entity<View>()
+                .ToTable(nameof(View));
+
+
 
             // Playlist
             modelBuilder.Entity<Playlist>()

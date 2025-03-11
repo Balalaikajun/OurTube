@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Minio;
-using OurTube.Domain.Interfaces;
-using System.Threading;
 
 namespace OurTube.Infrastructure.Other
 {

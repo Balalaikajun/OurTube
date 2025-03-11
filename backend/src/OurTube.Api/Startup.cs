@@ -1,18 +1,17 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.Features;
+﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using OurTube.Domain.Entities;
-using OurTube.Infrastructure;
-using OurTube.Infrastructure.Data;
-using OurTube.Infrastructure.Other;
 using OurTube.Application.Mapping;
 using OurTube.Application.Services;
 using OurTube.Application.Validators;
+using OurTube.Domain.Entities;
+using OurTube.Domain.Interfaces;
+using OurTube.Infrastructure.Data;
+using OurTube.Infrastructure.Other;
+using OurTube.Infrastructure.Persistence;
+using OurTube.Infrastructure.Persistence.Repositories;
 
 
 namespace OurTube.Api
@@ -30,7 +29,7 @@ namespace OurTube.Api
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
 
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<DbContext, ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
@@ -50,6 +49,7 @@ namespace OurTube.Api
             services.AddAutoMapper(typeof(VideoProfile).Assembly);
             services.AddAutoMapper(typeof(UserProfile).Assembly);
 
+            // Services
             services.AddScoped<VideoService>();
             services.AddScoped<PlaylistService>();
             services.AddScoped<VideoVoteService>();
@@ -59,12 +59,20 @@ namespace OurTube.Api
             services.AddScoped<ViewService>();
             services.AddScoped<RecomendationService>();
             services.AddScoped<SubscriptionService>();
+
+            // Repositories
+            services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+            services.AddScoped<IPlaylistRepository, PlaylistRepository>();
+            services.AddScoped<IRepository<PlaylistElement>, Repository<PlaylistElement>>();
+
+            // Infrastructure
             services.AddScoped<MinioService>();
             services.AddScoped<FfmpegProcessor>();
+            services.AddScoped<IUnitOfWorks, UnitOfWorks>();
 
+            // Other
             services.AddScoped<LocalFilesService>();
             services.AddScoped<VideoValidator>();
-
 
             services.AddCors(options =>
             {
@@ -90,12 +98,12 @@ namespace OurTube.Api
                 options.MultipartBodyLengthLimit = long.MaxValue;
             });
 
-            
+
 
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddControllers();
-            
+
             // Добавление аутентификации по токену
             //services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
         }
@@ -121,7 +129,7 @@ namespace OurTube.Api
             app.UseAuthentication();
             app.UseAuthorization();
 
-            
+
 
             app.UseEndpoints(s =>
             {

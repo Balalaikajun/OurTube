@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Validators;
 using OurTube.Domain.Entities;
-using OurTube.Infrastructure.Data;
+using OurTube.Domain.Interfaces;
 using OurTube.Infrastructure.Other;
 using System.Collections.ObjectModel;
 
@@ -12,7 +11,7 @@ namespace OurTube.Application.Services
 {
     public class VideoService
     {
-        private ApplicationDbContext _context;
+        private IUnitOfWorks _unitOfWorks;
         private IMapper _mapper;
         private FfmpegProcessor _videoProcessor;
         private MinioService _minioService;
@@ -20,8 +19,9 @@ namespace OurTube.Application.Services
         private LocalFilesService _localFilesService;
 
         private readonly int[] _videoResolutions;
+        private readonly string _bucket;
 
-        public VideoService(ApplicationDbContext context,
+        public VideoService(IUnitOfWorks unitOfWorks,
             IMapper mapper,
             FfmpegProcessor videoProcessor,
             IConfiguration configuration,
@@ -30,26 +30,19 @@ namespace OurTube.Application.Services
             MinioService minioService,
             SubscriptionService subscriptionService)
         {
-            _context = context;
+            _unitOfWorks = unitOfWorks;
             _mapper = mapper;
             _videoProcessor = videoProcessor;
             _minioService = minioService;
             _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
+            _bucket = configuration.GetSection("Minio:VideoBucket").Get<string>();
             _validator = validator;
             _localFilesService = localFilesService;
         }
 
-        public VideoGetDTO GetVideoById(int id)
+        public VideoGetDTO GetVideoById(int videoId)
         {
-            Video video = _context.Videos
-                .Include(v => v.VideoPreview)
-                    .ThenInclude(vp => vp.Bucket)
-                .Include(v => v.Files)
-                    .ThenInclude(f => f.Bucket)
-                .Include(v => v.ApplicationUser)
-                    .ThenInclude(u => u.UserAvatars)
-                        .ThenInclude(ua => ua.Bucket)
-                .FirstOrDefault(v => v.Id == id);
+            Video video = _unitOfWorks.Videos.GetFullVideoData(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -59,45 +52,31 @@ namespace OurTube.Application.Services
             return videoDTO;
         }
 
-        public VideoGetDTO GetVideoById(int id, string userId)
+        public VideoGetDTO GetVideoById(int videoId, string userId)
         {
-            VideoGetDTO videoDTO = GetVideoById(id);
+            VideoGetDTO videoDTO = GetVideoById(videoId);
 
-            ApplicationUser applicationUser = _context.ApplicationUsers
-                .Include(au => au.VideoVotes)
-                .Include(au => au.Views)
-                .FirstOrDefault(au => au.Id == userId);
+            ApplicationUser applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
 
-            VideoVote vote = applicationUser
-                .VideoVotes
-                .FirstOrDefault(v => v.VideoId == id);
+            VideoVote vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
 
             if (vote != null)
                 videoDTO.Vote = vote.Type;
 
-            View view = applicationUser.Views
-                .FirstOrDefault(v => v.VideoId == id);
+            View view = _unitOfWorks.Views.Get(videoId, userId);
 
             if (view != null)
                 videoDTO.EndTime = view.EndTime;
 
-            if (applicationUser.SubscribedTo.FirstOrDefault(s => s.SubscribedToId == videoDTO.User.Id) != null)
+            if (_unitOfWorks.Subscriptions.Contains(videoDTO.User.Id, userId))
                 videoDTO.User.IsSubscribed = true;
 
             return videoDTO;
         }
 
-        public VideoMinGetDTO GetMinVideoById(int id)
+        public VideoMinGetDTO GetMinVideoById(int videoId)
         {
-            Video video = _context.Videos
-                .Include(v => v.VideoPreview)
-                    .ThenInclude(vp => vp.Bucket)
-                .Include(v => v.Files)
-                    .ThenInclude(f => f.Bucket)
-                .Include(v => v.ApplicationUser)
-                    .ThenInclude(u => u.UserAvatars)
-                        .ThenInclude(ua => ua.Bucket)
-                .FirstOrDefault(v => v.Id == id);
+            Video video = _unitOfWorks.Videos.GetMinVideoData(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -107,34 +86,28 @@ namespace OurTube.Application.Services
             return videoDTO;
         }
 
-        public VideoMinGetDTO GetMinVideoById(int id, string userId)
+        public VideoMinGetDTO GetMinVideoById(int videoId, string userId)
         {
-            VideoMinGetDTO videoDTO = GetMinVideoById(id);
+            VideoMinGetDTO videoDTO = GetMinVideoById(videoId);
 
-            ApplicationUser applicationUser = _context.ApplicationUsers
-                .Include(au => au.Views)
-                .Include(au => au.VideoVotes)
-                .Include(au => au.SubscribedTo)
-                .FirstOrDefault(au => au.Id == userId);
+            ApplicationUser applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
 
-            VideoVote vote = applicationUser
-                .VideoVotes
-                .FirstOrDefault(v => v.VideoId == id);
+            VideoVote vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
 
             if (vote != null)
                 videoDTO.Vote = vote.Type;
 
-            View view = applicationUser.Views
-                .FirstOrDefault(v => v.VideoId == id);
-
+            View view = _unitOfWorks.Views.Get(videoId, userId);
             if (view != null)
                 videoDTO.EndTime = view.EndTime;
 
-            if (applicationUser.SubscribedTo.FirstOrDefault(s => s.SubscribedToId == videoDTO.User.Id) != null)
+            if (_unitOfWorks.Subscriptions.Find(s => s.SubscribedToId == videoDTO.User.Id && s.SubscriberId == userId).FirstOrDefault() != null)
                 videoDTO.User.IsSubscribed = true;
 
             return videoDTO;
         }
+
+
 
         public async Task PostVideo(
             VideoUploadDTO videoUploadDTO,
@@ -179,13 +152,6 @@ namespace OurTube.Application.Services
                 // Данные для плейлистов
                 string filePref = guid;
 
-                Bucket bucket = _context.Buckets.FirstOrDefault(b => b.Name == "videos");
-                if (bucket == null)
-                {
-                    bucket = new Bucket { Name = "videos" };
-                    _context.Buckets.Add(bucket);
-                }
-
                 ObservableCollection<VideoPlaylist> playlists = new ObservableCollection<VideoPlaylist>();
 
                 Task[] tasks = _videoResolutions.Select(async resolution =>
@@ -196,7 +162,7 @@ namespace OurTube.Application.Services
                     {
                         Resolution = resolution,
                         FileName = Path.Combine(filePref, resolution.ToString(), "playlist.m3u8").Replace(@"\", @"/"),
-                        Bucket = bucket
+                        Bucket = _bucket
                     };
 
 
@@ -212,11 +178,11 @@ namespace OurTube.Application.Services
                     await _minioService.UploadFile(
                         Path.Combine(tempVideoDir, resolution.ToString(), Path.GetFileName(playlist.FileName)),
                         playlist.FileName,
-                         playlist.Bucket.Name);
+                         playlist.Bucket);
 
                     await _minioService.UploadFiles(
                         Directory.GetFiles(Path.Combine(tempVideoDir, resolution.ToString(), "segments")),
-                        playlist.Bucket.Name,
+                        playlist.Bucket,
                         Path.Combine(filePref, resolution.ToString(), "segments").Replace(@"\", @"/")
                         );
 
@@ -225,27 +191,27 @@ namespace OurTube.Application.Services
                 await Task.WhenAll(tasks);
 
                 // Отправляем превью
-                video.VideoPreview = new VideoPreview()
+                video.Preview = new VideoPreview()
                 {
                     FileName = Path.Combine(filePref, Path.GetFileName(tempPreviewPath)).Replace(@"\", @"/"),
-                    Bucket = bucket
+                    Bucket = _bucket
                 };
 
                 await _minioService.UploadFile(
                     tempPreviewPath,
-                    video.VideoPreview.FileName,
-                    video.VideoPreview.Bucket.Name);
+                    video.Preview.FileName,
+                    video.Preview.Bucket);
 
                 // Отпавляем изначальное видео
-                video.VideoSource = new VideoSource()
+                video.Source = new VideoSource()
                 {
                     FileName = Path.Combine(filePref, Path.GetFileName(tempSourcePath)).Replace(@"\", @"/"),
-                    Bucket = bucket
+                    Bucket = _bucket
                 };
                 await _minioService.UploadFile(
                     tempSourcePath,
-                    video.VideoSource.FileName,
-                    video.VideoSource.Bucket.Name);
+                    video.Source.FileName,
+                    video.Source.Bucket);
 
                 video.Files = new List<VideoPlaylist>();
 
@@ -255,11 +221,11 @@ namespace OurTube.Application.Services
                     video.Files.Add(playlist);
                 }
 
-                video.ApplicationUser = _context.ApplicationUsers.Find(userId);
+                video.User = _unitOfWorks.ApplicationUsers.Get(userId);
 
-                _context.Videos.Add(video);
+                _unitOfWorks.Videos.Add(video);
 
-                await _context.SaveChangesAsync();
+                await _unitOfWorks.SaveChangesAsync();
             }
             finally
             {

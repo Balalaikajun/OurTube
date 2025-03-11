@@ -5,19 +5,19 @@ using System.ComponentModel.DataAnnotations;
 namespace OurTube.Domain.Entities
 {
     [PrimaryKey(nameof(VideoId), nameof(Resolution))]
-    public class VideoPlaylist: IBlob
+    public class VideoPlaylist : IBlob
     {
         public int VideoId { get; set; }
         public int Resolution { get; set; }
         [Required]
         [MaxLength(125)]
         public string FileName { get; set; }
+        [MaxLength(25)]
         [Required]
-        public int BucketId { get; set; }
+        public string Bucket { get; set; }
 
         //Navigation
         public Video Video { get; set; }
-        public Bucket Bucket { get; set; }
 
     }
 }

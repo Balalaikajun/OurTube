@@ -1,44 +1,33 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OurTube.Domain.Entities;
-using OurTube.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using OurTube.Domain.Entities;
+using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class SubscriptionService
     {
-        private ApplicationDbContext _dbContext;
+        private IUnitOfWorks _unitOfWorks;
 
-        public SubscriptionService(ApplicationDbContext dbContext)
+        public SubscriptionService(IUnitOfWorks unitOfWorks)
         {
-            _dbContext = dbContext;
+            _unitOfWorks = unitOfWorks;
         }
 
         public async Task Subscribe(string userId, string userToId)
         {
-            ApplicationUser user = _dbContext.ApplicationUsers
-                .Include(u => u.SubscribedTo)
-                .FirstOrDefault(u => u.Id ==userId);
+            if (userId == userToId)
+                throw new InvalidOperationException("Id подписчика и канала совпадают");
+
+            ApplicationUser user = _unitOfWorks.ApplicationUsers.Get(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            ApplicationUser userTo = _dbContext.ApplicationUsers
-                .FirstOrDefault(u => u.Id == userToId);
+            ApplicationUser userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
 
             if (user == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            if(user.Id == userTo.Id)
-                throw new InvalidOperationException("Id подписчика и канала совпадают");
-
-            Subscription subscription = user.SubscribedTo
-                .FirstOrDefault(u => u.SubscribedToId == userToId);
-
+            Subscription subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
             if (subscription != null)
                 return;
 
@@ -48,47 +37,46 @@ namespace OurTube.Application.Services
                 SubscribedToId = userToId
             };
 
-            user.SubscribedTo.Add(subscription);
+            _unitOfWorks.Subscriptions.Add(subscription);
 
             user.SubscribedToCount++;
             userTo.SubscribersCount++;
 
-            await _dbContext.SaveChangesAsync();
+            await _unitOfWorks.SaveChangesAsync();
         }
 
         public async Task UnSubscribe(string userId, string userToId)
         {
-            ApplicationUser user = _dbContext.ApplicationUsers
-                .Include(u => u.SubscribedTo)
-                .FirstOrDefault(u => u.Id == userId);
+            if (userId == userToId)
+                throw new InvalidOperationException("Id подписчика и канала совпадают");
+
+            ApplicationUser user = _unitOfWorks.ApplicationUsers.Get(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            ApplicationUser userTo = _dbContext.ApplicationUsers
-                .FirstOrDefault(u => u.Id == userToId);
+            ApplicationUser userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
 
             if (user == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            Subscription subscription = user.SubscribedTo
-                .FirstOrDefault(u => u.SubscribedToId == userToId);
+            Subscription subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
 
             if (subscription == null)
                 return;
 
-            user.SubscribedTo.Remove(subscription);
+            _unitOfWorks.Subscriptions.Remove(subscription);
 
             user.SubscribedToCount--;
             userTo.SubscribersCount--;
 
-            await _dbContext.SaveChangesAsync();
+            await _unitOfWorks.SaveChangesAsync();
         }
 
-        public async Task<bool> IsSubscribe(string  userId, string userToId )
+        public bool IsSubscribe(string userId, string userToId)
         {
-            return await _dbContext.Subscriptions
-                .FirstOrDefaultAsync(s => s.SubscriberId == userId && s.SubscribedToId == userToId) == null;
+            return _unitOfWorks.Subscriptions
+                .Contains(userId, userToId);
         }
     }
 }

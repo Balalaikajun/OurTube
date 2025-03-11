@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace OurTube.Domain.Entities
 {
-    public class ApplicationUser 
+    public class ApplicationUser
     {
         [Key]
-        public string Id{ get; set; }
+        public string Id { get; set; }
         [MaxLength(256)]
         [Required]
         public string UserName { get; set; }
@@ -26,7 +24,7 @@ namespace OurTube.Domain.Entities
         public ICollection<VideoVote> VideoVotes { get; set; }
         public ICollection<CommentVote> CommentVotes { get; set; }
         public ICollection<Playlist> Playlists { get; set; }
-        public UserAvatar? UserAvatars { get; set; }
+        public UserAvatar? UserAvatar { get; set; }
 
 
     }

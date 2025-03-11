@@ -1,13 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OurTube.Domain.Entities
 {
-    [PrimaryKey(nameof(PlaylistId),nameof(VideoId))]
+    [PrimaryKey(nameof(PlaylistId), nameof(VideoId))]
     public class PlaylistElement
     {
         public int PlaylistId { get; set; }

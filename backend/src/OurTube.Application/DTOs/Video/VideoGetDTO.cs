@@ -1,12 +1,6 @@
 ﻿using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.DTOs.VideoPlaylist;
 using OurTube.Application.DTOs.VideoPreview;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OurTube.Application.DTOs.Video
 {
@@ -16,7 +10,7 @@ namespace OurTube.Application.DTOs.Video
         public string Title { get; set; }
         public string Description { get; set; }
         public int LikesCount { get; set; }
-        public int DislikeCount { get; set; } 
+        public int DislikeCount { get; set; }
         public int CommentsCount { get; set; }
         public int ViewsCount { get; set; }
         public bool? Vote { get; set; }

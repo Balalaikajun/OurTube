@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Comment;
-using OurTube.Application.DTOs.Playlist;
 using OurTube.Application.Services;
 using System.Security.Claims;
 
@@ -15,8 +13,8 @@ namespace OurTube.Api.Controllers
         [Authorize]
         [HttpPost]
         public async Task<ActionResult> Post(
-            [FromBody] CommentPostDTO postDTO, 
-            [FromServices]CommentService commentService)
+            [FromBody] CommentPostDTO postDTO,
+            [FromServices] CommentService commentService)
         {
             try
             {
@@ -25,7 +23,7 @@ namespace OurTube.Api.Controllers
                     postDTO);
                 return Created();
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -55,15 +53,15 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete]
+        [HttpDelete("{commentId}")]
         public async Task<ActionResult> Delete(
-            [FromBody] int id,
+            int commentId,
             [FromServices] CommentService commentService)
         {
             try
             {
                 await commentService.Delete(
-                    id,
+                    commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();
             }
@@ -77,44 +75,21 @@ namespace OurTube.Api.Controllers
             }
         }
 
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult> Get(
-            int id,
-            [FromServices] CommentService commentService,
-            [FromQuery] int limit = 10,
-            [FromQuery] int after = 0)
-        {
-            try
-            {
-                List<CommentGetDTO> result = await commentService.GetWithLimit(
-                id,
-                limit,
-                after);
-                int nextAfter = after + limit;
-
-
-                return Ok(new { result, nextAfter });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpGet("{id}/childs")]
-        public async Task<ActionResult> GetChilds(
-             int id,
+        [HttpGet("{videoId}")]
+        public async Task<ActionResult> GetWithLimit(
+             int videoId,
              [FromServices] CommentService commentService,
              [FromQuery] int limit = 10,
-             [FromQuery] int after = 0)
+             [FromQuery] int after = 0,
+             [FromQuery] int? parentId = null)
         {
             try
             {
                 List<CommentGetDTO> result = await commentService.GetChildsWithLimit(
-                id,
+                videoId,
                 limit,
-                after);
+                after,
+                parentId);
                 int nextAfter = after + limit;
 
 

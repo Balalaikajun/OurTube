@@ -1,41 +1,33 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OurTube.Domain.Entities;
-using OurTube.Infrastructure.Data;
+﻿using OurTube.Domain.Entities;
+using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class VideoVoteService
     {
-        private ApplicationDbContext _dbContext;
+        private IUnitOfWorks _unitOfWorks;
         private PlaylistService _playlistService;
 
-        public VideoVoteService(ApplicationDbContext dbContext, PlaylistService playlistService)
+        public VideoVoteService(IUnitOfWorks unitOfWorks, PlaylistService playlistService)
         {
-            _dbContext = dbContext;
+            _unitOfWorks = unitOfWorks;
             _playlistService = playlistService;
         }
 
         public async Task Set(int videoId, string userId, bool type)
         {
-            Video video = _dbContext.Videos.FirstOrDefault(v => v.Id == videoId);
-
+            Video video = _unitOfWorks.Videos.Get(videoId);
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            ApplicationUser applicationUser = _dbContext.ApplicationUsers
-                .Include(u => u.VideoVotes)
-                .Include(u => u.Playlists)
-                .FirstOrDefault(au => au.Id == userId);
-
-            if (applicationUser == null)
+            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            VideoVote vote = applicationUser.VideoVotes
-                .FirstOrDefault(v => v.VideoId == videoId);
+            VideoVote vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
 
             if (vote == null)
             {
-                applicationUser.VideoVotes.Add(new VideoVote()
+                _unitOfWorks.VideoVotes.Add(new VideoVote()
                 {
                     ApplicationUserId = userId,
                     VideoId = videoId,
@@ -73,13 +65,16 @@ namespace OurTube.Application.Services
             }
 
 
-            Playlist playlist = applicationUser.Playlists
-                .FirstOrDefault(p => p.Title == "Понравившееся");
+            Playlist playlist = _unitOfWorks.Playlists
+                .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId)
+                .First();
+
             if (playlist == null)
             {
                 await _playlistService.Create(new DTOs.Playlist.PlaylistPostDTO { Title = "Понравившееся" }, userId);
-                playlist = applicationUser.Playlists
-                .FirstOrDefault(p => p.Title == "Понравившееся");
+                playlist = _unitOfWorks.Playlists
+                    .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId)
+                    .First();
             }
 
             if (type == true)
@@ -94,21 +89,16 @@ namespace OurTube.Application.Services
 
         public async Task Delete(int videoId, string userId)
         {
-            Video video = _dbContext.Videos.FirstOrDefault(v => v.Id == videoId);
+            Video video = _unitOfWorks.Videos.Get(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            ApplicationUser applicationUser = _dbContext.ApplicationUsers
-                .Include(u => u.Playlists)
-                .Include(u => u.VideoVotes)
-                .FirstOrDefault(au => au.Id == userId);
-
-            if (applicationUser == null)
+            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            VideoVote vote = applicationUser.VideoVotes
-                .FirstOrDefault(v => v.VideoId == videoId);
+            VideoVote vote = _unitOfWorks.VideoVotes
+                .Get(videoId, userId);
 
             if (vote == null)
                 return;
@@ -122,15 +112,16 @@ namespace OurTube.Application.Services
                 video.DislikeCount--;
             }
 
-            applicationUser.VideoVotes.Remove(vote);
+            _unitOfWorks.VideoVotes.Remove(vote);
 
-            await _dbContext.SaveChangesAsync();
-
-            Playlist playlist = applicationUser.Playlists
-                .FirstOrDefault(p => p.Title == "Понравившееся");
+            Playlist playlist = _unitOfWorks.Playlists
+                .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId).First();
 
             if (playlist == null)
+            {
                 await _playlistService.Create(new DTOs.Playlist.PlaylistPostDTO { Title = "Понравившееся" }, userId);
+                return;
+            }
 
             await _playlistService.RemoveVideo(playlist.Id, videoId, userId);
 

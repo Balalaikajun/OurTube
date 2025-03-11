@@ -13,7 +13,7 @@ namespace OurTube.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public  ActionResult<VideoGetDTO> Get(int id, VideoService videoService)
+        public ActionResult<VideoGetDTO> Get(int id, VideoService videoService)
         {
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -46,11 +46,11 @@ namespace OurTube.Api.Controllers
                     configuration["Minio:Endpoint"]);
                 return Created();
             }
-            catch(FormatException ex)
+            catch (FormatException ex)
             {
                 return BadRequest(ex.Message);
             }
-            
+
         }
 
 

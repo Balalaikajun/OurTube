@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OurTube.Application.DTOs.Video
 {
-    public  class VideoUploadDTO
+    public class VideoUploadDTO
     {
         [Required]
         public VideoPostDTO VideoPostDTO { get; set; }

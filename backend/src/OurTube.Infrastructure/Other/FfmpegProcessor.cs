@@ -1,11 +1,4 @@
-﻿using OurTube.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xabe.FFmpeg;
+﻿using Xabe.FFmpeg;
 
 namespace OurTube.Infrastructure.Other
 {

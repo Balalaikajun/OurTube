@@ -1,30 +1,30 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Domain.Entities;
-using OurTube.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class UserService
     {
-        private ApplicationDbContext _dbContext;
+        private IUnitOfWorks _unitOfWorks;
 
-        public UserService(ApplicationDbContext dbContext)
+        public UserService(IUnitOfWorks unitOfWorks)
         {
-            _dbContext = dbContext;
+            _unitOfWorks = unitOfWorks;
         }
 
         public async Task UpdateUser(ApplicationUserPatchDTO patchDTO, string userId)
         {
-            ApplicationUser aUser = _dbContext.ApplicationUsers.First(au => au.Id==userId);
+            ApplicationUser aUser = _unitOfWorks.ApplicationUsers.Get(userId);
 
-            IdentityUser iUser = _dbContext.Users.First(iu => iu.Id == userId);
+            if (aUser == null)
+                throw new KeyNotFoundException("Пользователь не найден");
+
+            IdentityUser iUser = _unitOfWorks.IdentityUsers.Get(userId);
+
+            if (iUser == null)
+                throw new KeyNotFoundException("Пользователь не найден");
 
             if (patchDTO.UserName != null)
             {
@@ -32,7 +32,7 @@ namespace OurTube.Application.Services
                 iUser.UserName = patchDTO.UserName;
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _unitOfWorks.SaveChangesAsync();
         }
     }
 }

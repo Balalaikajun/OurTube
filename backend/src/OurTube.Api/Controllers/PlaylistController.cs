@@ -91,7 +91,7 @@ namespace OurTube.Api.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -103,10 +103,10 @@ namespace OurTube.Api.Controllers
         {
             try
             {
-            await playlistService.RemoveVideo(
-                id,
-                videoId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                await playlistService.RemoveVideo(
+                    id,
+                    videoId,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Ok();
             }
             catch (KeyNotFoundException ex)
@@ -123,13 +123,13 @@ namespace OurTube.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> Get(
             int id,
-            [FromServices] PlaylistService playlistService, 
+            [FromServices] PlaylistService playlistService,
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
             try
             {
-                PlaylistGetDTO playlistGetDTO = playlistService.GetWithLimit(
+                PlaylistGetDTO playlistGetDTO = await playlistService.GetWithLimit(
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
@@ -151,12 +151,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult> Get([FromServices] PlaylistService playlistService)
+        public async Task<ActionResult<IEnumerable<PlaylistMinGetDTO>>> Get([FromServices] PlaylistService playlistService)
         {
-            List<PlaylistMinGetDTO> playlists = playlistService.GetUserPlaylists(
+            var result = playlistService.GetUserPlaylists(
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            return Ok(playlists);
+            return Ok(result);
         }
 
 

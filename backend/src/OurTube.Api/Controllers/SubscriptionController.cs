@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Services;
 using System.Security.Claims;
@@ -12,7 +11,7 @@ namespace OurTube.Api.Controllers
     {
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Subscribe (string userToId, SubscriptionService subscriptionService)
+        public async Task<ActionResult> Subscribe(string userToId, SubscriptionService subscriptionService)
         {
             try
             {

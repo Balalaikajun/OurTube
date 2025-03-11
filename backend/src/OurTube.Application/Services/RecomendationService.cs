@@ -1,27 +1,22 @@
 ﻿using OurTube.Application.DTOs.Video;
-using OurTube.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class RecomendationService
     {
-        private ApplicationDbContext _dbContext;
+        private IUnitOfWorks _unitOfWorks;
         private VideoService _videoService;
 
-        public RecomendationService(ApplicationDbContext dbContext, VideoService videoService)
+        public RecomendationService(IUnitOfWorks unitOfWorks, VideoService videoService)
         {
-            _dbContext = dbContext;
+            _unitOfWorks = unitOfWorks;
             _videoService = videoService;
         }
 
         public List<VideoMinGetDTO> GetVideos(int limit, int after, string? userId = null)
         {
-            var videos = _dbContext.Videos
+            var videos = _unitOfWorks.Videos.GetAll()
                 .OrderByDescending(v => v.LikesCount)
                 .Skip(after)
                 .Take(limit)
@@ -39,6 +34,6 @@ namespace OurTube.Application.Services
                     .Select(v => _videoService.GetMinVideoById(v.Id, userId))
                     .ToList();
             }
-            }
         }
+    }
 }

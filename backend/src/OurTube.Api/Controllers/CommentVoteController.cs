@@ -11,52 +11,18 @@ namespace OurTube.Api.Controllers
     {
 
         [Authorize]
-        [HttpPost("{commentId}/like")]
-        public async Task<ActionResult> PostLike(int commentId, CommentVoteService commentService)
+        [HttpPost("{commentId}/vote")]
+        public async Task<ActionResult> PostVote(
+            int commentId, 
+            [FromBody] bool type, 
+        [FromServices] CommentVoteService commentService)
         {
             try
             {
                 await commentService.Set(
                     commentId,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier), 
-                    true);
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-        }
-
-        [Authorize]
-        [HttpPost("{commentId}/deslike")]
-        public async Task<ActionResult> PostDeslike(int commentId, CommentVoteService commentService)
-        {
-            try
-            {
-                await commentService.Set(
-                    commentId,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier), 
-                    false);
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-        }
-
-        [Authorize]
-        [HttpDelete("{commentId}/like")]
-        public async Task<ActionResult> DeleteLike(int commentId, CommentVoteService commentService)
-        {
-            try
-            {
-                await commentService.Delete(
-                    commentId,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier));
+                    User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    type);
                 return Created();
             }
             catch (InvalidOperationException ex)
@@ -68,8 +34,8 @@ namespace OurTube.Api.Controllers
 
 
         [Authorize]
-        [HttpDelete("{commentId}/deslike")]
-        public async Task<ActionResult> DeleteDeslike(int commentId, CommentVoteService commentService)
+        [HttpDelete("{commentId}/vote")]
+        public async Task<ActionResult> DeleteVote(int commentId, CommentVoteService commentService)
         {
             try
             {

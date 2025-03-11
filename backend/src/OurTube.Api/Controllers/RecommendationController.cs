@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Services;
 using System.Security.Claims;

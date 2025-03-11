@@ -1,13 +1,7 @@
 ﻿using AutoMapper;
 using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.DTOs.UserAvatar;
-using OurTube.Application.Services;
 using OurTube.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OurTube.Application.Mapping
 {
@@ -16,10 +10,9 @@ namespace OurTube.Application.Mapping
         public UserProfile()
         {
             CreateMap<ApplicationUser, ApplicationUserDTO>()
-                .ForMember(dest => dest.UserAvatar, opt => opt.MapFrom(src => src.UserAvatars));
+                .ForMember(dest => dest.UserAvatar, opt => opt.MapFrom(src => src.UserAvatar));
 
-            CreateMap<UserAvatar, UserAvatarDTO>()
-                .ForMember(dest => dest.BucketName, opt => opt.MapFrom(src => src.Bucket.Name));
+            CreateMap<UserAvatar, UserAvatarDTO>();
         }
 
     }

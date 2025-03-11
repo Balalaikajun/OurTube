@@ -1,44 +1,33 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OurTube.Domain.Entities;
-using OurTube.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using OurTube.Domain.Entities;
+using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class CommentVoteService
     {
-        private ApplicationDbContext _dbContext;
+        private IUnitOfWorks _unitOfWorks;
 
-        public CommentVoteService(ApplicationDbContext dbContext)
+        public CommentVoteService(IUnitOfWorks unitOfWorks)
         {
-            _dbContext = dbContext;
+            _unitOfWorks = unitOfWorks;
         }
 
         public async Task Set(int commentId, string userId, bool type)
         {
-            Comment comment = _dbContext.Comments
-                .FirstOrDefault(v => v.Id == commentId);
+            Comment comment = _unitOfWorks.Comments
+                .Get(commentId);
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
 
-            ApplicationUser applicationUser = _dbContext.ApplicationUsers
-                .Include(au => au.CommentVotes)
-                .FirstOrDefault(au => au.Id == userId);
-
-            if (applicationUser == null)
+            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            CommentVote vote = applicationUser.CommentVotes
-                .FirstOrDefault(v => v.CommentId == commentId);
+            CommentVote vote = _unitOfWorks.CommentVoices.Get(commentId, userId);
 
             if (vote == null)
             {
-                _dbContext.CommentVotes.Add(new CommentVote()
+                _unitOfWorks.CommentVoices.Add(new CommentVote()
                 {
                     ApplicationUserId = userId,
                     CommentId = commentId,
@@ -52,13 +41,13 @@ namespace OurTube.Application.Services
                 else
                 {
                     comment.DisLikesCount++;
-                 }
+                }
             }
             else if (vote.Type != type)
             {
                 vote.Type = type;
 
-                if(type == true)
+                if (type == true)
                 {
                     comment.DisLikesCount--;
                     comment.LikesCount++;
@@ -75,22 +64,19 @@ namespace OurTube.Application.Services
                 return;
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _unitOfWorks.SaveChangesAsync();
         }
 
         public async Task Delete(int commentId, string userId)
         {
-            Comment comment = _dbContext.Comments
-                .Include(c => c.Votes)
-                .FirstOrDefault(c => c.Id == commentId);
+            Comment comment = _unitOfWorks.Comments
+                .Get(commentId);
 
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найдено");
 
-            CommentVote vote = comment
-                .Votes
-                .FirstOrDefault(v => v.ApplicationUserId == userId);
+            CommentVote vote = _unitOfWorks.CommentVoices.Get(commentId, userId);
 
             if (vote == null)
                 return;
@@ -104,9 +90,9 @@ namespace OurTube.Application.Services
                 comment.DisLikesCount--;
             }
 
-            _dbContext.CommentVotes.Remove(vote);
+            _unitOfWorks.CommentVoices.Remove(vote);
 
-            await _dbContext.SaveChangesAsync();
+            await _unitOfWorks.SaveChangesAsync();
 
         }
     }

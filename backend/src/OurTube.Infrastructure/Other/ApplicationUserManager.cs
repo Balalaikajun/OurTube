@@ -38,10 +38,10 @@ namespace OurTube.Infrastructure.Other
                     Id = user.Id,
                     UserName = user.UserName,
                     Playlists = [
-                        new Playlist() 
+                        new Playlist()
                         {
                         Title ="Понравившееся"
-                        }] 
+                        }]
                 });
 
                 try

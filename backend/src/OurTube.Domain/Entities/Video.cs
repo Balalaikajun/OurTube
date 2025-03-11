@@ -34,11 +34,11 @@ namespace OurTube.Domain.Entities
 
         //Navigation
         [Required]
-        public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser User { get; set; }
         [Required]
-        public VideoPreview VideoPreview { get; set; }
+        public VideoPreview Preview { get; set; }
         [Required]
-        public VideoSource VideoSource { get; set; }
+        public VideoSource Source { get; set; }
         public ICollection<VideoPlaylist> Files { get; set; }
         public ICollection<VideoVote> Votes { get; set; }
         public ICollection<Comment> Comments { get; set; }
