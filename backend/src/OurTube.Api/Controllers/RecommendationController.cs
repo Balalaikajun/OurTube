@@ -17,14 +17,21 @@ namespace OurTube.Api.Controllers
         }
         
         [HttpGet]
-        public ActionResult<List<VideoMinGetDto>> Get(
+        public ActionResult<PagedVideoDto> Get(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
-            return Ok(_recommendationService.GetVideos(
+            var videos = _recommendationService.GetVideos(
                 limit,
                 after,
-                User.FindFirstValue(ClaimTypes.NameIdentifier)));
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var nextAfter = after + limit;
+            
+            return Ok(new PagedVideoDto()
+            {
+                Videos = videos,
+                NextAfter = nextAfter
+            });
         }
     }
 }

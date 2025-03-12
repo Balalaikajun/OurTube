@@ -136,7 +136,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult> Get(
+        public async Task<ActionResult<PagedPlaylistDto>> Get(
             int id,
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
@@ -151,7 +151,11 @@ namespace OurTube.Api.Controllers
                 var nextAfter = after + limit;
 
 
-                return Ok(new { playlistGetDto, nextAfter });
+                return Ok(new PagedPlaylistDto()
+                {
+                    Playlist = playlistGetDto,
+                    NextAfter = nextAfter
+                });
             }
             catch (KeyNotFoundException ex)
             {

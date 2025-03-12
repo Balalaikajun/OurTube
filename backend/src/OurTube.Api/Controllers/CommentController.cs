@@ -81,7 +81,7 @@ namespace OurTube.Api.Controllers
         }
 
         [HttpGet("{videoId:int}")]
-        public ActionResult GetWithLimit(
+        public ActionResult<PagedCommentDto> GetWithLimit(
              int videoId,
              [FromQuery] int limit = 10,
              [FromQuery] int after = 0,
@@ -97,7 +97,11 @@ namespace OurTube.Api.Controllers
                 var nextAfter = after + limit;
 
 
-                return Ok(new { result, nextAfter });
+                return Ok(new PagedCommentDto()
+                {
+                    Comments = result,
+                    NextAfter = nextAfter
+                });
             }
             catch (KeyNotFoundException ex)
             {

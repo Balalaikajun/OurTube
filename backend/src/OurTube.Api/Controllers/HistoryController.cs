@@ -4,6 +4,7 @@ using OurTube.Application.DTOs.Views;
 using OurTube.Application.Services;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using OurTube.Application.DTOs.Comment;
 
 namespace OurTube.Api.Controllers
 {
@@ -17,7 +18,7 @@ namespace OurTube.Api.Controllers
         {
             _viewService = viewService;
         }
-        
+
         [Authorize]
         [HttpPost]
         public async Task<ActionResult> AddVideo(
@@ -76,7 +77,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public ActionResult Get(
+        public ActionResult<PagedHistoryDto> Get(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
@@ -89,7 +90,11 @@ namespace OurTube.Api.Controllers
                 var nextAfter = after + limit;
 
 
-                return Ok(new { history, nextAfter });
+                return Ok(new PagedHistoryDto()
+                {
+                    Views = history,
+                   NextAfter = nextAfter
+                });
             }
 
             catch (InvalidOperationException ex)
