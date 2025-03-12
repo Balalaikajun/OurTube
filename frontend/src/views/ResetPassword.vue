@@ -12,12 +12,12 @@
     const errorMessage = ref("");
 
     // Проверка наличия email в query-параметрах
-    // onMounted(() => {
-    //     if (!route.query.email) {
-    //         // Если email отсутствует, перенаправляем на страницу восстановления пароля
-    //         router.push("/forgot-password");
-    //     }
-    // });
+    onMounted(() => {
+        if (!route.query.email) {
+            // Если email отсутствует, перенаправляем на страницу восстановления пароля
+            router.push("/forgot-password");
+        }
+    });
 
     const submitForm = async () => {
         if (newPassword.value !== confirmPassword.value) {
@@ -29,14 +29,14 @@
     errorMessage.value = "";
 
     try {
-        const response = await fetch("https://your-server-url.com/reset-password", {
+        const response = await fetch(`${API_BASE_URL}/identity/resetPassword`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 email: route.query.email, // Используем email из query-параметров
-                code: code.value,
+                resetCode: code.value,
                 newPassword: newPassword.value,
             }),
         });

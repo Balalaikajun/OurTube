@@ -17,7 +17,7 @@
         try {
             // Запрос на бэкенд для регистрации
             // Эндпоинты менять не забывайте
-            const response = await fetch("http://localhost:5090/identity/register", {
+            const response = await fetch(`${API_BASE_URL}/identity/register`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -15,7 +15,7 @@
 
         try {
             // Запрос к API для получения списка видео
-            const response = await fetch("http://localhost:5090/api/Video/");
+            const response = await fetch(`${API_BASE_URL}/api/Recommendation?limit=10&after=0`);
             const data = await response.json();
             
             if (!response.ok) {

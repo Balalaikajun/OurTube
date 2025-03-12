@@ -1,6 +1,7 @@
 <script setup>
     import { ref } from "vue";
     import { useRouter } from "vue-router";
+    import { API_BASE_URL } from "@/config"; // Импортируем базовый URL
     
     const email = ref("");
     const password = ref("");
@@ -16,7 +17,7 @@
         try {
             // Back
             // Эндпоинты менять не забывайте
-            const response = await fetch("http://localhost:5090/identity/login?useCookies=false&useSessionCookies=false", {
+            const response = await fetch(`${API_BASE_URL}/identity/login?useCookies=true&useSessionCookies=true`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -33,7 +34,6 @@
             }
 
             alert("Успешный вход!");
-            // Дополнительные действия, например, сохранение токена
             router.push("/");
 
         } catch (error) {

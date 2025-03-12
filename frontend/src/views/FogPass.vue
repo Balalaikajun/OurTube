@@ -13,7 +13,7 @@ const submitForm = async () => {
     errorMessage.value = "";
 
     try {
-        const response = await fetch("http://localhost:5090/identity/forgotPassword", {
+        const response = await fetch(`${API_BASE_URL}/identity/forgotPassword`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
