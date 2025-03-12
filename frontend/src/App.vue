@@ -8,29 +8,24 @@
 
     import { computed } from "vue";
     import { useRoute } from 'vue-router';
+    import ResetPassword from "./views/ResetPassword.vue";
     const route = useRoute();
-    const authRoutes = ["/login"];
-    const regRoutes = ["/register"];
-    const fogPassRoutes = ["/forgot-password"];
-    const mainPage = ["/"];
-    const showAuth = computed(() => authRoutes.includes(route.path));
-    const showReg = computed(() => regRoutes.includes(route.path));
-    const showFogPass = computed(() => fogPassRoutes.includes(route.path));
-    const showMainPage = computed(() => mainPage.includes(route.path));
+    
+    const showAuth = computed(() => route.path === "/login");
+    const showReg = computed(() => route.path === "/register");
+    const showFogPass = computed(() => route.path === "/forgot-password");
+    const showReset = computed(() => route.path === "/reset-password");
+    const showMainPage = computed(() => route.path === "/");
     const showVideoPlayer = computed(() => route.path.startsWith("/video/"));
-
-
 </script>
 
 <template>
-    <div>
-        <MainPage v-if="showMainPage && (!showAuth || !showReg || !showFogPass)" />
-        <VideoPlayer v-if="showVideoPlayer" />
-        <Auth v-if="showAuth" />
-        <Reg v-if="showReg"/>
-        <FogPass v-if="showFogPass"/>
-    </div>
-    
+    <MainPage v-if="showMainPage" />
+    <VideoPlayer v-else-if="showVideoPlayer" />
+    <Auth v-else-if="showAuth" />
+    <Reg v-else-if="showReg" />
+    <FogPass v-else-if="showFogPass" />
+    <ResetPassword v-else-if="showReset" />
 </template>
 
 <style scoped>

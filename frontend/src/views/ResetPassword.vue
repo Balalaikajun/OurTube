@@ -1,42 +1,56 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+    import { ref, onMounted } from "vue";
+    import { useRouter, useRoute } from "vue-router";
 
-const router = useRouter();
+    const router = useRouter();
+    const route = useRoute();
 
-const email = ref("");
-const loading = ref(false);
-const errorMessage = ref("");
+    const code = ref("");
+    const newPassword = ref("");
+    const confirmPassword = ref("");
+    const loading = ref(false);
+    const errorMessage = ref("");
 
-const submitForm = async () => {
+    // Проверка наличия email в query-параметрах
+    // onMounted(() => {
+    //     if (!route.query.email) {
+    //         // Если email отсутствует, перенаправляем на страницу восстановления пароля
+    //         router.push("/forgot-password");
+    //     }
+    // });
+
+    const submitForm = async () => {
+        if (newPassword.value !== confirmPassword.value) {
+            errorMessage.value = "Пароли не совпадают";
+            return;
+        }
+
     loading.value = true;
     errorMessage.value = "";
 
     try {
-        const response = await fetch("http://localhost:5090/identity/forgotPassword", {
+        const response = await fetch("https://your-server-url.com/reset-password", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                email: email.value,
+                email: route.query.email, // Используем email из query-параметров
+                code: code.value,
+                newPassword: newPassword.value,
             }),
         });
 
         if (!response.ok) {
-            throw new Error("Ошибка при отправке запроса");
+            throw new Error("Ошибка при смене пароля");
         }
 
-        const data = await response.json();
-        console.log("Успешно:", data);
-
-        router.push({ path: "/reset-password", query: { email: email.value } });
-    } 
-    catch (error) {
-        errorMessage.value = "Произошла ошибка при отправке запроса. Пожалуйста, попробуйте еще раз.";
+        // Перенаправление на страницу авторизации
+        router.push("/login");
+    } catch (error) {
+        errorMessage.value = "Произошла ошибка при смене пароля. Пожалуйста, попробуйте еще раз.";
         console.error("Ошибка:", error);
-    } 
-    finally {
+    } finally {
         loading.value = false;
     }
 };
@@ -46,41 +60,42 @@ const submitForm = async () => {
     <div class="content">
         <div class="reg">
             <form @submit.prevent="submitForm" class="main-page-block">
-                <label>Восстановление доступа</label>
-                <input style="margin-top: 13.5vh;"
-                    type="email"
-                    v-model="email"
-                    name="email"
-                    placeholder="Почта"
+                <label>Смена пароля</label>
+                <input
+                    type="text"
+                    v-model="code"
+                    placeholder="Временный код"
                     required
-                    autocomplete="new-email"
+                    autocomplete="off"
                 />
-                <p v-if="!errorMessage" class="instruction-text">
-                    На указанную почту будет отправлена форма для смены пароля.
-                </p>
-                <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-                <button type="" :disabled="loading">
-                    Отправить запрос на восстановление
+                <input
+                    type="password"
+                    v-model="newPassword"
+                    placeholder="Новый пароль"
+                    required
+                    autocomplete="new-password"
+                />
+                <input
+                    type="password"
+                    v-model="confirmPassword"
+                    placeholder="Подтвердите пароль"
+                    required
+                    autocomplete="new-password"
+                />
+                <button type="submit" :disabled="loading">
+                    Сменить пароль
                 </button>
             </form>
-            
+            <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
         </div>
-        <div class="other-content">
-            <p style="color: #F3F0E9; font-size: 36px;">
-                Регистрируясь на нашей платформе Вы автоматически соглашаетесь политикой пользователя.
-            </p>
-        </div>
-        <div class="right-pannel"></div>
     </div>
 </template>
 
 <style scoped>
     .error {
         color: red;
-        text-align: left;
-        margin-top: 20px;
-        width: 15vw;
-        align-self: center;
+        text-align: center;
+        margin-top: 10px;
     }
 
     .content {
@@ -140,6 +155,11 @@ const submitForm = async () => {
         border-radius: 0px;
         outline: none;
         border: 1px solid #100E0E;
+    }
+
+    .main-page-block input:not(:first-child)
+    {
+        margin-top: 3vh;
     }
 
     .main-page-block input::placeholder {
