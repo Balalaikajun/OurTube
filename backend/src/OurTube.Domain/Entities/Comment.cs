@@ -18,7 +18,7 @@ namespace OurTube.Domain.Entities
         [Required]
         public DateTime Created { get; set; } = DateTime.UtcNow;
         [Required]
-        public DateTime Updated { get; set; } = DateTime.UtcNow;
+        public DateTime? Updated { get; set; }
         public int? ParentId { get; set; }
         [Required]
         public bool Edited { get; set; } = false;

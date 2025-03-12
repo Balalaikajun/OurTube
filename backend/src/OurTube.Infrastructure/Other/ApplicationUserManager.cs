@@ -9,7 +9,7 @@ namespace OurTube.Infrastructure.Other
 {
     public class ApplicationUserManager : UserManager<IdentityUser>
     {
-        public ApplicationDbContext _applicationDbContext;
+        public ApplicationDbContext ApplicationDbContext;
         public ApplicationUserManager(
         IUserStore<IdentityUser> store,
         IOptions<IdentityOptions> optionsAccessor,
@@ -23,7 +23,7 @@ namespace OurTube.Infrastructure.Other
         ApplicationDbContext applicationDbContext)
         : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
-            _applicationDbContext = applicationDbContext;
+            ApplicationDbContext = applicationDbContext;
         }
 
         public override async Task<IdentityResult> CreateAsync(IdentityUser user, string password)
@@ -33,7 +33,7 @@ namespace OurTube.Infrastructure.Other
             if (result.Succeeded)
             {
 
-                _applicationDbContext.ApplicationUsers.Add(new ApplicationUser()
+                ApplicationDbContext.ApplicationUsers.Add(new ApplicationUser()
                 {
                     Id = user.Id,
                     UserName = user.UserName,
@@ -46,7 +46,7 @@ namespace OurTube.Infrastructure.Other
 
                 try
                 {
-                    await _applicationDbContext.SaveChangesAsync();
+                    await ApplicationDbContext.SaveChangesAsync();
                 }
                 catch (DbUpdateException ex)
                 {

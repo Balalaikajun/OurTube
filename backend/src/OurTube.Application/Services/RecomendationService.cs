@@ -5,8 +5,8 @@ namespace OurTube.Application.Services
 {
     public class RecomendationService
     {
-        private IUnitOfWorks _unitOfWorks;
-        private VideoService _videoService;
+        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly VideoService _videoService;
 
         public RecomendationService(IUnitOfWorks unitOfWorks, VideoService videoService)
         {
@@ -14,7 +14,7 @@ namespace OurTube.Application.Services
             _videoService = videoService;
         }
 
-        public List<VideoMinGetDTO> GetVideos(int limit, int after, string? userId = null)
+        public List<VideoMinGetDto> GetVideos(int limit, int after, string? userId = null)
         {
             var videos = _unitOfWorks.Videos.GetAll()
                 .OrderByDescending(v => v.LikesCount)

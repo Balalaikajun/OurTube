@@ -2,7 +2,7 @@
 
 namespace OurTube.Application.DTOs.Playlist
 {
-    public class PlaylistPatchDTO
+    public class PlaylistPatchDto
     {
 
         [MaxLength(150)]

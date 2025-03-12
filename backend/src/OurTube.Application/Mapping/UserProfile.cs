@@ -9,10 +9,10 @@ namespace OurTube.Application.Mapping
     {
         public UserProfile()
         {
-            CreateMap<ApplicationUser, ApplicationUserDTO>()
+            CreateMap<ApplicationUser, ApplicationUserDto>()
                 .ForMember(dest => dest.UserAvatar, opt => opt.MapFrom(src => src.UserAvatar));
 
-            CreateMap<UserAvatar, UserAvatarDTO>();
+            CreateMap<UserAvatar, UserAvatarDto>();
         }
 
     }

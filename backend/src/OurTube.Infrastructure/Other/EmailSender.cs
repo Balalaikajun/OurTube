@@ -24,13 +24,13 @@ namespace OurTube.Infrastructure.Other
 
         public async Task SendEmailAsync(string email, string subject, string message)
         {
-            using SmtpClient client = new SmtpClient(_smtpServer, _port)
+            using var client = new SmtpClient(_smtpServer, _port)
             {
                 Credentials = new NetworkCredential(_fromEmail, _password),
                 EnableSsl = true
             };
 
-            MailMessage mailMessage = new MailMessage(_fromEmail, email, subject, message)
+            var mailMessage = new MailMessage(_fromEmail, email, subject, message)
             {
                 IsBodyHtml = true
             };

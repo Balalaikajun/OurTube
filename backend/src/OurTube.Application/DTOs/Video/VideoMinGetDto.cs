@@ -3,7 +3,7 @@ using OurTube.Application.DTOs.VideoPreview;
 
 namespace OurTube.Application.DTOs.Video
 {
-    public class VideoMinGetDTO
+    public class VideoMinGetDto
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -11,7 +11,7 @@ namespace OurTube.Application.DTOs.Video
         public bool? Vote { get; set; }
         public long? EndTime { get; set; }
         public DateTime Created { get; set; }
-        public VideoPreviewDTO Preview { get; set; }
-        public ApplicationUserDTO User { get; set; }
+        public VideoPreviewDto Preview { get; set; }
+        public ApplicationUserDto User { get; set; }
     }
 }

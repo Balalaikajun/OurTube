@@ -5,7 +5,7 @@ namespace OurTube.Infrastructure.Other
 {
     public class MinioService
     {
-        private IMinioClient _minioClient;
+        private readonly IMinioClient _minioClient;
 
         private readonly string _accessKey;
         private readonly string _secretKey;

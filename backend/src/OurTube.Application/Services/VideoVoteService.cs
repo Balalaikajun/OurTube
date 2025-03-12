@@ -5,8 +5,8 @@ namespace OurTube.Application.Services
 {
     public class VideoVoteService
     {
-        private IUnitOfWorks _unitOfWorks;
-        private PlaylistService _playlistService;
+        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly PlaylistService _playlistService;
 
         public VideoVoteService(IUnitOfWorks unitOfWorks, PlaylistService playlistService)
         {
@@ -16,18 +16,18 @@ namespace OurTube.Application.Services
 
         public async Task Set(int videoId, string userId, bool type)
         {
-            Video video = _unitOfWorks.Videos.Get(videoId);
+            var video = _unitOfWorks.Videos.Get(videoId);
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
             if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            VideoVote vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
+            var vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
 
             if (vote == null)
             {
-                _unitOfWorks.VideoVotes.Add(new VideoVote()
+                _unitOfWorks.VideoVotes.Add(new VideoVote
                 {
                     ApplicationUserId = userId,
                     VideoId = videoId,
@@ -65,13 +65,13 @@ namespace OurTube.Application.Services
             }
 
 
-            Playlist playlist = _unitOfWorks.Playlists
+            var playlist = _unitOfWorks.Playlists
                 .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId)
                 .First();
 
             if (playlist == null)
             {
-                await _playlistService.Create(new DTOs.Playlist.PlaylistPostDTO { Title = "Понравившееся" }, userId);
+                await _playlistService.Create(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
                 playlist = _unitOfWorks.Playlists
                     .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId)
                     .First();
@@ -89,7 +89,7 @@ namespace OurTube.Application.Services
 
         public async Task Delete(int videoId, string userId)
         {
-            Video video = _unitOfWorks.Videos.Get(videoId);
+            var video = _unitOfWorks.Videos.Get(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -97,7 +97,7 @@ namespace OurTube.Application.Services
             if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            VideoVote vote = _unitOfWorks.VideoVotes
+            var vote = _unitOfWorks.VideoVotes
                 .Get(videoId, userId);
 
             if (vote == null)
@@ -114,12 +114,12 @@ namespace OurTube.Application.Services
 
             _unitOfWorks.VideoVotes.Remove(vote);
 
-            Playlist playlist = _unitOfWorks.Playlists
+            var playlist = _unitOfWorks.Playlists
                 .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId).First();
 
             if (playlist == null)
             {
-                await _playlistService.Create(new DTOs.Playlist.PlaylistPostDTO { Title = "Понравившееся" }, userId);
+                await _playlistService.Create(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
                 return;
             }
 

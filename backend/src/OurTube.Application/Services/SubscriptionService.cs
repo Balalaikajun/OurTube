@@ -5,7 +5,7 @@ namespace OurTube.Application.Services
 {
     public class SubscriptionService
     {
-        private IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWorks _unitOfWorks;
 
         public SubscriptionService(IUnitOfWorks unitOfWorks)
         {
@@ -17,17 +17,17 @@ namespace OurTube.Application.Services
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            ApplicationUser user = _unitOfWorks.ApplicationUsers.Get(userId);
+            var user = _unitOfWorks.ApplicationUsers.Get(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            ApplicationUser userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
+            var userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
 
-            if (user == null)
+            if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            Subscription subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
+            var subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
             if (subscription != null)
                 return;
 
@@ -50,17 +50,17 @@ namespace OurTube.Application.Services
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            ApplicationUser user = _unitOfWorks.ApplicationUsers.Get(userId);
+            var user = _unitOfWorks.ApplicationUsers.Get(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            ApplicationUser userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
+            var userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
 
-            if (user == null)
+            if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            Subscription subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
+            var subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
 
             if (subscription == null)
                 return;

@@ -7,9 +7,9 @@ namespace OurTube.Application.Services
 {
     public class ViewService
     {
-        private IUnitOfWorks _unitOfWorks;
-        private VideoService _videoService;
-        private IMapper _mapper;
+        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly VideoService _videoService;
+        private readonly IMapper _mapper;
 
         public ViewService(IUnitOfWorks unitOfWorks, VideoService videoService, IMapper mapper)
         {
@@ -23,12 +23,12 @@ namespace OurTube.Application.Services
             if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            Video video = _unitOfWorks.Videos.Get(videoId);
+            var video = _unitOfWorks.Videos.Get(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            View view = _unitOfWorks.Views.Get(videoId, userId);
+            var view = _unitOfWorks.Views.Get(videoId, userId);
 
             if (view != null)
             {
@@ -57,7 +57,7 @@ namespace OurTube.Application.Services
             if (!_unitOfWorks.Videos.Contains(videoId))
                 throw new InvalidOperationException("Видео не найдено");
 
-            View view = _unitOfWorks.Views.Get(videoId, userId);
+            var view = _unitOfWorks.Views.Get(videoId, userId);
 
             if (view == null)
                 return;
@@ -69,7 +69,7 @@ namespace OurTube.Application.Services
 
         public async Task ClearHistory(string userId)
         {
-            ApplicationUser applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
+            var applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
 
             if (applicationUser == null)
                 throw new InvalidOperationException("Пользователь не найден");
@@ -79,19 +79,19 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public List<ViewGetDTO> GetWithLimit(string userId, int limit, int after)
+        public List<ViewGetDto> GetWithLimit(string userId, int limit, int after)
         {
 
             if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            List<ViewGetDTO> result = new List<ViewGetDTO>();
+            var result = new List<ViewGetDto>();
 
-            foreach (View view in _unitOfWorks.Views.GetHistoryWithLimit(userId, limit, after).ToList())
+            foreach (var view in _unitOfWorks.Views.GetHistoryWithLimit(userId, limit, after).ToList())
             {
-                ViewGetDTO viewDTO = _mapper.Map<ViewGetDTO>(view);
-                viewDTO.Video = _videoService.GetMinVideoById(view.VideoId, userId);
-                result.Add(viewDTO);
+                var viewDto = _mapper.Map<ViewGetDto>(view);
+                viewDto.Video = _videoService.GetMinVideoById(view.VideoId, userId);
+                result.Add(viewDto);
             }
 
             return result;

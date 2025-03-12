@@ -9,11 +9,11 @@ namespace OurTube.Application.Mapping
     {
         public PlaylistProfile()
         {
-            CreateMap<Playlist, PlaylistGetDTO>();
+            CreateMap<Playlist, PlaylistGetDto>();
 
-            CreateMap<Playlist, PlaylistMinGetDTO>();
+            CreateMap<Playlist, PlaylistMinGetDto>();
 
-            CreateMap<PlaylistElement, PlaylistElementGetDTO>();
+            CreateMap<PlaylistElement, PlaylistElementGetDto>();
         }
 
     }

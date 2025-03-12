@@ -1,6 +1,6 @@
 ﻿namespace OurTube.Application.DTOs.VideoPreview
 {
-    public class VideoPreviewDTO
+    public class VideoPreviewDto
     {
         public string FileName { get; set; }
         public string FileDirInStorage { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace OurTube.Application.DTOs.Playlist
 {
-    public class PlaylistMinGetDTO
+    public class PlaylistMinGetDto
     {
         public int Id { get; set; }
         public string Title { get; set; }

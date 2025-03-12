@@ -11,7 +11,6 @@ namespace OurTube.Infrastructure.Data
         public DbSet<Video> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<PlaylistElement> PlaylistElements { get; set; }
-        public DbSet<Bucket> Buckets { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<CommentVote> CommentVotes { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }

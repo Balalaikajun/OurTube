@@ -10,14 +10,22 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+        private readonly UserService _userService;
+
+        public UserController(UserService userService)
+        {
+             _userService = userService;
+        }
+        
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> Patch([FromBody] ApplicationUserPatchDTO patchDTO, UserService userService)
+        public async Task<ActionResult> Patch(
+            [FromBody] ApplicationUserPatchDto patchDto)
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
-                await userService.UpdateUser(patchDTO, userId);
+                await _userService.UpdateUser(patchDto, userId);
                 return Ok();
             }
             catch (InvalidOperationException ex)

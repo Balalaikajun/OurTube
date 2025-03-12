@@ -10,17 +10,24 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class CommentController : ControllerBase
     {
+        private readonly CommentService _commentService;
+
+        public CommentController(CommentService commentService)
+        {
+            _commentService = commentService;
+        }
+        
+        
         [Authorize]
         [HttpPost]
         public async Task<ActionResult> Post(
-            [FromBody] CommentPostDTO postDTO,
-            [FromServices] CommentService commentService)
+            [FromBody] CommentPostDto postDto)
         {
             try
             {
-                await commentService.Create(
+                await _commentService.Create(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDTO);
+                    postDto);
                 return Created();
             }
             catch (InvalidOperationException ex)
@@ -32,14 +39,13 @@ namespace OurTube.Api.Controllers
         [Authorize]
         [HttpPatch]
         public async Task<ActionResult> Patch(
-            [FromBody] CommentPatchDTO postDTO,
-            [FromServices] CommentService commentService)
+            [FromBody] CommentPatchDto postDto)
         {
             try
             {
-                await commentService.Update(
+                await _commentService.Update(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDTO);
+                    postDto);
                 return Created();
             }
             catch (InvalidOperationException ex)
@@ -53,14 +59,13 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{commentId}")]
+        [HttpDelete("{commentId:int}")]
         public async Task<ActionResult> Delete(
-            int commentId,
-            [FromServices] CommentService commentService)
+            int commentId)
         {
             try
             {
-                await commentService.Delete(
+                await _commentService.Delete(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();
@@ -75,22 +80,21 @@ namespace OurTube.Api.Controllers
             }
         }
 
-        [HttpGet("{videoId}")]
-        public async Task<ActionResult> GetWithLimit(
+        [HttpGet("{videoId:int}")]
+        public ActionResult GetWithLimit(
              int videoId,
-             [FromServices] CommentService commentService,
              [FromQuery] int limit = 10,
              [FromQuery] int after = 0,
              [FromQuery] int? parentId = null)
         {
             try
             {
-                List<CommentGetDTO> result = await commentService.GetChildsWithLimit(
+                var result =  _commentService.GetChildsWithLimit(
                 videoId,
                 limit,
                 after,
                 parentId);
-                int nextAfter = after + limit;
+                var nextAfter = after + limit;
 
 
                 return Ok(new { result, nextAfter });

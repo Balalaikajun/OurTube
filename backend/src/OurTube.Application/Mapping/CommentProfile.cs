@@ -8,7 +8,7 @@ namespace OurTube.Application.Mapping
     {
         public CommentProfile()
         {
-            CreateMap<Comment, CommentGetDTO>();
+            CreateMap<Comment, CommentGetDto>();
         }
     }
 }

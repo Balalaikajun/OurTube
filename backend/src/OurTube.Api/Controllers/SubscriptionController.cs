@@ -9,13 +9,22 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class SubscriptionController : ControllerBase
     {
+        private readonly SubscriptionService _subscriptionService;
+
+        public SubscriptionController(SubscriptionService subscriptionService)
+        {
+            _subscriptionService = subscriptionService;
+        }
+        
+        
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Subscribe(string userToId, SubscriptionService subscriptionService)
+        public async Task<ActionResult> Subscribe(
+            string userToId)
         {
             try
             {
-                await subscriptionService.Subscribe(
+                await _subscriptionService.Subscribe(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     userToId);
 
@@ -29,11 +38,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete]
-        public async Task<ActionResult> UnSubscribe(string userToId, SubscriptionService subscriptionService)
+        public async Task<ActionResult> UnSubscribe(
+            string userToId)
         {
             try
             {
-                await subscriptionService.UnSubscribe(
+                await _subscriptionService.UnSubscribe(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     userToId);
 

@@ -10,13 +10,13 @@ namespace OurTube.Application.Mapping
     {
         public VideoProfile()
         {
-            CreateMap<Video, VideoGetDTO>();
+            CreateMap<Video, VideoGetDto>();
 
-            CreateMap<Video, VideoMinGetDTO>();
+            CreateMap<Video, VideoMinGetDto>();
 
-            CreateMap<VideoPlaylist, VideoPlaylistDTO>();
+            CreateMap<VideoPlaylist, VideoPlaylistDto>();
 
-            CreateMap<VideoPreview, VideoPreviewDTO>();
+            CreateMap<VideoPreview, VideoPreviewDto>();
         }
 
     }

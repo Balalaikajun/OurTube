@@ -5,7 +5,7 @@ namespace OurTube.Application.Services
 {
     public class CommentVoteService
     {
-        private IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWorks _unitOfWorks;
 
         public CommentVoteService(IUnitOfWorks unitOfWorks)
         {
@@ -14,7 +14,7 @@ namespace OurTube.Application.Services
 
         public async Task Set(int commentId, string userId, bool type)
         {
-            Comment comment = _unitOfWorks.Comments
+            var comment = _unitOfWorks.Comments
                 .Get(commentId);
 
             if (comment == null)
@@ -23,7 +23,7 @@ namespace OurTube.Application.Services
             if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            CommentVote vote = _unitOfWorks.CommentVoices.Get(commentId, userId);
+            var vote = _unitOfWorks.CommentVoices.Get(commentId, userId);
 
             if (vote == null)
             {
@@ -69,14 +69,14 @@ namespace OurTube.Application.Services
 
         public async Task Delete(int commentId, string userId)
         {
-            Comment comment = _unitOfWorks.Comments
+            var comment = _unitOfWorks.Comments
                 .Get(commentId);
 
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найдено");
 
-            CommentVote vote = _unitOfWorks.CommentVoices.Get(commentId, userId);
+            var vote = _unitOfWorks.CommentVoices.Get(commentId, userId);
 
             if (vote == null)
                 return;

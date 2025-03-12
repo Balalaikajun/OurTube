@@ -10,9 +10,9 @@ namespace OurTube.Infrastructure.Other
                 throw new FileNotFoundException();
 
             var inputVideoMediaInfo = await FFmpeg.GetMediaInfo(inputVideo);
-            string localSegmentsPath = Path.Combine(outputDir, "segments", "segment_%03d.ts"); // Путь до сегментов в локальной папке
-            string localPlaylistPath = Path.Combine(outputDir, "playlist.m3u8");
-            string segmentsFullUri = Path.Combine(segmentsUri, "segments/").Replace(@"\", @"/");
+            var localSegmentsPath = Path.Combine(outputDir, "segments", "segment_%03d.ts"); // Путь до сегментов в локальной папке
+            var localPlaylistPath = Path.Combine(outputDir, "playlist.m3u8");
+            var segmentsFullUri = Path.Combine(segmentsUri, "segments/").Replace(@"\", @"/");
 
             Directory.CreateDirectory(Path.Combine(outputDir, "segments"));
 

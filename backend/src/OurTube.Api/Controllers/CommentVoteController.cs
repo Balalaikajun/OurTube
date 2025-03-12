@@ -5,21 +5,26 @@ using System.Security.Claims;
 
 namespace OurTube.Api.Controllers
 {
-    [Route("api/Video/Comment")]
+    [Route("api/Video/Comment/{commentId:int}/vote")]
     [ApiController]
     public class CommentVoteController : ControllerBase
     {
+        private readonly CommentVoteService _commentVoteService;
 
+        public CommentVoteController(CommentVoteService commentVoteService)
+        {
+            _commentVoteService = commentVoteService;
+        }
+        
         [Authorize]
-        [HttpPost("{commentId}/vote")]
+        [HttpPost("")]
         public async Task<ActionResult> PostVote(
             int commentId, 
-            [FromBody] bool type, 
-        [FromServices] CommentVoteService commentService)
+            [FromBody] bool type)
         {
             try
             {
-                await commentService.Set(
+                await _commentVoteService.Set(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     type);
@@ -34,12 +39,13 @@ namespace OurTube.Api.Controllers
 
 
         [Authorize]
-        [HttpDelete("{commentId}/vote")]
-        public async Task<ActionResult> DeleteVote(int commentId, CommentVoteService commentService)
+        [HttpDelete("")]
+        public async Task<ActionResult> DeleteVote(
+            int commentId)
         {
             try
             {
-                await commentService.Delete(
+                await _commentVoteService.Delete(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();

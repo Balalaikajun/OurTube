@@ -4,7 +4,7 @@ namespace OurTube.Application.Validators
 {
     public class VideoValidator
     {
-        public void ValidateVideo(VideoUploadDTO video)
+        public void ValidateVideo(VideoUploadDto video)
         {
             // Валидация данных
             if (!video.VideoFile.ContentType.StartsWith("video/"))
@@ -17,7 +17,7 @@ namespace OurTube.Application.Validators
                 throw new FormatException($"Формат файла: {video.PreviewFile.ContentType} - не поддерживается");
             }
 
-            if (video.VideoPostDTO.Title == "con")
+            if (video.VideoPostDto.Title == "con")
             {
                 throw new FormatException("Данное название не соответствует политике компании");
             }

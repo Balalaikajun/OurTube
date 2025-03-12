@@ -2,7 +2,7 @@
 
 namespace OurTube.Application.DTOs.Video
 {
-    public class VideoPostDTO
+    public class VideoPostDto
     {
         [MaxLength(150, ErrorMessage = "Название видео не должно превышать 150 символов")]
         [Required]
