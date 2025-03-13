@@ -30,32 +30,32 @@ namespace OurTube.Infrastructure.Other
         {
             var result = await base.CreateAsync(user, password);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
+                return result;
+            
+            ApplicationDbContext.ApplicationUsers.Add(new ApplicationUser()
             {
-
-                ApplicationDbContext.ApplicationUsers.Add(new ApplicationUser()
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Playlists = [
-                        new Playlist()
-                        {
-                        Title ="Понравившееся"
-                        }]
-                });
-
-                try
-                {
-                    await ApplicationDbContext.SaveChangesAsync();
-                }
-                catch (DbUpdateException ex)
-                {
-                    return IdentityResult.Failed(new IdentityError()
+                Id = user.Id,
+                UserName = user.UserName,
+                Playlists = [
+                    new Playlist()
                     {
-                        Code = "ApplicationUserCreateError",
-                        Description = $"Ошибка при сохранении данных ApplicationUser: {ex.Message}"
-                    });
-                }
+                        Title ="Понравившееся",
+                        IsSystem = true
+                    }]
+            });
+
+            try
+            {
+                await ApplicationDbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return IdentityResult.Failed(new IdentityError()
+                {
+                    Code = "ApplicationUserCreateError",
+                    Description = $"Ошибка при сохранении данных ApplicationUser: {ex.Message}"
+                });
             }
             return result;
         }

@@ -57,7 +57,7 @@ namespace OurTube.Api
             services.AddScoped<CommentService>();
             services.AddScoped<CommentVoteService>();
             services.AddScoped<ViewService>();
-            services.AddScoped<RecomendationService>();
+            services.AddScoped<BaseRecomendationService>();
             services.AddScoped<SubscriptionService>();
 
             // Repositories

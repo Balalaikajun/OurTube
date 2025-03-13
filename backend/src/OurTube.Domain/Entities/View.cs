@@ -9,7 +9,8 @@ namespace OurTube.Domain.Entities
         public int VideoId { get; set; }
         public string ApplicationUserId { get; set; }
         [Required]
-        public long EndTime { get; set; }
+        public TimeSpan EndTime { get; set; } = TimeSpan.Zero;
+        public TimeSpan? WhatchTime { get; set; }
         [Required]
         public DateTime DateTime { get; set; } = DateTime.UtcNow;
 

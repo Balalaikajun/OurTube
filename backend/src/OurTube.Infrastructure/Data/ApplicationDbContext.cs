@@ -15,7 +15,8 @@ namespace OurTube.Infrastructure.Data
         public DbSet<CommentVote> CommentVotes { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<View> Views { get; set; }
-
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<VideoTags> VideoTags { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -82,7 +83,19 @@ namespace OurTube.Infrastructure.Data
             modelBuilder.Entity<View>()
                 .ToTable(nameof(View));
 
-
+            // VideoTags
+            modelBuilder.Entity<VideoTags>()
+                .HasOne(vt => vt.Video)
+                .WithMany(v => v.Tags)
+                .HasForeignKey(vt => vt.VideoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<VideoTags>()
+                .HasOne(vt => vt.Tag)
+                .WithMany()
+                .HasForeignKey(vt => vt.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
 
             // Playlist
             modelBuilder.Entity<Playlist>()

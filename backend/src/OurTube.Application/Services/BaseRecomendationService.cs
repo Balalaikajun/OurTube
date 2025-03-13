@@ -1,38 +1,39 @@
-﻿using OurTube.Application.DTOs.Video;
+﻿using Microsoft.EntityFrameworkCore;
+using OurTube.Application.DTOs.Video;
+using OurTube.Application.Interfaces;
 using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
-    public class RecomendationService
+    public class BaseRecomendationService:IRecomendationService
     {
         private readonly IUnitOfWorks _unitOfWorks;
         private readonly VideoService _videoService;
 
-        public RecomendationService(IUnitOfWorks unitOfWorks, VideoService videoService)
+        public BaseRecomendationService(IUnitOfWorks unitOfWorks, VideoService videoService)
         {
             _unitOfWorks = unitOfWorks;
             _videoService = videoService;
         }
 
-        public List<VideoMinGetDto> GetVideos(int limit, int after, string? userId = null)
+        public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string? userId = null)
         {
             var videos = _unitOfWorks.Videos.GetAll()
                 .OrderByDescending(v => v.LikesCount)
                 .Skip(after)
-                .Take(limit)
-                .ToList();
+                .Take(limit);
 
             if (userId == null)
             {
-                return videos
+                return await videos
                     .Select(v => _videoService.GetMinVideoById(v.Id))
-                    .ToList();
+                    .ToListAsync();
             }
             else
             {
-                return videos
+                return await videos
                     .Select(v => _videoService.GetMinVideoById(v.Id, userId))
-                    .ToList();
+                    .ToListAsync();
             }
         }
     }

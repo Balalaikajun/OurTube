@@ -40,7 +40,7 @@ namespace OurTube.Application.Services
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
 
-            if (playlist.ApplicationUserId != userId)
+            if (playlist.IsSystem || playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
             if (patchDto.Title != null)
@@ -58,7 +58,7 @@ namespace OurTube.Application.Services
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
 
-            if (playlist.ApplicationUserId != userId)
+            if (playlist.IsSystem || playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
             _unitOfWork.Playlists.Remove(playlist);
@@ -73,7 +73,7 @@ namespace OurTube.Application.Services
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
 
-            if (playlist.ApplicationUserId != userId)
+            if ( playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
             var element = new PlaylistElement()
@@ -96,7 +96,7 @@ namespace OurTube.Application.Services
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
 
-            if (playlist.ApplicationUserId != userId)
+            if ( playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
             var playlistElement = _unitOfWork.PlaylistElements.Get(playlistId, videoId);
@@ -124,7 +124,7 @@ namespace OurTube.Application.Services
 
 
 
-            playlistGetDto.PlaylistElements = new List<PlaylistElementGetDto>();
+            playlistGetDto.PlaylistElements = [];
             foreach (var pe in playlist.PlaylistElements)
             {
                 playlistGetDto.PlaylistElements.Add(new PlaylistElementGetDto()

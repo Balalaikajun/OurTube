@@ -4,7 +4,7 @@ namespace OurTube.Infrastructure.Other
 {
     public class FfmpegProcessor
     {
-        public async Task HandleVideo(string inputVideo, string outputDir, int videoHeight, string segmentsUri)
+        public static async Task HandleVideo(string inputVideo, string outputDir, int videoHeight, string segmentsUri)
         {
             if (!File.Exists(inputVideo))
                 throw new FileNotFoundException();

@@ -18,7 +18,7 @@ namespace OurTube.Application.Services
             _mapper = mapper;
         }
 
-        public async Task AddVideo(int videoId, string userId, long endTime)
+        public async Task AddVideo(int videoId, string userId, TimeSpan endTime)
         {
             if (!_unitOfWorks.ApplicationUsers.Contains(userId))
                 throw new InvalidOperationException("Пользователь не найден");

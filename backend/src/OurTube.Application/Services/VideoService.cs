@@ -160,7 +160,7 @@ namespace OurTube.Application.Services
 
 
                     //Обработка видео
-                    await _videoProcessor.HandleVideo(
+                    await FfmpegProcessor.HandleVideo(
                         tempSourcePath,
                         Path.Combine(tempVideoDir, resolution.ToString()),
                         resolution,
