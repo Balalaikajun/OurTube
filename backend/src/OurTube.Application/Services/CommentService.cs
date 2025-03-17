@@ -16,15 +16,15 @@ namespace OurTube.Application.Services
             _mapper = mapper;
         }
 
-        public async Task Create(string userId, CommentPostDto postDto)
+        public async Task CreateAsync(string userId, CommentPostDto postDto)
         {
-            var video = _unitOfWorks.Videos.Get(postDto.VideoId);
+            var video = await _unitOfWorks.Videos.GetAsync(postDto.VideoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            var parent = _unitOfWorks.Comments
-                .Get(postDto.ParentId);
+            var parent = await _unitOfWorks.Comments
+                .GetAsync(postDto.ParentId);
 
             var comment = new Comment()
             {
@@ -41,10 +41,10 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public async Task Update(string userId, CommentPatchDto postDto)
+        public async Task UpdateAsync(string userId, CommentPatchDto postDto)
         {
-            var comment = _unitOfWorks.Comments
-                .Get(postDto.Id);
+            var comment =await _unitOfWorks.Comments
+                .GetAsync(postDto.Id);
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
@@ -61,10 +61,10 @@ namespace OurTube.Application.Services
             }
         }
 
-        public async Task Delete(int commentId, string userId)
+        public async Task DeleteAsync(int commentId, string userId)
         {
-            var comment = _unitOfWorks.Comments
-                .Get(commentId);
+            var comment =await _unitOfWorks.Comments
+                .GetAsync(commentId);
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
@@ -72,7 +72,7 @@ namespace OurTube.Application.Services
             if (comment.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного комментария");
 
-            var video = _unitOfWorks.Videos.Get(comment.VideoId);
+            var video =await _unitOfWorks.Videos.GetAsync(comment.VideoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -83,16 +83,16 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public List<CommentGetDto> GetChildsWithLimit(int videoId, int limit, int after, int? parentId = null)
+        public async Task<List<CommentGetDto>> GetChildsWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
         {
-            if (!_unitOfWorks.Videos.Contains(videoId))
+            if (!await _unitOfWorks.Videos.ContainsAsync(videoId))
                 throw new InvalidOperationException("Видео не найдено");
 
-            if (parentId != null && !_unitOfWorks.Comments.Contains(parentId))
+            if (parentId != null && !await _unitOfWorks.Comments.ContainsAsync(parentId))
                 throw new InvalidOperationException("Комментарий не найден");
 
-            var comments = _unitOfWorks.Comments
-                            .GetWithLimit(videoId, limit, after, parentId).ToList();
+            var comments = await _unitOfWorks.Comments
+                            .GetWithLimitAsync(videoId, limit, after, parentId);
 
             return _mapper.Map<List<CommentGetDto>>(comments);
         }

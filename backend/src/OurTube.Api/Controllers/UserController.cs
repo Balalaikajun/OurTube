@@ -19,13 +19,13 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> Patch(
+        public async Task<ActionResult> PatchAsync(
             [FromBody] ApplicationUserPatchDto patchDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
-                await _userService.UpdateUser(patchDto, userId);
+                await _userService.UpdateUserAsync(patchDto, userId);
                 return Ok();
             }
             catch (InvalidOperationException ex)

@@ -21,12 +21,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> AddVideo(
+        public async Task<ActionResult> AddVideoAsync(
             [FromBody] ViewPostDto postDto)
         {
             try
             {
-                await _viewService.AddVideo(
+                await _viewService.AddVideoAsync(
                     postDto.VideoId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     postDto.EndTime);
@@ -41,12 +41,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{videoId:int}")]
-        public async Task<ActionResult> RemoveVideo(
+        public async Task<ActionResult> RemoveVideoAsync(
             int videoId)
         {
             try
             {
-                await _viewService.RemoveVideo(
+                await _viewService.RemoveVideoAsync(
                     videoId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -60,11 +60,11 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete]
-        public async Task<ActionResult> ClearHistory()
+        public async Task<ActionResult> ClearHistoryAsync()
         {
             try
             {
-                await _viewService.ClearHistory(
+                await _viewService.ClearHistoryAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 return Ok();
@@ -77,13 +77,13 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public ActionResult<PagedHistoryDto> Get(
+        public async Task<ActionResult<PagedHistoryDto>> GetAsync(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
             try
             {
-                var history = _viewService.GetWithLimit(
+                var history =await _viewService.GetWithLimitAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
                 after);

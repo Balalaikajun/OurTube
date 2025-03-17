@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace OurTube.Domain.Entities
 {
     [PrimaryKey(nameof(VideoId), nameof(ApplicationUserId))]
-    public class View
+    public class VideoView
     {
         public int VideoId { get; set; }
         public string ApplicationUserId { get; set; }

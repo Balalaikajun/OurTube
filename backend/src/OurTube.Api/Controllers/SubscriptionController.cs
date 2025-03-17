@@ -19,12 +19,12 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Subscribe(
+        public async Task<ActionResult> SubscribeAsync(
             string userToId)
         {
             try
             {
-                await _subscriptionService.Subscribe(
+                await _subscriptionService.SubscribeAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     userToId);
 
@@ -38,12 +38,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete]
-        public async Task<ActionResult> UnSubscribe(
+        public async Task<ActionResult> UnSubscribeAsync(
             string userToId)
         {
             try
             {
-                await _subscriptionService.UnSubscribe(
+                await _subscriptionService.UnSubscribeAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     userToId);
 

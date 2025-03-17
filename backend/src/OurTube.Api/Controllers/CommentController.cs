@@ -20,12 +20,12 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Post(
+        public async Task<ActionResult> PostAsync(
             [FromBody] CommentPostDto postDto)
         {
             try
             {
-                await _commentService.Create(
+                await _commentService.CreateAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     postDto);
                 return Created();
@@ -38,12 +38,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> Patch(
+        public async Task<ActionResult> PatchAsync(
             [FromBody] CommentPatchDto postDto)
         {
             try
             {
-                await _commentService.Update(
+                await _commentService.UpdateAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     postDto);
                 return Created();
@@ -60,12 +60,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{commentId:int}")]
-        public async Task<ActionResult> Delete(
+        public async Task<ActionResult> DeleteAsync(
             int commentId)
         {
             try
             {
-                await _commentService.Delete(
+                await _commentService.DeleteAsync(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();
@@ -81,7 +81,7 @@ namespace OurTube.Api.Controllers
         }
 
         [HttpGet("{videoId:int}")]
-        public ActionResult<PagedCommentDto> GetWithLimit(
+        public async Task<ActionResult<PagedCommentDto>> GetWithLimitAsync(
              int videoId,
              [FromQuery] int limit = 10,
              [FromQuery] int after = 0,
@@ -89,7 +89,7 @@ namespace OurTube.Api.Controllers
         {
             try
             {
-                var result =  _commentService.GetChildsWithLimit(
+                var result = await _commentService.GetChildsWithLimitAsync(
                 videoId,
                 limit,
                 after,

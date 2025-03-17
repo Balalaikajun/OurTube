@@ -19,7 +19,7 @@ namespace OurTube.Application.Services
             _mapper = mapper;
         }
 
-        public async Task Create(PlaylistPostDto playlistDto, string userId)
+        public async Task CreateAsync(PlaylistPostDto playlistDto, string userId)
         {
             var playlist = new Playlist()
             {
@@ -33,9 +33,9 @@ namespace OurTube.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task Update(PlaylistPatchDto patchDto, int playlistId, string userId)
+        public async Task UpdateAsync(PlaylistPatchDto patchDto, int playlistId, string userId)
         {
-            var playlist = _unitOfWork.Playlists.Get(playlistId);
+            var playlist =await _unitOfWork.Playlists.GetAsync(playlistId);
 
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
@@ -51,9 +51,9 @@ namespace OurTube.Application.Services
 
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task Delete(int playlistId, string userId)
+        public async Task DeleteAsync(int playlistId, string userId)
         {
-            var playlist = _unitOfWork.Playlists.Get(playlistId);
+            var playlist =await _unitOfWork.Playlists.GetAsync(playlistId);
 
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
@@ -66,9 +66,9 @@ namespace OurTube.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task AddVideo(int playlistId, int videoId, string userId)
+        public async Task AddVideoAsync(int playlistId, int videoId, string userId)
         {
-            var playlist = _unitOfWork.Playlists.Get(playlistId);
+            var playlist =await _unitOfWork.Playlists.GetAsync(playlistId);
 
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
@@ -89,9 +89,9 @@ namespace OurTube.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task RemoveVideo(int playlistId, int videoId, string userId)
+        public async Task RemoveVideoAsync(int playlistId, int videoId, string userId)
         {
-            var playlist = _unitOfWork.Playlists.Get(playlistId);
+            var playlist =await _unitOfWork.Playlists.GetAsync(playlistId);
 
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
@@ -99,7 +99,7 @@ namespace OurTube.Application.Services
             if ( playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
-            var playlistElement = _unitOfWork.PlaylistElements.Get(playlistId, videoId);
+            var playlistElement =await _unitOfWork.PlaylistElements.GetAsync(playlistId, videoId);
 
             if (playlistElement == null)
                 return;
@@ -110,9 +110,9 @@ namespace OurTube.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<PlaylistGetDto> GetWithLimit(int playlistId, string userId, int limit, int after)
+        public async Task<PlaylistGetDto> GetWithLimitAsync(int playlistId, string userId, int limit, int after)
         {
-            var playlist = await _unitOfWork.Playlists.GetPlaylistWithElements(playlistId, limit, after);
+            var playlist = await _unitOfWork.Playlists.GetPlaylistWithElementsAsync(playlistId, limit, after);
 
             if (playlist == null)
                 throw new KeyNotFoundException("Плейлист не найден");
@@ -130,7 +130,7 @@ namespace OurTube.Application.Services
                 playlistGetDto.PlaylistElements.Add(new PlaylistElementGetDto()
                 {
                     AddedAt = pe.AddedAt,
-                    Video = _videoService.GetMinVideoById(pe.VideoId, userId)
+                    Video = await _videoService.GetMinVideoByIdAsync(pe.VideoId, userId)
 
                 });
             }
@@ -139,9 +139,11 @@ namespace OurTube.Application.Services
 
         }
 
-        public IEnumerable<PlaylistMinGetDto> GetUserPlaylists(string userId)
+        public async Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(string userId)
         {
-            return _unitOfWork.Playlists.Find(p => p.ApplicationUserId == userId)
+
+
+            return (await _unitOfWork.Playlists.FindAsync(p => p.ApplicationUserId == userId))
                 .Select(p => _mapper.Map<PlaylistMinGetDto>(p));
         }
 

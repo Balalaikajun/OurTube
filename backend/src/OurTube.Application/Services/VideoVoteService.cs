@@ -14,16 +14,16 @@ namespace OurTube.Application.Services
             _playlistService = playlistService;
         }
 
-        public async Task Set(int videoId, string userId, bool type)
+        public async Task SetAsync(int videoId, string userId, bool type)
         {
-            var video = _unitOfWorks.Videos.Get(videoId);
+            var video =await _unitOfWorks.Videos.GetAsync(videoId);
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
+            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
+            var vote =await _unitOfWorks.VideoVotes.GetAsync(videoId, userId);
 
             if (vote == null)
             {
@@ -65,40 +65,40 @@ namespace OurTube.Application.Services
             }
 
 
-            var playlist = _unitOfWorks.Playlists
-                .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId)
+            var playlist =(await _unitOfWorks.Playlists
+                .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
                 .First();
 
             if (playlist == null)
             {
-                await _playlistService.Create(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
-                playlist = _unitOfWorks.Playlists
-                    .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId)
+                await _playlistService.CreateAsync(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
+                playlist =(await _unitOfWorks.Playlists
+                    .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
                     .First();
             }
 
             if (type == true)
             {
-                await _playlistService.AddVideo(playlist.Id, videoId, userId);
+                await _playlistService.AddVideoAsync(playlist.Id, videoId, userId);
             }
             else
             {
-                await _playlistService.RemoveVideo(playlist.Id, videoId, userId);
+                await _playlistService.RemoveVideoAsync(playlist.Id, videoId, userId);
             }
         }
 
-        public async Task Delete(int videoId, string userId)
+        public async Task DeleteAsync(int videoId, string userId)
         {
-            var video = _unitOfWorks.Videos.Get(videoId);
+            var video =await _unitOfWorks.Videos.GetAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
+            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var vote = _unitOfWorks.VideoVotes
-                .Get(videoId, userId);
+            var vote =await _unitOfWorks.VideoVotes
+                .GetAsync(videoId, userId);
 
             if (vote == null)
                 return;
@@ -114,16 +114,17 @@ namespace OurTube.Application.Services
 
             _unitOfWorks.VideoVotes.Remove(vote);
 
-            var playlist = _unitOfWorks.Playlists
-                .Find(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId).First();
+            var playlist =(await _unitOfWorks.Playlists
+                .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
+                .First();
 
             if (playlist == null)
             {
-                await _playlistService.Create(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
+                await _playlistService.CreateAsync(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
                 return;
             }
 
-            await _playlistService.RemoveVideo(playlist.Id, videoId, userId);
+            await _playlistService.RemoveVideoAsync(playlist.Id, videoId, userId);
 
         }
     }

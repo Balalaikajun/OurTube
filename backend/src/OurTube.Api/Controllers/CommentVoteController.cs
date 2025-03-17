@@ -18,13 +18,13 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPost("")]
-        public async Task<ActionResult> PostVote(
+        public async Task<ActionResult> PostVoteAsync(
             int commentId, 
             [FromBody] bool type)
         {
             try
             {
-                await _commentVoteService.Set(
+                await _commentVoteService.SetAsync(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     type);
@@ -40,12 +40,12 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("")]
-        public async Task<ActionResult> DeleteVote(
+        public async Task<ActionResult> DeleteVoteAsync(
             int commentId)
         {
             try
             {
-                await _commentVoteService.Delete(
+                await _commentVoteService.DeleteAsync(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();

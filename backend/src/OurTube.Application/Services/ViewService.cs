@@ -18,17 +18,17 @@ namespace OurTube.Application.Services
             _mapper = mapper;
         }
 
-        public async Task AddVideo(int videoId, string userId, TimeSpan endTime)
+        public async Task AddVideoAsync(int videoId, string userId, TimeSpan endTime)
         {
-            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
+            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var video = _unitOfWorks.Videos.Get(videoId);
+            var video =await _unitOfWorks.Videos.GetAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            var view = _unitOfWorks.Views.Get(videoId, userId);
+            var view =await _unitOfWorks.Views.GetAsync(videoId, userId);
 
             if (view != null)
             {
@@ -37,11 +37,12 @@ namespace OurTube.Application.Services
             }
             else
             {
-                _unitOfWorks.Views.Add(new View()
+                _unitOfWorks.Views.Add(new VideoView()
                 {
                     ApplicationUserId = userId,
                     VideoId = videoId,
-                    EndTime = endTime
+                    EndTime = endTime,
+                    DateTime = DateTime.UtcNow
                 });
                 video.ViewsCount++;
             }
@@ -49,15 +50,15 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public async Task RemoveVideo(int videoId, string userId)
+        public async Task RemoveVideoAsync(int videoId, string userId)
         {
-            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
+            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            if (!_unitOfWorks.Videos.Contains(videoId))
+            if (!await _unitOfWorks.Videos.ContainsAsync(videoId))
                 throw new InvalidOperationException("Видео не найдено");
 
-            var view = _unitOfWorks.Views.Get(videoId, userId);
+            var view =await _unitOfWorks.Views.GetAsync(videoId, userId);
 
             if (view == null)
                 return;
@@ -67,30 +68,32 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public async Task ClearHistory(string userId)
+        public async Task ClearHistoryAsync(string userId)
         {
-            var applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
+            var applicationUser =await _unitOfWorks.ApplicationUsers.GetAsync(userId);
 
             if (applicationUser == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            applicationUser.Views.Clear();
+            var views = await _unitOfWorks.Views.FindAsync(vv => vv.ApplicationUserId == applicationUser.Id);
+            
+            _unitOfWorks.Views.RemoveRange(views);
 
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public List<ViewGetDto> GetWithLimit(string userId, int limit, int after)
+        public async Task<List<ViewGetDto>> GetWithLimitAsync(string userId, int limit, int after)
         {
 
-            if (!_unitOfWorks.ApplicationUsers.Contains(userId))
+            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
             var result = new List<ViewGetDto>();
 
-            foreach (var view in _unitOfWorks.Views.GetHistoryWithLimit(userId, limit, after).ToList())
+            foreach (var view in await _unitOfWorks.Views.GetHistoryWithLimitAsync(userId, limit, after))
             {
                 var viewDto = _mapper.Map<ViewGetDto>(view);
-                viewDto.Video = _videoService.GetMinVideoById(view.VideoId, userId);
+                viewDto.Video = await _videoService.GetMinVideoByIdAsync(view.VideoId, userId);
                 result.Add(viewDto);
             }
 

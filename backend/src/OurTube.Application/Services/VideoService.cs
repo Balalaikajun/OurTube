@@ -37,9 +37,9 @@ namespace OurTube.Application.Services
             _validator = validator;
         }
 
-        public VideoGetDto GetVideoById(int videoId)
+        public async Task<VideoGetDto> GetVideoByIdAsync(int videoId)
         {
-            var video = _unitOfWorks.Videos.GetFullVideoData(videoId);
+            var video =await _unitOfWorks.Videos.GetFullVideoDataAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -49,29 +49,29 @@ namespace OurTube.Application.Services
             return videoDto;
         }
 
-        public VideoGetDto GetVideoById(int videoId, string userId)
+        public async Task<VideoGetDto> GetVideoByIdAsync(int videoId, string userId)
         {
-            var videoDto = GetVideoById(videoId);
+            var videoDto =await GetVideoByIdAsync(videoId);
 
-            var vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
+            var vote = await _unitOfWorks.VideoVotes.GetAsync(videoId, userId);
 
             if (vote != null)
                 videoDto.Vote = vote.Type;
 
-            var view = _unitOfWorks.Views.Get(videoId, userId);
+            var view =await _unitOfWorks.Views.GetAsync(videoId, userId);
 
             if (view != null)
                 videoDto.EndTime = view.EndTime;
 
-            if (_unitOfWorks.Subscriptions.Contains(videoDto.User.Id, userId))
+            if (await _unitOfWorks.Subscriptions.ContainsAsync( userId,videoDto.User.Id))
                 videoDto.User.IsSubscribed = true;
 
             return videoDto;
         }
 
-        public VideoMinGetDto GetMinVideoById(int videoId)
+        public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId)
         {
-            var video = _unitOfWorks.Videos.GetMinVideoData(videoId);
+            var video = await _unitOfWorks.Videos.GetMinVideoDataAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -81,20 +81,20 @@ namespace OurTube.Application.Services
             return videoDto;
         }
 
-        public VideoMinGetDto GetMinVideoById(int videoId, string userId)
+        public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId, string userId)
         {
-            var videoDto = GetMinVideoById(videoId);
+            var videoDto =await GetMinVideoByIdAsync(videoId);
 
-            var vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
+            var vote =await _unitOfWorks.VideoVotes.GetAsync(videoId, userId);
 
             if (vote != null)
                 videoDto.Vote = vote.Type;
 
-            var view = _unitOfWorks.Views.Get(videoId, userId);
+            var view =await _unitOfWorks.Views.GetAsync(videoId, userId);
             if (view != null)
                 videoDto.EndTime = view.EndTime;
 
-            if (_unitOfWorks.Subscriptions.Find(s => s.SubscribedToId == videoDto.User.Id && s.SubscriberId == userId).FirstOrDefault() != null)
+            if (await _unitOfWorks.Subscriptions.ContainsAsync(userId,videoDto.User.Id))
                 videoDto.User.IsSubscribed = true;
 
             return videoDto;
@@ -214,7 +214,7 @@ namespace OurTube.Application.Services
                     video.Files.Add(playlist);
                 }
 
-                video.User = _unitOfWorks.ApplicationUsers.Get(userId);
+                video.User =await _unitOfWorks.ApplicationUsers.GetAsync(userId);
 
                 _unitOfWorks.Videos.Add(video);
 

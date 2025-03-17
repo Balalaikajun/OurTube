@@ -12,22 +12,22 @@ namespace OurTube.Application.Services
             _unitOfWorks = unitOfWorks;
         }
 
-        public async Task Subscribe(string userId, string userToId)
+        public async Task SubscribeAsync(string userId, string userToId)
         {
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            var user = _unitOfWorks.ApplicationUsers.Get(userId);
+            var user =await _unitOfWorks.ApplicationUsers.GetAsync(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
+            var userTo =await _unitOfWorks.ApplicationUsers.GetAsync(userToId);
 
             if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            var subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
+            var subscription =await _unitOfWorks.Subscriptions.GetAsync(userId, userToId);
             if (subscription != null)
                 return;
 
@@ -45,22 +45,22 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public async Task UnSubscribe(string userId, string userToId)
+        public async Task UnSubscribeAsync(string userId, string userToId)
         {
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            var user = _unitOfWorks.ApplicationUsers.Get(userId);
+            var user =await _unitOfWorks.ApplicationUsers.GetAsync(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
+            var userTo =await _unitOfWorks.ApplicationUsers.GetAsync(userToId);
 
             if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            var subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
+            var subscription =await _unitOfWorks.Subscriptions.GetAsync(userId, userToId);
 
             if (subscription == null)
                 return;
@@ -73,10 +73,10 @@ namespace OurTube.Application.Services
             await _unitOfWorks.SaveChangesAsync();
         }
 
-        public bool IsSubscribe(string userId, string userToId)
+        public async Task<bool> IsSubscribeAsync(string userId, string userToId)
         {
-            return _unitOfWorks.Subscriptions
-                .Contains(userId, userToId);
+            return await _unitOfWorks.Subscriptions
+                .ContainsAsync(userId, userToId);
         }
     }
 }

@@ -18,13 +18,13 @@ namespace OurTube.Api.Controllers
         }
 
         [HttpGet("{videoId:int}")]
-        public ActionResult<VideoGetDto> Get(int videoId, VideoService videoService)
+        public async Task<ActionResult<VideoGetDto>> GetAsync(int videoId, VideoService videoService)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             try
             {
-                return Ok(userId != null ? videoService.GetVideoById(videoId, userId) : videoService.GetVideoById(videoId));
+                return Ok(userId != null ? await videoService.GetVideoByIdAsync(videoId, userId) : await videoService.GetVideoByIdAsync(videoId));
             }
             catch (InvalidOperationException ex)
             {

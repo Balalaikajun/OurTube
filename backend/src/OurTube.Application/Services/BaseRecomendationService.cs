@@ -18,23 +18,30 @@ namespace OurTube.Application.Services
 
         public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string? userId = null)
         {
-            var videos = _unitOfWorks.Videos.GetAll()
+            var videos =await _unitOfWorks.Videos.GetAll()
                 .OrderByDescending(v => v.LikesCount)
                 .Skip(after)
-                .Take(limit);
+                .Take(limit)
+                .Select(v => v.Id)
+                .ToListAsync();
 
+            var result = new List<VideoMinGetDto>();
             if (userId == null)
             {
-                return await videos
-                    .Select(v => _videoService.GetMinVideoById(v.Id))
-                    .ToListAsync();
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId));
+                }
             }
             else
             {
-                return await videos
-                    .Select(v => _videoService.GetMinVideoById(v.Id, userId))
-                    .ToListAsync();
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId, userId));
+                }
             }
+
+            return result;
         }
     }
 }

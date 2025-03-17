@@ -15,11 +15,10 @@ namespace OurTube.Infrastructure.Persistence.Repositories
         public PlaylistRepository(ApplicationDbContext context)
         : base(context) { }
 
-        public async Task<Playlist> GetPlaylistWithElements(int playlistId, int limit, int after)
+        public async Task<Playlist> GetPlaylistWithElementsAsync(int playlistId, int limit, int after)
         {
             return await ApplicationDbContext.Playlists
             .Include(p => p.PlaylistElements
-                .OrderBy(pe => pe.AddedAt)
                 .OrderBy(pe => pe.AddedAt)
                 .Skip(after)
                 .Take(limit))

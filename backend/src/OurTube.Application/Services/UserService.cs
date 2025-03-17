@@ -14,14 +14,14 @@ namespace OurTube.Application.Services
             _unitOfWorks = unitOfWorks;
         }
 
-        public async Task UpdateUser(ApplicationUserPatchDto patchDto, string userId)
+        public async Task UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
         {
-            var aUser = _unitOfWorks.ApplicationUsers.Get(userId);
+            var aUser =await _unitOfWorks.ApplicationUsers.GetAsync(userId);
 
             if (aUser == null)
                 throw new KeyNotFoundException("Пользователь не найден");
 
-            var iUser = _unitOfWorks.IdentityUsers.Get(userId);
+            var iUser = await _unitOfWorks.IdentityUsers.GetAsync(userId);
 
             if (iUser == null)
                 throw new KeyNotFoundException("Пользователь не найден");

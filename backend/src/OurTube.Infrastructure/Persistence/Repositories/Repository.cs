@@ -13,9 +13,9 @@ namespace OurTube.Infrastructure.Persistence.Repositories
             Context = context;
         }
 
-        public TEntity? Get(params object[] keyValues)
+        public async Task<TEntity?> GetAsync(params object[] keyValues)
         {
-            return Context.Set<TEntity>().Find(keyValues);
+            return await Context.Set<TEntity>().FindAsync(keyValues);
         }
 
         public IQueryable<TEntity> GetAll()
@@ -23,9 +23,9 @@ namespace OurTube.Infrastructure.Persistence.Repositories
             return Context.Set<TEntity>();
         }
 
-        public IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate)
+        public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return Context.Set<TEntity>().Where(predicate);
+            return await Context.Set<TEntity>().Where(predicate).ToListAsync();
         }
 
         public void Add(TEntity entity)
@@ -48,9 +48,9 @@ namespace OurTube.Infrastructure.Persistence.Repositories
             Context.Set<TEntity>().RemoveRange(entities);
         }
 
-        public bool Contains(params object[] keyValues)
+        public async Task<bool> ContainsAsync(params object[] keyValues)
         {
-            return Get(keyValues) != null;
-        }
+            return await GetAsync(keyValues) != null;
+        } 
     }
 }

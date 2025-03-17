@@ -14,7 +14,7 @@ namespace OurTube.Infrastructure.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<CommentVote> CommentVotes { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
-        public DbSet<View> Views { get; set; }
+        public DbSet<VideoView> Views { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<VideoTags> VideoTags { get; set; }
 
@@ -80,8 +80,19 @@ namespace OurTube.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Views
-            modelBuilder.Entity<View>()
-                .ToTable(nameof(View));
+            modelBuilder.Entity<VideoView>()
+                .ToTable(nameof(VideoView));
+
+            modelBuilder.Entity<VideoView>(entity =>
+            {
+                entity.Property(vv => vv.WhatchTime)
+                    .HasColumnType("interval");
+                
+                entity.Property(vv => vv.EndTime)
+                    .IsRequired()
+                    .HasColumnType("interval");
+            });
+                
 
             // VideoTags
             modelBuilder.Entity<VideoTags>()

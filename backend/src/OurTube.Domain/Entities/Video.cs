@@ -42,7 +42,7 @@ namespace OurTube.Domain.Entities
         public ICollection<VideoPlaylist> Files { get; set; }
         public ICollection<VideoVote> Votes { get; set; }
         public ICollection<Comment> Comments { get; set; }
-        public ICollection<View> Views { get; set; }
+        public ICollection<VideoView> Views { get; set; }
         public ICollection<VideoTags> Tags { get; set; }
     }
 }

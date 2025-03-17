@@ -8,7 +8,7 @@ namespace OurTube.Application.Mapping
     {
         public ViewProfile()
         {
-            CreateMap<View, ViewGetDto>();
+            CreateMap<VideoView, ViewGetDto>();
         }
 
     }

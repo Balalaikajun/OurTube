@@ -17,8 +17,7 @@ namespace OurTube.Domain.Entities
         public string Text { get; set; }
         [Required]
         public DateTime Created { get; set; } = DateTime.UtcNow;
-        [Required]
-        public DateTime? Updated { get; set; }
+        public DateTime? Updated { get; set; } = null;
         public int? ParentId { get; set; }
         [Required]
         public bool Edited { get; set; } = false;

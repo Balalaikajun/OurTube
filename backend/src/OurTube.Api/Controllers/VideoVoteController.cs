@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace OurTube.Api.Controllers
 {
-    [Route("api/Video")]
+    [Route("api/Video/{videoId:int}/vote")]
     public class VideoVoteController : ControllerBase
     {
         private readonly VideoVoteService _videoVoteVoteService;
@@ -16,15 +16,15 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpPost("{videoId:int}/vote")]
-        public async Task<ActionResult> PostVote(int videoId,
+        [HttpPost]
+        public async Task<ActionResult> PostVoteAsync(int videoId,
             [FromBody] bool type)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             try
             {
-                await _videoVoteVoteService.Set(videoId, userId, type);
+                await _videoVoteVoteService.SetAsync(videoId, userId, type);
                 return Created();
             }
             catch (InvalidOperationException ex)
@@ -35,14 +35,14 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{videoId:int}/vote")]
-        public async Task<ActionResult> DeleteDislike(int videoId)
+        [HttpDelete]
+        public async Task<ActionResult> DeleteDislikeAsync(int videoId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             try
             {
-                await _videoVoteVoteService.Delete(videoId, userId);
+                await _videoVoteVoteService.DeleteAsync(videoId, userId);
                 return Created();
             }
             catch (InvalidOperationException ex)

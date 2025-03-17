@@ -4,8 +4,8 @@ namespace OurTube.Domain.Interfaces
 {
     public interface IVideoRepository : IRepository<Video>
     {
-        Video GetFullVideoData(int videoId);
-        Video GetMinVideoData(int videoId);
+        Task<Video> GetFullVideoDataAsync(int videoId);
+        Task<Video> GetMinVideoDataAsync(int videoId);
 
     }
 }
