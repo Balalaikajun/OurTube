@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Minio;
+using Minio.DataModel.Args;
 
 namespace OurTube.Infrastructure.Other
 {
@@ -12,10 +13,9 @@ namespace OurTube.Infrastructure.Other
         private readonly string _endpoint; // Обязательно так
         private readonly string _bucketName;
 
-        public MinioService() { }
         public MinioService(IConfiguration configuration)
         {
-            _accessKey = configuration["Minio:AccesKey"];
+            _accessKey = configuration["Minio:AccessKey"];
             _secretKey = configuration["Minio:SecretKey"];
             _endpoint = configuration["Minio:Endpoint"];
             _bucketName = configuration["Minio:VideoBucket"];
@@ -23,6 +23,7 @@ namespace OurTube.Infrastructure.Other
             _minioClient = new MinioClient()
                 .WithEndpoint(_endpoint)
                 .WithCredentials(_accessKey, _secretKey)
+                .WithSSL(false)
                 .Build();
         }
 
@@ -39,16 +40,28 @@ namespace OurTube.Infrastructure.Other
             await Task.WhenAll(tasks);
         }
 
-        public async Task UploadFile(string input, string objejtName, string bucket)
+        public async Task UploadFile(string input, string objectName, string bucket)
         {
-            using (var fileStream = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.None))
+            if (!File.Exists(input))
+                throw new FileNotFoundException("Файл не найден", input);
+            
+            try
             {
-                await _minioClient.PutObjectAsync(
-                    new Minio.DataModel.Args.PutObjectArgs()
+                var fileInfo = new FileInfo(input);
+                await using var fileStream = fileInfo.OpenRead();
+
+                var args = new PutObjectArgs()
                     .WithBucket(bucket)
+                    .WithObject(objectName)
                     .WithStreamData(fileStream)
-                    .WithObject(objejtName)
-                    .WithObjectSize(fileStream.Length));
+                    .WithObjectSize(fileInfo.Length);
+
+                await _minioClient.PutObjectAsync(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"MinIO Error: {ex.Message}");
+                throw;
             }
         }
     }

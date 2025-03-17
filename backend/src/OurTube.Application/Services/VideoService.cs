@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections.Concurrent;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Validators;
@@ -123,7 +124,7 @@ namespace OurTube.Application.Services
                 {
                     Directory.CreateDirectory(tempVideoDir);
                 }
-
+                
                 var tempPreviewPath = await LocalFilesService.SaveFileAsync(
                     videoUploadDto.PreviewFile,
                     tempVideoDir,
@@ -145,7 +146,7 @@ namespace OurTube.Application.Services
                 // Данные для плейлистов
                 var filePref = guid;
 
-                var playlists = new ObservableCollection<VideoPlaylist>();
+                var playlists = new ConcurrentBag<VideoPlaylist>();
 
                 Task[] tasks = _videoResolutions.Select(async resolution =>
                 {
