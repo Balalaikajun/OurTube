@@ -7,18 +7,18 @@ namespace OurTube.Application.Services
 {
     public class BaseRecomendationService:IRecomendationService
     {
-        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly VideoService _videoService;
 
-        public BaseRecomendationService(IUnitOfWorks unitOfWorks, VideoService videoService)
+        public BaseRecomendationService(IUnitOfWork unitOfWork, VideoService videoService)
         {
-            _unitOfWorks = unitOfWorks;
+            _unitOfWork = unitOfWork;
             _videoService = videoService;
         }
 
         public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string? userId = null)
         {
-            var videos =await _unitOfWorks.Videos.GetAll()
+            var videos =await _unitOfWork.Videos.GetAll()
                 .OrderByDescending(v => v.LikesCount)
                 .Skip(after)
                 .Take(limit)

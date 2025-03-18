@@ -7,21 +7,21 @@ namespace OurTube.Application.Services
 {
     public class UserService
     {
-        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(IUnitOfWorks unitOfWorks)
+        public UserService(IUnitOfWork unitOfWork)
         {
-            _unitOfWorks = unitOfWorks;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
         {
-            var aUser =await _unitOfWorks.ApplicationUsers.GetAsync(userId);
+            var aUser =await _unitOfWork.ApplicationUsers.GetAsync(userId);
 
             if (aUser == null)
                 throw new KeyNotFoundException("Пользователь не найден");
 
-            var iUser = await _unitOfWorks.IdentityUsers.GetAsync(userId);
+            var iUser = await _unitOfWork.IdentityUsers.GetAsync(userId);
 
             if (iUser == null)
                 throw new KeyNotFoundException("Пользователь не найден");
@@ -32,7 +32,7 @@ namespace OurTube.Application.Services
                 iUser.UserName = patchDto.UserName;
             }
 
-            await _unitOfWorks.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

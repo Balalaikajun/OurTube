@@ -8,11 +8,11 @@ namespace OurTube.Application.Services
 {
     public class PlaylistService
     {
-        private readonly IUnitOfWorks _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly VideoService _videoService;
         private readonly IMapper _mapper;
 
-        public PlaylistService(IUnitOfWorks unitOfWork, VideoService videoService, IMapper mapper)
+        public PlaylistService(IUnitOfWork unitOfWork, VideoService videoService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _videoService = videoService;
@@ -60,7 +60,8 @@ namespace OurTube.Application.Services
 
             if (playlist.IsSystem || playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
-
+            
+            
             _unitOfWork.Playlists.Remove(playlist);
 
             await _unitOfWork.SaveChangesAsync();
@@ -76,11 +77,12 @@ namespace OurTube.Application.Services
             if ( playlist.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
-            var element = new PlaylistElement()
-            {
-                VideoId = videoId,
-                PlaylistId = playlistId
-            };
+            var element = await _unitOfWork.PlaylistElements.GetAsync(playlistId, videoId);
+            
+            if (element != null)
+                return;
+            
+            element = new PlaylistElement( videoId, playlistId, userId);
 
             _unitOfWork.PlaylistElements.Add(element);
 
@@ -104,6 +106,7 @@ namespace OurTube.Application.Services
             if (playlistElement == null)
                 return;
 
+            playlistElement.DeleteEvent(userId);
             _unitOfWork.PlaylistElements.Remove(playlistElement);
             playlist.Count--;
 
@@ -145,6 +148,23 @@ namespace OurTube.Application.Services
 
             return (await _unitOfWork.Playlists.FindAsync(p => p.ApplicationUserId == userId))
                 .Select(p => _mapper.Map<PlaylistMinGetDto>(p));
+        }
+
+        public async Task<PlaylistMinGetDto> GetLikedPlaylistAsync(string userId)
+        {
+            var playlist =(await _unitOfWork.Playlists
+                    .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
+                .FirstOrDefault();
+
+            if (playlist == null)
+            {
+                await CreateAsync(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
+                playlist =(await _unitOfWork.Playlists
+                        .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
+                    .First();
+            }
+            
+            return _mapper.Map<PlaylistMinGetDto>(playlist);
         }
 
     }

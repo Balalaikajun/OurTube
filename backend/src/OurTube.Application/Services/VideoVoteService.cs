@@ -5,126 +5,64 @@ namespace OurTube.Application.Services
 {
     public class VideoVoteService
     {
-        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly PlaylistService _playlistService;
 
-        public VideoVoteService(IUnitOfWorks unitOfWorks, PlaylistService playlistService)
+        public VideoVoteService(IUnitOfWork unitOfWork, PlaylistService playlistService)
         {
-            _unitOfWorks = unitOfWorks;
+            _unitOfWork = unitOfWork;
             _playlistService = playlistService;
         }
 
         public async Task SetAsync(int videoId, string userId, bool type)
         {
-            var video =await _unitOfWorks.Videos.GetAsync(videoId);
+            var video =await _unitOfWork.Videos.GetAsync(videoId);
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
+            if (!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var vote =await _unitOfWorks.VideoVotes.GetAsync(videoId, userId);
+            var vote =await _unitOfWork.VideoVotes.GetAsync(videoId, userId);
 
             if (vote == null)
             {
-                _unitOfWorks.VideoVotes.Add(new VideoVote
-                {
-                    ApplicationUserId = userId,
-                    VideoId = videoId,
-                    Type = type
-                });
-
-                if (type == true)
-                {
-                    video.LikesCount++;
-                }
-                else
-                {
-                    video.DislikeCount++;
-                }
+                _unitOfWork.VideoVotes.Add(new VideoVote(videoId, userId, type));
             }
-            else if (vote.Type != type)
+            else if(vote.Type != type)
             {
-                vote.Type = type;
-
-                if (type == true)
-                {
-                    video.DislikeCount--;
-                    video.LikesCount++;
-                }
-                else
-                {
-                    video.DislikeCount++;
-                    video.LikesCount--;
-
-                }
+                vote.Update(type);    
             }
             else
             {
                 return;
             }
-
-
-            var playlist =(await _unitOfWorks.Playlists
-                .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
-                .First();
-
-            if (playlist == null)
-            {
-                await _playlistService.CreateAsync(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
-                playlist =(await _unitOfWorks.Playlists
-                    .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
-                    .First();
-            }
-
-            if (type == true)
-            {
-                await _playlistService.AddVideoAsync(playlist.Id, videoId, userId);
-            }
-            else
-            {
-                await _playlistService.RemoveVideoAsync(playlist.Id, videoId, userId);
-            }
+            
+            
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int videoId, string userId)
         {
-            var video =await _unitOfWorks.Videos.GetAsync(videoId);
+            var video =await _unitOfWork.Videos.GetAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
+            if (!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var vote =await _unitOfWorks.VideoVotes
+            var vote =await _unitOfWork.VideoVotes
                 .GetAsync(videoId, userId);
 
             if (vote == null)
                 return;
+ 
+            vote.RemoveEvent();
 
-            if (vote.Type == true)
-            {
-                video.LikesCount--;
-            }
-            else
-            {
-                video.DislikeCount--;
-            }
+            _unitOfWork.VideoVotes.Remove(vote);
 
-            _unitOfWorks.VideoVotes.Remove(vote);
-
-            var playlist =(await _unitOfWorks.Playlists
-                .FindAsync(p => p.Title == "Понравившееся" && p.ApplicationUserId == userId))
-                .First();
-
-            if (playlist == null)
-            {
-                await _playlistService.CreateAsync(new DTOs.Playlist.PlaylistPostDto { Title = "Понравившееся" }, userId);
-                return;
-            }
-
-            await _playlistService.RemoveVideoAsync(playlist.Id, videoId, userId);
+            await _unitOfWork.SaveChangesAsync();
 
         }
     }

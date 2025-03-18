@@ -8,7 +8,7 @@ namespace OurTube.Infrastructure.Data
     public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public DbSet<Video> Videos { get; set; }
+        public DbSet<Video?> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<PlaylistElement> PlaylistElements { get; set; }
         public DbSet<Comment> Comments { get; set; }

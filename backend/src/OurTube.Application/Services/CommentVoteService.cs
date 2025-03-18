@@ -5,29 +5,29 @@ namespace OurTube.Application.Services
 {
     public class CommentVoteService
     {
-        private readonly IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CommentVoteService(IUnitOfWorks unitOfWorks)
+        public CommentVoteService(IUnitOfWork unitOfWork)
         {
-            _unitOfWorks = unitOfWorks;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task SetAsync(int commentId, string userId, bool type)
         {
-            var comment =await _unitOfWorks.Comments
+            var comment =await _unitOfWork.Comments
                 .GetAsync(commentId);
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
 
-            if (!await _unitOfWorks.ApplicationUsers.ContainsAsync(userId))
+            if (!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var vote =await _unitOfWorks.CommentVoices.GetAsync(commentId, userId);
+            var vote =await _unitOfWork.CommentVoices.GetAsync(commentId, userId);
 
             if (vote == null)
             {
-                _unitOfWorks.CommentVoices.Add(new CommentVote()
+                _unitOfWork.CommentVoices.Add(new CommentVote()
                 {
                     ApplicationUserId = userId,
                     CommentId = commentId,
@@ -64,19 +64,19 @@ namespace OurTube.Application.Services
                 return;
             }
 
-            await _unitOfWorks.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int commentId, string userId)
         {
-            var comment =await _unitOfWorks.Comments
+            var comment =await _unitOfWork.Comments
                 .GetAsync(commentId);
 
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найдено");
 
-            var vote =await _unitOfWorks.CommentVoices.GetAsync(commentId, userId);
+            var vote =await _unitOfWork.CommentVoices.GetAsync(commentId, userId);
 
             if (vote == null)
                 return;
@@ -90,9 +90,9 @@ namespace OurTube.Application.Services
                 comment.DisLikesCount--;
             }
 
-            _unitOfWorks.CommentVoices.Remove(vote);
+            _unitOfWork.CommentVoices.Remove(vote);
 
-            await _unitOfWorks.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
 
         }
     }

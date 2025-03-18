@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using MediatR;
+using Microsoft.AspNetCore.Identity;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 using OurTube.Infrastructure.Data;
@@ -6,7 +7,7 @@ using OurTube.Infrastructure.Persistence.Repositories;
 
 namespace OurTube.Infrastructure.Persistence
 {
-    public class UnitOfWorks : IUnitOfWorks
+    public class UnitOfWork : IUnitOfWork
     {
         public IPlaylistRepository Playlists { get; private set; }
         public IRepository<PlaylistElement> PlaylistElements { get; private set; }
@@ -20,10 +21,12 @@ namespace OurTube.Infrastructure.Persistence
         public IRepository<CommentVote> CommentVoices { get; private set; }
 
         private readonly ApplicationDbContext _context;
+        private readonly IMediator _mediator;
 
-        public UnitOfWorks(ApplicationDbContext context)
+        public UnitOfWork(ApplicationDbContext context, IMediator mediator)
         {
             _context = context;
+            _mediator = mediator;
             Playlists = new PlaylistRepository(_context);
             PlaylistElements = new Repository<PlaylistElement>(_context);
             ApplicationUsers = new ApplicationUserRepository(_context);
@@ -35,15 +38,26 @@ namespace OurTube.Infrastructure.Persistence
             Comments = new CommentRepository(_context);
             CommentVoices = new Repository<CommentVote>(_context);
         }
+        
 
-        public int SaveChanges()
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return _context.SaveChanges();
-        }
+            
+            
+            var domainEntities = _context.ChangeTracker.Entries<BaseEntity>()
+                .Where(be => be.Entity.DomainEvents.Count != 0)
+                .Select(be => be.Entity)
+                .ToList();
+            
+            var domainEvents = domainEntities.SelectMany(be => be.DomainEvents).ToList();
+            
+            var result = await _context.SaveChangesAsync(cancellationToken);
+            
+            domainEntities.ForEach(be => be.ClearDomainEvents());
 
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
+            await Task.WhenAll(domainEvents.Select(e=> _mediator.Publish(e,cancellationToken)));
+            
+            return result;
         }
     }
 }

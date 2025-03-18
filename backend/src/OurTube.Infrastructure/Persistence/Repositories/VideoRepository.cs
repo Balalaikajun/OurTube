@@ -15,7 +15,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
         public VideoRepository(ApplicationDbContext context)
             : base(context) { }
 
-        public async Task<Video> GetFullVideoDataAsync(int videoId)
+        public async Task<Video?> GetFullVideoDataAsync(int videoId)
         {
             return await ApplicationDbContext.Videos
                 .Include(v => v.Preview)
@@ -25,7 +25,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(v => v.Id == videoId);
         }
 
-        public async Task<Video> GetMinVideoDataAsync(int videoId)
+        public async Task<Video?> GetMinVideoDataAsync(int videoId)
         {
             return await ApplicationDbContext.Videos
                 .Include(v => v.Preview)
