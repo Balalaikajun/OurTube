@@ -25,15 +25,18 @@
 </script>
 
 <template>
-    <div class="master-head-block" @click="toggleSideMenu">
-        <button v-on:click="">
+    <div>
+        <div class="master-head-block" @click="toggleSideMenu">
+        <button v-on:click="toggleSideMenu">
             <span></span>
             <span></span>
             <span></span>
         </button>
+        </div>
+    
+        <MainMenu v-if="isSideMenuVisible"/>
     </div>
     
-    <MainMenu v-if="isSideMenuVisible"/>
 </template>
 
 <style scoped>

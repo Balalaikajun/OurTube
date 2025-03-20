@@ -17,7 +17,7 @@ services:
       - minio_data:/data
         
   postgres:
-    image: postgres:17.4
+    image: postgres:latest
     container_name: postgres
     restart: no
     ports:
