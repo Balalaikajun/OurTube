@@ -3,6 +3,7 @@
     import { useRouter } from "vue-router";
     import VideoCard from "../components/VideoBlockCard.vue"; // Импортируем компонент VideoCard
     import MasterHead from "../components/MasterHead.vue";
+    import { API_BASE_URL } from "@/assets/config.js"
 
     const router = useRouter();
     const videos = ref([]); // Массив для хранения данных о видео
