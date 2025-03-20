@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"   # API MinIO
+      - "9090:9090"   # Консоль MinIO
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "password"
+      MINIO_SERVER_URL: "http://0.0.0.0:9000"  # Разрешить доступ извне
+      MINIO_BROWSER_REDIRECT_URL: "http://0.0.0.0:9090"
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio_data:/data
+        
+  postgres:
+    image: postgres:17.4
+    container_name: postgres
+    restart: no
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: OurTube
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+        
+volumes:
+  minio_data:
+  postgres_data:

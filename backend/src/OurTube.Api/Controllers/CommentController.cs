@@ -10,17 +10,24 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class CommentController : ControllerBase
     {
+        private readonly CommentService _commentService;
+
+        public CommentController(CommentService commentService)
+        {
+            _commentService = commentService;
+        }
+        
+        
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Post(
-            [FromBody] CommentPostDTO postDTO,
-            [FromServices] CommentService commentService)
+        public async Task<ActionResult> PostAsync(
+            [FromBody] CommentPostDto postDto)
         {
             try
             {
-                await commentService.Create(
+                await _commentService.CreateAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDTO);
+                    postDto);
                 return Created();
             }
             catch (InvalidOperationException ex)
@@ -31,15 +38,14 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> Patch(
-            [FromBody] CommentPatchDTO postDTO,
-            [FromServices] CommentService commentService)
+        public async Task<ActionResult> PatchAsync(
+            [FromBody] CommentPatchDto postDto)
         {
             try
             {
-                await commentService.Update(
+                await _commentService.UpdateAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDTO);
+                    postDto);
                 return Created();
             }
             catch (InvalidOperationException ex)
@@ -53,14 +59,13 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{commentId}")]
-        public async Task<ActionResult> Delete(
-            int commentId,
-            [FromServices] CommentService commentService)
+        [HttpDelete("{commentId:int}")]
+        public async Task<ActionResult> DeleteAsync(
+            int commentId)
         {
             try
             {
-                await commentService.Delete(
+                await _commentService.DeleteAsync(
                     commentId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();
@@ -75,25 +80,28 @@ namespace OurTube.Api.Controllers
             }
         }
 
-        [HttpGet("{videoId}")]
-        public async Task<ActionResult> GetWithLimit(
+        [HttpGet("{videoId:int}")]
+        public async Task<ActionResult<PagedCommentDto>> GetWithLimitAsync(
              int videoId,
-             [FromServices] CommentService commentService,
              [FromQuery] int limit = 10,
              [FromQuery] int after = 0,
              [FromQuery] int? parentId = null)
         {
             try
             {
-                List<CommentGetDTO> result = await commentService.GetChildsWithLimit(
+                var result = await _commentService.GetChildsWithLimitAsync(
                 videoId,
                 limit,
                 after,
                 parentId);
-                int nextAfter = after + limit;
+                var nextAfter = after + limit;
 
 
-                return Ok(new { result, nextAfter });
+                return Ok(new PagedCommentDto()
+                {
+                    Comments = result,
+                    NextAfter = nextAfter
+                });
             }
             catch (KeyNotFoundException ex)
             {

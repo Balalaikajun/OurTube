@@ -20,7 +20,7 @@ namespace OurTube.Domain.Entities
         public ICollection<Subscription> Subscribers { get; set; }
         public ICollection<Subscription> SubscribedTo { get; set; }
         public ICollection<Video> Videos { get; set; }
-        public ICollection<View> Views { get; set; }
+        public ICollection<VideoView> Views { get; set; }
         public ICollection<VideoVote> VideoVotes { get; set; }
         public ICollection<CommentVote> CommentVotes { get; set; }
         public ICollection<Playlist> Playlists { get; set; }

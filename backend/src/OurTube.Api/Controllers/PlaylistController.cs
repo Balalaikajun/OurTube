@@ -10,27 +10,37 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class PlaylistController : ControllerBase
     {
+        private readonly PlaylistService _playlistService;
+
+        public PlaylistController(PlaylistService playlistService)
+        {
+            _playlistService = playlistService;
+        }
+        
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] PlaylistPostDTO postDTO, [FromServices] PlaylistService playlistService)
+        public async Task<ActionResult> PostAsync(
+            [FromBody] PlaylistPostDto postDto)
         {
 
-            await playlistService.Create(
-                postDTO,
+            await _playlistService.CreateAsync(
+                postDto,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
             return Created();
         }
 
         [Authorize]
-        [HttpPatch("{id}")]
-        public async Task<ActionResult> Patch(int id, [FromBody] PlaylistPatchDTO postDTO, [FromServices] PlaylistService playlistService)
+        [HttpPatch("{id:int}")]
+        public async Task<ActionResult> PatchAsync(
+            int id,
+            [FromBody] PlaylistPatchDto postDto)
         {
             try
             {
 
 
-                await playlistService.Update(
-                    postDTO,
+                await _playlistService.UpdateAsync(
+                    postDto,
                     id,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -48,13 +58,14 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id, [FromServices] PlaylistService playlistService)
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> DeleteAsync(
+            int id)
         {
 
             try
             {
-                await playlistService.Delete(
+                await _playlistService.DeleteAsync(
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Ok();
@@ -71,12 +82,14 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpPost("{id}/{videoId}")]
-        public async Task<ActionResult> AddVideo(int id, int videoId, [FromServices] PlaylistService playlistService)
+        [HttpPost("{id:int}/{videoId:int}")]
+        public async Task<ActionResult> AddVideoAsync(
+            int id,
+            int videoId)
         {
             try
             {
-                await playlistService.AddVideo(
+                await _playlistService.AddVideoAsync(
                 id,
                 videoId,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -98,12 +111,14 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{id}/{videoId}")]
-        public async Task<ActionResult> RemoveVideo(int id, int videoId, [FromServices] PlaylistService playlistService)
+        [HttpDelete("{id:int}/{videoId:int}")]
+        public async Task<ActionResult> RemoveVideoAsync(
+            int id,
+            int videoId)
         {
             try
             {
-                await playlistService.RemoveVideo(
+                await _playlistService.RemoveVideoAsync(
                     id,
                     videoId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -120,24 +135,27 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpGet("{id}")]
-        public async Task<ActionResult> Get(
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<PagedPlaylistDto>> GetAsync(
             int id,
-            [FromServices] PlaylistService playlistService,
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
             try
             {
-                PlaylistGetDTO playlistGetDTO = await playlistService.GetWithLimit(
+                var playlistGetDto = await _playlistService.GetWithLimitAsync(
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
                 after);
-                int nextAfter = after + limit;
+                var nextAfter = after + limit;
 
 
-                return Ok(new { playlistGetDTO, nextAfter });
+                return Ok(new PagedPlaylistDto()
+                {
+                    Playlist = playlistGetDto,
+                    NextAfter = nextAfter
+                });
             }
             catch (KeyNotFoundException ex)
             {
@@ -151,9 +169,9 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlaylistMinGetDTO>>> Get([FromServices] PlaylistService playlistService)
+        public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetAsync()
         {
-            var result = playlistService.GetUserPlaylists(
+            var result =await _playlistService.GetUserPlaylistsAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             return Ok(result);

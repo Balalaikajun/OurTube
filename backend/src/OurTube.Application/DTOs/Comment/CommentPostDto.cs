@@ -1,6 +1,6 @@
 ﻿namespace OurTube.Application.DTOs.Comment
 {
-    public class CommentPostDTO
+    public class CommentPostDto
     {
         public int VideoId { get; set; }
         public string Text { get; set; }

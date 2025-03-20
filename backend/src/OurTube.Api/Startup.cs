@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.Features;
+﻿using System.Reflection;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -12,6 +13,8 @@ using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using OurTube.Infrastructure.Persistence;
 using OurTube.Infrastructure.Persistence.Repositories;
+using System.Reflection;
+using OurTube.Application.Handlers;
 
 
 namespace OurTube.Api
@@ -49,6 +52,14 @@ namespace OurTube.Api
             services.AddAutoMapper(typeof(VideoProfile).Assembly);
             services.AddAutoMapper(typeof(UserProfile).Assembly);
 
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(PlaylistLikeHandler).Assembly); 
+                cfg.RegisterServicesFromAssembly(typeof(VideoCounterHandler).Assembly);
+                cfg.RegisterServicesFromAssembly(typeof(LikedPlaylistHandler).Assembly);
+                
+            });
+
             // Services
             services.AddScoped<VideoService>();
             services.AddScoped<PlaylistService>();
@@ -57,8 +68,9 @@ namespace OurTube.Api
             services.AddScoped<CommentService>();
             services.AddScoped<CommentVoteService>();
             services.AddScoped<ViewService>();
-            services.AddScoped<RecomendationService>();
+            services.AddScoped<BaseRecomendationService>();
             services.AddScoped<SubscriptionService>();
+            services.AddScoped < SearchService>();
 
             // Repositories
             services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
@@ -68,7 +80,7 @@ namespace OurTube.Api
             // Infrastructure
             services.AddScoped<MinioService>();
             services.AddScoped<FfmpegProcessor>();
-            services.AddScoped<IUnitOfWorks, UnitOfWorks>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Other
             services.AddScoped<LocalFilesService>();

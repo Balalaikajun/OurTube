@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections.Concurrent;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Validators;
@@ -11,117 +12,108 @@ namespace OurTube.Application.Services
 {
     public class VideoService
     {
-        private IUnitOfWorks _unitOfWorks;
-        private IMapper _mapper;
-        private FfmpegProcessor _videoProcessor;
-        private MinioService _minioService;
-        private VideoValidator _validator;
-        private LocalFilesService _localFilesService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly FfmpegProcessor _videoProcessor;
+        private readonly MinioService _minioService;
+        private readonly VideoValidator _validator;
 
         private readonly int[] _videoResolutions;
         private readonly string _bucket;
 
-        public VideoService(IUnitOfWorks unitOfWorks,
+        public VideoService(IUnitOfWork unitOfWork,
             IMapper mapper,
             FfmpegProcessor videoProcessor,
             IConfiguration configuration,
             VideoValidator validator,
             LocalFilesService localFilesService,
-            MinioService minioService,
-            SubscriptionService subscriptionService)
+            MinioService minioService)
         {
-            _unitOfWorks = unitOfWorks;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _videoProcessor = videoProcessor;
             _minioService = minioService;
             _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
             _bucket = configuration.GetSection("Minio:VideoBucket").Get<string>();
             _validator = validator;
-            _localFilesService = localFilesService;
         }
 
-        public VideoGetDTO GetVideoById(int videoId)
+        public async Task<VideoGetDto> GetVideoByIdAsync(int videoId)
         {
-            Video video = _unitOfWorks.Videos.GetFullVideoData(videoId);
+            var video =await _unitOfWork.Videos.GetFullVideoDataAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            VideoGetDTO videoDTO = _mapper.Map<VideoGetDTO>(video);
+            var videoDto = _mapper.Map<VideoGetDto>(video);
 
-            return videoDTO;
+            return videoDto;
         }
 
-        public VideoGetDTO GetVideoById(int videoId, string userId)
+        public async Task<VideoGetDto> GetVideoByIdAsync(int videoId, string userId)
         {
-            VideoGetDTO videoDTO = GetVideoById(videoId);
+            var videoDto =await GetVideoByIdAsync(videoId);
 
-            ApplicationUser applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
-
-            VideoVote vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
+            var vote = await _unitOfWork.VideoVotes.GetAsync(videoId, userId);
 
             if (vote != null)
-                videoDTO.Vote = vote.Type;
+                videoDto.Vote = vote.Type;
 
-            View view = _unitOfWorks.Views.Get(videoId, userId);
+            var view =await _unitOfWork.Views.GetAsync(videoId, userId);
 
             if (view != null)
-                videoDTO.EndTime = view.EndTime;
+                videoDto.EndTime = view.EndTime;
 
-            if (_unitOfWorks.Subscriptions.Contains(videoDTO.User.Id, userId))
-                videoDTO.User.IsSubscribed = true;
+            if (await _unitOfWork.Subscriptions.ContainsAsync( userId,videoDto.User.Id))
+                videoDto.User.IsSubscribed = true;
 
-            return videoDTO;
+            return videoDto;
         }
 
-        public VideoMinGetDTO GetMinVideoById(int videoId)
+        public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId)
         {
-            Video video = _unitOfWorks.Videos.GetMinVideoData(videoId);
+            var video = await _unitOfWork.Videos.GetMinVideoDataAsync(videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            VideoMinGetDTO videoDTO = _mapper.Map<VideoMinGetDTO>(video);
+            var videoDto = _mapper.Map<VideoMinGetDto>(video);
 
-            return videoDTO;
+            return videoDto;
         }
 
-        public VideoMinGetDTO GetMinVideoById(int videoId, string userId)
+        public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId, string userId)
         {
-            VideoMinGetDTO videoDTO = GetMinVideoById(videoId);
+            var videoDto =await GetMinVideoByIdAsync(videoId);
 
-            ApplicationUser applicationUser = _unitOfWorks.ApplicationUsers.Get(userId);
-
-            VideoVote vote = _unitOfWorks.VideoVotes.Get(videoId, userId);
+            var vote =await _unitOfWork.VideoVotes.GetAsync(videoId, userId);
 
             if (vote != null)
-                videoDTO.Vote = vote.Type;
+                videoDto.Vote = vote.Type;
 
-            View view = _unitOfWorks.Views.Get(videoId, userId);
+            var view =await _unitOfWork.Views.GetAsync(videoId, userId);
             if (view != null)
-                videoDTO.EndTime = view.EndTime;
+                videoDto.EndTime = view.EndTime;
 
-            if (_unitOfWorks.Subscriptions.Find(s => s.SubscribedToId == videoDTO.User.Id && s.SubscriberId == userId).FirstOrDefault() != null)
-                videoDTO.User.IsSubscribed = true;
+            if (await _unitOfWork.Subscriptions.ContainsAsync(userId,videoDto.User.Id))
+                videoDto.User.IsSubscribed = true;
 
-            return videoDTO;
+            return videoDto;
         }
-
-
-
+        
         public async Task PostVideo(
-            VideoUploadDTO videoUploadDTO,
+            VideoUploadDto videoUploadDto,
             string userId,
             string segmentsUriPrefix)
         {
             // Валидация
-            _validator.ValidateVideo(videoUploadDTO);
+            _validator.ValidateVideo(videoUploadDto);
 
-            VideoPostDTO videoDTO = videoUploadDTO.VideoPostDTO;
+            var videoDto = videoUploadDto.VideoPostDto;
 
 
-            string guid = Guid.NewGuid().ToString();
-            string tempVideoDir = Path.Combine(Path.GetTempPath() + guid);
+            var guid = Guid.NewGuid().ToString();
+            var tempVideoDir = Path.Combine(Path.GetTempPath() + guid);
 
             try
             {
@@ -130,35 +122,30 @@ namespace OurTube.Application.Services
                 {
                     Directory.CreateDirectory(tempVideoDir);
                 }
-
-                string tempPreviewPath = await _localFilesService.SaveFileAsync(
-                    videoUploadDTO.PreviewFile,
+                
+                var tempPreviewPath = await LocalFilesService.SaveFileAsync(
+                    videoUploadDto.PreviewFile,
                     tempVideoDir,
-                    "preview" + Path.GetExtension(videoUploadDTO.PreviewFile.FileName));
+                    "preview" + Path.GetExtension(videoUploadDto.PreviewFile.FileName));
 
-                string tempSourcePath = await _localFilesService.SaveFileAsync(
-                    videoUploadDTO.VideoFile,
+                var tempSourcePath = await LocalFilesService.SaveFileAsync(
+                    videoUploadDto.VideoFile,
                     tempVideoDir,
-                    "source" + Path.GetExtension(videoUploadDTO.VideoFile.FileName));
+                    "source" + Path.GetExtension(videoUploadDto.VideoFile.FileName));
 
 
-                // Создаём сущность
-                Video video = new Video
-                {
-                    Title = videoDTO.Title,
-                    Description = videoDTO.Description,
-                };
+                
 
                 // Данные для плейлистов
-                string filePref = guid;
+                var filePref = guid;
 
-                ObservableCollection<VideoPlaylist> playlists = new ObservableCollection<VideoPlaylist>();
+                var playlists = new ConcurrentBag<VideoPlaylist>();
 
                 Task[] tasks = _videoResolutions.Select(async resolution =>
                 {
                     Directory.CreateDirectory(Path.Combine(filePref, resolution.ToString()));
 
-                    VideoPlaylist playlist = new VideoPlaylist()
+                    var playlist = new VideoPlaylist()
                     {
                         Resolution = resolution,
                         FileName = Path.Combine(filePref, resolution.ToString(), "playlist.m3u8").Replace(@"\", @"/"),
@@ -167,7 +154,7 @@ namespace OurTube.Application.Services
 
 
                     //Обработка видео
-                    await _videoProcessor.HandleVideo(
+                    await FfmpegProcessor.HandleVideo(
                         tempSourcePath,
                         Path.Combine(tempVideoDir, resolution.ToString()),
                         resolution,
@@ -191,7 +178,7 @@ namespace OurTube.Application.Services
                 await Task.WhenAll(tasks);
 
                 // Отправляем превью
-                video.Preview = new VideoPreview()
+                var preview = new VideoPreview()
                 {
                     FileName = Path.Combine(filePref, Path.GetFileName(tempPreviewPath)).Replace(@"\", @"/"),
                     Bucket = _bucket
@@ -199,33 +186,36 @@ namespace OurTube.Application.Services
 
                 await _minioService.UploadFile(
                     tempPreviewPath,
-                    video.Preview.FileName,
-                    video.Preview.Bucket);
+                    preview.FileName,
+                    preview.Bucket);
 
                 // Отпавляем изначальное видео
-                video.Source = new VideoSource()
+                var source = new VideoSource()
                 {
                     FileName = Path.Combine(filePref, Path.GetFileName(tempSourcePath)).Replace(@"\", @"/"),
                     Bucket = _bucket
                 };
                 await _minioService.UploadFile(
                     tempSourcePath,
-                    video.Source.FileName,
-                    video.Source.Bucket);
+                    source.FileName,
+                    source.Bucket);
 
-                video.Files = new List<VideoPlaylist>();
+                var files = playlists.ToList();
 
-                // Сохраняем сущность видео
-                foreach (VideoPlaylist playlist in playlists)
-                {
-                    video.Files.Add(playlist);
-                }
+                var user =await _unitOfWork.ApplicationUsers.GetAsync(userId);
 
-                video.User = _unitOfWorks.ApplicationUsers.Get(userId);
+                // Создаём сущность
+                var video = new Video(
+                    videoDto.Title,
+                    videoDto.Description,
+                    preview,
+                    source,
+                    files
+                );
+                
+                _unitOfWork.Videos.Add(video);
 
-                _unitOfWorks.Videos.Add(video);
-
-                await _unitOfWorks.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
             }
             finally
             {
@@ -236,7 +226,5 @@ namespace OurTube.Application.Services
                 });
             }
         }
-
-
     }
 }

@@ -4,7 +4,7 @@ using OurTube.Application.DTOs.VideoPreview;
 
 namespace OurTube.Application.DTOs.Video
 {
-    public class VideoGetDTO
+    public class VideoGetDto
     {
         public int Id { get; set; }
         public string Title { get; set; }
@@ -14,11 +14,11 @@ namespace OurTube.Application.DTOs.Video
         public int CommentsCount { get; set; }
         public int ViewsCount { get; set; }
         public bool? Vote { get; set; }
-        public long? EndTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
         public DateTime Created { get; set; }
-        public VideoPreviewDTO Preview { get; set; }
-        public List<VideoPlaylistDTO> Files { get; set; }
-        public ApplicationUserDTO User { get; set; }
+        public VideoPreviewDto Preview { get; set; }
+        public List<VideoPlaylistDto> Files { get; set; }
+        public ApplicationUserDto User { get; set; }
 
     }
 }

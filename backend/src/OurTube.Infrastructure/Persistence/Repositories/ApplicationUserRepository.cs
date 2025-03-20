@@ -15,11 +15,11 @@ namespace OurTube.Infrastructure.Persistence.Repositories
         public ApplicationUserRepository(ApplicationDbContext context)
             : base(context) { }
 
-        public ApplicationUser? GetWithAvatar(string userId)
+        public async Task<ApplicationUser?> GetWithAvatarAsync(string userId)
         {
-            return ApplicationDbContext.ApplicationUsers
+            return await ApplicationDbContext.ApplicationUsers
                 .Include(au => au.UserAvatar)
-                .FirstOrDefault(au => au.Id == userId);
+                .FirstOrDefaultAsync(au => au.Id == userId);
         }
     }
 }

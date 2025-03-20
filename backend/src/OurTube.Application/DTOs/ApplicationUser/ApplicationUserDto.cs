@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OurTube.Application.DTOs.ApplicationUser
 {
-    public class ApplicationUserDTO
+    public class ApplicationUserDto
     {
         [Required]
         public string Id { get; set; }
@@ -12,6 +12,6 @@ namespace OurTube.Application.DTOs.ApplicationUser
         [Required]
         public bool IsSubscribed { get; set; }
         public int SubscribersCount { get; set; } = 0;
-        public UserAvatarDTO? UserAvatar { get; set; }
+        public UserAvatarDto? UserAvatar { get; set; }
     }
 }

@@ -4,13 +4,13 @@ namespace OurTube.Application.Services
 {
     public class LocalFilesService
     {
-        public async Task<string> SaveFileAsync(IFormFile file, string directory, string fileName)
+        public static async Task<string> SaveFileAsync(IFormFile file, string directory, string fileName)
         {
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            string filePath = Path.Combine(directory, fileName);
-            using var stream = new FileStream(filePath, FileMode.Create);
+            var filePath = Path.Combine(directory, fileName);
+            await using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
             return filePath;
         }

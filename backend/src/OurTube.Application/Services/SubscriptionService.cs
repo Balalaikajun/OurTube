@@ -5,29 +5,29 @@ namespace OurTube.Application.Services
 {
     public class SubscriptionService
     {
-        private IUnitOfWorks _unitOfWorks;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public SubscriptionService(IUnitOfWorks unitOfWorks)
+        public SubscriptionService(IUnitOfWork unitOfWork)
         {
-            _unitOfWorks = unitOfWorks;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task Subscribe(string userId, string userToId)
+        public async Task SubscribeAsync(string userId, string userToId)
         {
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            ApplicationUser user = _unitOfWorks.ApplicationUsers.Get(userId);
+            var user =await _unitOfWork.ApplicationUsers.GetAsync(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            ApplicationUser userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
+            var userTo =await _unitOfWork.ApplicationUsers.GetAsync(userToId);
 
-            if (user == null)
+            if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            Subscription subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
+            var subscription =await _unitOfWork.Subscriptions.GetAsync(userId, userToId);
             if (subscription != null)
                 return;
 
@@ -37,46 +37,46 @@ namespace OurTube.Application.Services
                 SubscribedToId = userToId
             };
 
-            _unitOfWorks.Subscriptions.Add(subscription);
+            _unitOfWork.Subscriptions.Add(subscription);
 
             user.SubscribedToCount++;
             userTo.SubscribersCount++;
 
-            await _unitOfWorks.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task UnSubscribe(string userId, string userToId)
+        public async Task UnSubscribeAsync(string userId, string userToId)
         {
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            ApplicationUser user = _unitOfWorks.ApplicationUsers.Get(userId);
+            var user =await _unitOfWork.ApplicationUsers.GetAsync(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            ApplicationUser userTo = _unitOfWorks.ApplicationUsers.Get(userToId);
+            var userTo =await _unitOfWork.ApplicationUsers.GetAsync(userToId);
 
-            if (user == null)
+            if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            Subscription subscription = _unitOfWorks.Subscriptions.Get(userId, userToId);
+            var subscription =await _unitOfWork.Subscriptions.GetAsync(userId, userToId);
 
             if (subscription == null)
                 return;
 
-            _unitOfWorks.Subscriptions.Remove(subscription);
+            _unitOfWork.Subscriptions.Remove(subscription);
 
             user.SubscribedToCount--;
             userTo.SubscribersCount--;
 
-            await _unitOfWorks.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public bool IsSubscribe(string userId, string userToId)
+        public async Task<bool> IsSubscribeAsync(string userId, string userToId)
         {
-            return _unitOfWorks.Subscriptions
-                .Contains(userId, userToId);
+            return await _unitOfWork.Subscriptions
+                .ContainsAsync(userId, userToId);
         }
     }
 }

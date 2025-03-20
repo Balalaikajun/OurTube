@@ -9,16 +9,29 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class RecommendationController : ControllerBase
     {
+        private readonly BaseRecomendationService _recommendationService;
+
+        public RecommendationController(BaseRecomendationService recommendationService)
+        {
+             _recommendationService = recommendationService;
+        }
+        
         [HttpGet]
-        public ActionResult<List<VideoMinGetDTO>> Get(
-            [FromServices] RecomendationService recomendationService,
+        public async Task<ActionResult<PagedVideoDto>> GetAsync(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
-            return Ok(recomendationService.GetVideos(
+            var videos = await _recommendationService.GetRecomendationsAsync(
                 limit,
                 after,
-                User.FindFirstValue(ClaimTypes.NameIdentifier)));
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var nextAfter = after + limit;
+            
+            return Ok(new PagedVideoDto()
+            {
+                Videos = videos,
+                NextAfter = nextAfter
+            });
         }
     }
 }

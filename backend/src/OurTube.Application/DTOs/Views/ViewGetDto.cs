@@ -2,9 +2,9 @@
 
 namespace OurTube.Application.DTOs.Views
 {
-    public class ViewGetDTO
+    public class ViewGetDto
     {
-        public VideoMinGetDTO Video { get; set; }
+        public VideoMinGetDto Video { get; set; }
         public DateTime DateTime { get; set; }
     }
 }

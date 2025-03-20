@@ -10,19 +10,21 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class VideoController : ControllerBase
     {
+        private readonly VideoService _videoService;
 
-
-        [HttpGet("{id}")]
-        public ActionResult<VideoGetDTO> Get(int id, VideoService videoService)
+        public VideoController(VideoService videoService)
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+             _videoService = videoService;
+        }
+
+        [HttpGet("{videoId:int}")]
+        public async Task<ActionResult<VideoGetDto>> GetAsync(int videoId, VideoService videoService)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             try
             {
-                if (userId != null)
-                    return Ok(videoService.GetVideoById(id, userId));
-                else
-                    return Ok(videoService.GetVideoById(id));
+                return Ok(userId != null ? await videoService.GetVideoByIdAsync(videoId, userId) : await videoService.GetVideoByIdAsync(videoId));
             }
             catch (InvalidOperationException ex)
             {
@@ -31,17 +33,16 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpPost("Post")]
+        [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult> Post(
-            [FromForm] VideoUploadDTO videoUploadDTO,
-            [FromServices] VideoService videoService,
+            [FromForm] VideoUploadDto videoUploadDto,
             [FromServices] IConfiguration configuration)
         {
             try
             {
-                await videoService.PostVideo(
-                    videoUploadDTO,
+                await _videoService.PostVideo(
+                    videoUploadDto,
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     configuration["Minio:Endpoint"]);
                 return Created();

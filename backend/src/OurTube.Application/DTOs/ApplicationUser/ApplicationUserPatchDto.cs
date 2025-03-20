@@ -1,7 +1,6 @@
-﻿namespace OurTube.Application.DTOs.ApplicationUser
+namespace OurTube.Application.DTOs.ApplicationUser;
+
+public class ApplicationUserPatchDto
 {
-    public class ApplicationUserPatchDTO
-    {
-        public string? UserName { get; set; }
-    }
+    public string? UserName { get; set; }
 }

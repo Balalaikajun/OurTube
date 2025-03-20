@@ -3,7 +3,7 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Domain.Interfaces
 {
-    public interface IUnitOfWorks
+    public interface IUnitOfWork
     {
         IPlaylistRepository Playlists { get; }
         IRepository<PlaylistElement> PlaylistElements { get; }
@@ -16,7 +16,6 @@ namespace OurTube.Domain.Interfaces
         ICommentRepository Comments { get; }
         IRepository<CommentVote> CommentVoices { get; }
 
-        int SaveChanges();
-        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

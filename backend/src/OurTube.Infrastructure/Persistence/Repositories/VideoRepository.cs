@@ -15,23 +15,23 @@ namespace OurTube.Infrastructure.Persistence.Repositories
         public VideoRepository(ApplicationDbContext context)
             : base(context) { }
 
-        public Video GetFullVideoData(int videoId)
+        public async Task<Video?> GetFullVideoDataAsync(int videoId)
         {
-            return ApplicationDbContext.Videos
+            return await ApplicationDbContext.Videos
                 .Include(v => v.Preview)
                 .Include(v => v.Files)
                 .Include(v => v.User)
                     .ThenInclude(u => u.UserAvatar)
-                .FirstOrDefault(v => v.Id == videoId);
+                .FirstOrDefaultAsync(v => v.Id == videoId);
         }
 
-        public Video GetMinVideoData(int videoId)
+        public async Task<Video?> GetMinVideoDataAsync(int videoId)
         {
-            return ApplicationDbContext.Videos
+            return await ApplicationDbContext.Videos
                 .Include(v => v.Preview)
                 .Include(v => v.User)
                     .ThenInclude(u => u.UserAvatar)
-                .FirstOrDefault(v => v.Id == videoId);
+                .FirstOrDefaultAsync(v => v.Id == videoId);
         }
     }
 }

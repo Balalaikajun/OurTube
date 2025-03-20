@@ -18,6 +18,8 @@ namespace OurTube.Domain.Entities
         public int Count { get; set; }
         [Required]
         public string ApplicationUserId { get; set; }
+        [Required]
+        public bool IsSystem { get; set; } = false;
 
         //Navigation
         public ApplicationUser ApplicationUser { get; set; }

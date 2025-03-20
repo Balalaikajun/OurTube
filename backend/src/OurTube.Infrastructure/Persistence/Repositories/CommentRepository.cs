@@ -15,9 +15,9 @@ namespace OurTube.Infrastructure.Persistence.Repositories
         public CommentRepository(ApplicationDbContext context)
         : base(context) { }
 
-        public IEnumerable<Comment> GetWithLimit(int videoId, int limit, int after, int? parentId = null)
+        public async Task<IEnumerable<Comment>> GetWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
         {
-            return ApplicationDbContext.Comments
+            return await ApplicationDbContext.Comments
                 .Include(c => c.User)
                 .Include(c => c.Childs)
                     .ThenInclude(c => c.User)
@@ -25,7 +25,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
                 .OrderBy(c => c.LikesCount)
                 .Skip(after)
                 .Take(limit)
-                .ToList();
+                .ToListAsync();
         }
     }
 }

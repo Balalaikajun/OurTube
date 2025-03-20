@@ -9,7 +9,7 @@ namespace OurTube.Infrastructure.Other
 {
     public class ApplicationUserManager : UserManager<IdentityUser>
     {
-        public ApplicationDbContext _applicationDbContext;
+        public ApplicationDbContext ApplicationDbContext;
         public ApplicationUserManager(
         IUserStore<IdentityUser> store,
         IOptions<IdentityOptions> optionsAccessor,
@@ -23,39 +23,39 @@ namespace OurTube.Infrastructure.Other
         ApplicationDbContext applicationDbContext)
         : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
-            _applicationDbContext = applicationDbContext;
+            ApplicationDbContext = applicationDbContext;
         }
 
         public override async Task<IdentityResult> CreateAsync(IdentityUser user, string password)
         {
             var result = await base.CreateAsync(user, password);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
+                return result;
+            
+            ApplicationDbContext.ApplicationUsers.Add(new ApplicationUser()
             {
-
-                _applicationDbContext.ApplicationUsers.Add(new ApplicationUser()
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Playlists = [
-                        new Playlist()
-                        {
-                        Title ="Понравившееся"
-                        }]
-                });
-
-                try
-                {
-                    await _applicationDbContext.SaveChangesAsync();
-                }
-                catch (DbUpdateException ex)
-                {
-                    return IdentityResult.Failed(new IdentityError()
+                Id = user.Id,
+                UserName = user.UserName,
+                Playlists = [
+                    new Playlist()
                     {
-                        Code = "ApplicationUserCreateError",
-                        Description = $"Ошибка при сохранении данных ApplicationUser: {ex.Message}"
-                    });
-                }
+                        Title ="Понравившееся",
+                        IsSystem = true
+                    }]
+            });
+
+            try
+            {
+                await ApplicationDbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return IdentityResult.Failed(new IdentityError()
+                {
+                    Code = "ApplicationUserCreateError",
+                    Description = $"Ошибка при сохранении данных ApplicationUser: {ex.Message}"
+                });
             }
             return result;
         }

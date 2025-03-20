@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Views;
 using OurTube.Application.Services;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using OurTube.Application.DTOs.Comment;
 
 namespace OurTube.Api.Controllers
 {
@@ -10,18 +12,24 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class HistoryController : ControllerBase
     {
+        private readonly ViewService _viewService;
+
+        public HistoryController(ViewService viewService)
+        {
+            _viewService = viewService;
+        }
+
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> AddVideo(
-            [FromBody] ViewPostDTO postDTO,
-            [FromServices] ViewService viewService)
+        public async Task<ActionResult> AddVideoAsync(
+            [FromBody] ViewPostDto postDto)
         {
             try
             {
-                await viewService.AddVideo(
-                    postDTO.VideoId,
+                await _viewService.AddVideoAsync(
+                    postDto.VideoId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDTO.EndTime);
+                    postDto.EndTime);
 
                 return Ok();
             }
@@ -32,14 +40,13 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{videoId}")]
-        public async Task<ActionResult> RemoveVideo(
-            int videoId,
-            [FromServices] ViewService viewService)
+        [HttpDelete("{videoId:int}")]
+        public async Task<ActionResult> RemoveVideoAsync(
+            int videoId)
         {
             try
             {
-                await viewService.RemoveVideo(
+                await _viewService.RemoveVideoAsync(
                     videoId,
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -52,13 +59,12 @@ namespace OurTube.Api.Controllers
         }
 
         [Authorize]
-        [HttpDelete()]
-        public async Task<ActionResult> ClearHistory(
-            [FromServices] ViewService viewService)
+        [HttpDelete]
+        public async Task<ActionResult> ClearHistoryAsync()
         {
             try
             {
-                await viewService.ClearHistory(
+                await _viewService.ClearHistoryAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 return Ok();
@@ -71,21 +77,24 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult> Get(
-            [FromServices] ViewService viewService,
+        public async Task<ActionResult<PagedHistoryDto>> GetAsync(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
             try
             {
-                List<ViewGetDTO> history = viewService.GetWithLimit(
+                var history =await _viewService.GetWithLimitAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
                 after);
-                int nextAfter = after + limit;
+                var nextAfter = after + limit;
 
 
-                return Ok(new { history, nextAfter });
+                return Ok(new PagedHistoryDto()
+                {
+                    Views = history,
+                   NextAfter = nextAfter
+                });
             }
 
             catch (InvalidOperationException ex)

@@ -2,8 +2,8 @@
 
 namespace OurTube.Domain.Interfaces
 {
-    public interface IViewRepository : IRepository<View>
+    public interface IViewRepository : IRepository<VideoView>
     {
-        IEnumerable<View> GetHistoryWithLimit(string userId, int limit, int after);
+        Task<IEnumerable<VideoView>> GetHistoryWithLimitAsync(string userId, int limit, int after);
     }
 }

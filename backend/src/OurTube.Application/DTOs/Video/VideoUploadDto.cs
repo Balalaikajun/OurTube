@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OurTube.Application.DTOs.Video
 {
-    public class VideoUploadDTO
+    public class VideoUploadDto
     {
         [Required]
-        public VideoPostDTO VideoPostDTO { get; set; }
+        public VideoPostDto VideoPostDto { get; set; }
 
         [Required]
         public IFormFile VideoFile { get; set; }

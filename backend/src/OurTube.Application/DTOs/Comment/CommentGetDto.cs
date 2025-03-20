@@ -2,7 +2,7 @@
 
 namespace OurTube.Application.DTOs.Comment
 {
-    public class CommentGetDTO
+    public class CommentGetDto
     {
         public int Id { get; set; }
         public string Text { get; set; }
@@ -13,7 +13,7 @@ namespace OurTube.Application.DTOs.Comment
         public int LikesCount { get; set; }
         public int DisLikesCount { get; set; }
         //Navigation
-        public ApplicationUserDTO User { get; set; }
-        public ICollection<CommentGetDTO> Childs { get; set; }
+        public ApplicationUserDto User { get; set; }
+        public ICollection<CommentGetDto> Childs { get; set; }
     }
 }
