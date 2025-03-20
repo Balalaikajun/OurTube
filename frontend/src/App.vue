@@ -5,10 +5,11 @@
     import FogPass from "./views/FogPass.vue";
     import MainPage from "./views/MainPage.vue";
     import VideoBlock from "./components/VideoBlockCard.vue";
+    import KebabTest from "./components/KebabMenu.vue";
+    import ResetPassword from "./views/ResetPassword.vue";
 
     import { computed } from "vue";
     import { useRoute } from 'vue-router';
-    import ResetPassword from "./views/ResetPassword.vue";
     const route = useRoute();
     
     const showAuth = computed(() => route.path === "/login");

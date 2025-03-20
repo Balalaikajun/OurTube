@@ -2,6 +2,7 @@
     import { ref, onMounted } from "vue";
     import { useRouter } from "vue-router";
     import VideoCard from "../components/VideoBlockCard.vue"; // Импортируем компонент VideoCard
+    import MasterHead from "../components/MasterHead.vue";
 
     const router = useRouter();
     const videos = ref([]); // Массив для хранения данных о видео
@@ -19,7 +20,7 @@
             const data = await response.json();
             
             if (!response.ok) {
-            throw new Error(data.message || "Ошибка при загрузке видео");
+                throw new Error(data.message || "Ошибка при загрузке видео");
             }
 
             videos.value = [...data]; // Сохраняем данные в массив
@@ -45,6 +46,7 @@
 </script>
 
 <template>
+    <MasterHead/>
     <div class="video-list">
         <!-- Сообщение об ошибке -->
         <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
@@ -67,6 +69,8 @@
 <style scoped>
     .video-list {
         padding: 20px;
+        height: 1000vh;
+        margin-top: 70px;
     }
 
     .error {
