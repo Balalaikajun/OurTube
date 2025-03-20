@@ -70,6 +70,7 @@ namespace OurTube.Api
             services.AddScoped<ViewService>();
             services.AddScoped<BaseRecomendationService>();
             services.AddScoped<SubscriptionService>();
+            services.AddScoped < SearchService>();
 
             // Repositories
             services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();

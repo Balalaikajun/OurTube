@@ -100,9 +100,7 @@ namespace OurTube.Application.Services
 
             return videoDto;
         }
-
-
-
+        
         public async Task PostVideo(
             VideoUploadDto videoUploadDto,
             string userId,
@@ -228,7 +226,5 @@ namespace OurTube.Application.Services
                 });
             }
         }
-
-
     }
 }
