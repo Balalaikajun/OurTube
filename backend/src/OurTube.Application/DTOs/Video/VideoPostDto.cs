@@ -10,5 +10,7 @@ namespace OurTube.Application.DTOs.Video
         [MaxLength(5000, ErrorMessage = "Описание не должно превышать 5000 символов")]
         [Required]
         public string Description { get; set; } = string.Empty;
+        
+        public IEnumerable<string> Tags { get; set; } = new List<string>();
     }
 }

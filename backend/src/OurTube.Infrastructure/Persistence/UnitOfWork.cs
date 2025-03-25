@@ -19,6 +19,8 @@ namespace OurTube.Infrastructure.Persistence
         public IViewRepository Views { get; private set; }
         public ICommentRepository Comments { get; private set; }
         public IRepository<CommentVote> CommentVoices { get; private set; }
+        public IRepository<Tag> Tags { get; private set; }
+        public IRepository<VideoTags> VideoTags { get; private set; }
 
         private readonly ApplicationDbContext _context;
         private readonly IMediator _mediator;
@@ -37,6 +39,8 @@ namespace OurTube.Infrastructure.Persistence
             Views = new ViewRepository(_context);
             Comments = new CommentRepository(_context);
             CommentVoices = new Repository<CommentVote>(_context);
+            Tags = new Repository<Tag>(_context);
+            VideoTags = new Repository<VideoTags>(_context);
         }
         
 

@@ -43,5 +43,33 @@ namespace OurTube.Application.Services
 
             return result;
         }
+        
+        public async Task<IEnumerable<VideoMinGetDto>> GetAdvanceRecomendationsAsync(int limit, int after, string? userId = null)
+        {
+            var videos =await _unitOfWork.Videos.GetAll()
+                .OrderByDescending(v => v.LikesCount)
+                .Skip(after)
+                .Take(limit)
+                .Select(v => v.Id)
+                .ToListAsync();
+
+            var result = new List<VideoMinGetDto>();
+            if (userId == null)
+            {
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId));
+                }
+            }
+            else
+            {
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId, userId));
+                }
+            }
+
+            return result;
+        }
     }
 }

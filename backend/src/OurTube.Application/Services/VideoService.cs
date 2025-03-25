@@ -17,6 +17,7 @@ namespace OurTube.Application.Services
         private readonly FfmpegProcessor _videoProcessor;
         private readonly MinioService _minioService;
         private readonly VideoValidator _validator;
+        private readonly TagService _tagService;
 
         private readonly int[] _videoResolutions;
         private readonly string _bucket;
@@ -27,7 +28,8 @@ namespace OurTube.Application.Services
             IConfiguration configuration,
             VideoValidator validator,
             LocalFilesService localFilesService,
-            MinioService minioService)
+            MinioService minioService,
+            TagService tagService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -36,6 +38,7 @@ namespace OurTube.Application.Services
             _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
             _bucket = configuration.GetSection("Minio:VideoBucket").Get<string>();
             _validator = validator;
+            _tagService = tagService;
         }
 
         public async Task<VideoGetDto> GetVideoByIdAsync(int videoId)
@@ -202,7 +205,14 @@ namespace OurTube.Application.Services
 
                 var files = playlists.ToList();
 
-                var user =await _unitOfWork.ApplicationUsers.GetAsync(userId);
+                var tags  = new List<VideoTags>();
+
+                foreach (var tagName in videoDto.Tags)
+                {
+                    var tag = await _tagService.GetOrCreate(tagName);
+                    
+                    tags.Add(new VideoTags(tag.Id));
+                }
 
                 // Создаём сущность
                 var video = new Video(
@@ -210,7 +220,9 @@ namespace OurTube.Application.Services
                     videoDto.Description,
                     preview,
                     source,
-                    files
+                    userId,
+                    files,
+                    tags
                 );
                 
                 _unitOfWork.Videos.Add(video);

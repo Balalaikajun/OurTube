@@ -13,9 +13,9 @@ public class Video
 
     [MaxLength(5000)] [Required] public string Description { get; set; } = string.Empty;
 
-    [Required] public int LikesCount { get; private set; }
+    [Required] public int LikesCount { get; private set; } = 0;
 
-    [Required] public int DislikeCount { get; private set; }
+    [Required] public int DislikeCount { get; private set; } = 0;
 
     [Required] public int CommentsCount { get; set; } = 0;
 
@@ -43,14 +43,22 @@ public class Video
     {
     }
 
-    public Video(string title, string description, VideoPreview preview, VideoSource source,
-        ICollection<VideoPlaylist> files)
+    public Video(
+        string title,
+        string description,
+        VideoPreview preview,
+        VideoSource source,
+        string applicationUserId,
+        ICollection<VideoPlaylist> files,
+        ICollection<VideoTags> tags)
     {
         Title = title;
         Description = description;
         Preview = preview;
         Source = source;
+        ApplicationUserId = applicationUserId;
         Files = files;
+        Tags = tags;
     }
     
     public void UpdateLikesCount(int delta)

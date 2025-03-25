@@ -15,6 +15,9 @@ namespace OurTube.Domain.Interfaces
         IViewRepository Views { get; }
         ICommentRepository Comments { get; }
         IRepository<CommentVote> CommentVoices { get; }
+        IRepository<Tag> Tags { get; }
+        IRepository<VideoTags> VideoTags { get; }
+        
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

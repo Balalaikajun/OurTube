@@ -17,11 +17,11 @@ services:
       - minio_data:/data
         
   postgres:
-    image: postgres:17.4
+    image: postgres:latest
     container_name: postgres
     restart: no
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
