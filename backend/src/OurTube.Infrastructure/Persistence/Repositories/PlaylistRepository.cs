@@ -7,7 +7,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
 {
     public class PlaylistRepository : Repository<Playlist>, IPlaylistRepository
     {
-        public ApplicationDbContext ApplicationDbContext
+        private ApplicationDbContext ApplicationDbContext
         {
             get { return Context as ApplicationDbContext; }
         }

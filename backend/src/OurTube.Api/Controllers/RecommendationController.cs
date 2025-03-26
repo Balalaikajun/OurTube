@@ -21,10 +21,26 @@ namespace OurTube.Api.Controllers
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {
-            var videos = await _recommendationService.GetRecomendationsAsync(
-                limit,
-                after,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            IEnumerable<VideoMinGetDto> videos;
+            
+            if (userId == null)
+            {
+                videos = await _recommendationService.GetRecomendationsAsync(
+                    limit,
+                    after
+                );
+            }
+            else
+            {
+                videos = await _recommendationService.GetRecomendationsAsync(
+                    limit,
+                    after,
+                    userId
+                );
+            }
+            
             var nextAfter = after + limit;
             
             return Ok(new PagedVideoDto()

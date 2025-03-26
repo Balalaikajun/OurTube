@@ -7,7 +7,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
 {
     public class ApplicationUserRepository : Repository<ApplicationUser>, IApplicationUserRepository
     {
-        public ApplicationDbContext ApplicationDbContext
+        private ApplicationDbContext ApplicationDbContext
         {
             get { return Context as ApplicationDbContext; }
         }

@@ -6,6 +6,5 @@ namespace OurTube.Domain.Interfaces
     {
         Task<Video?> GetFullVideoDataAsync(int videoId);
         Task<Video?> GetMinVideoDataAsync(int videoId);
-
     }
 }
