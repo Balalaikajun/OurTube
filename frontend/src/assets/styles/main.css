@@ -18,12 +18,12 @@ body {
     background: transparent;
     width: 20px;
     height: 20px;
-    }
+}
 
-    .control-button svg {
+.control-button svg {
     display: inherit;
     width: 20px;
     height: 20px;
     justify-content: center;
     align-items: center;
-    }
+}

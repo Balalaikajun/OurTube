@@ -21,6 +21,7 @@
         left: 0;
         width: 250px;
         height: calc(100vh - 70px);
+        background: #100E0E;
         color: #f3f0e9;
         padding-left: 25px;
         z-index: 1000;

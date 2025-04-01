@@ -33,7 +33,6 @@
                 throw new Error("Ошибка входа");
             }
 
-            alert("Успешный вход!");
             router.push("/");
 
         } catch (error) {

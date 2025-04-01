@@ -28,9 +28,6 @@ const submitForm = async () => {
             throw new Error("Ошибка при отправке запроса");
         }
 
-        const data = await response.json();
-        console.log("Успешно:", data);
-
         router.push({ path: "/reset-password", query: { email: email.value } });
     } 
     catch (error) {
