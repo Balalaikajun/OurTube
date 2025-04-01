@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
-using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
@@ -17,7 +16,7 @@ namespace OurTube.Application.Services
             _videoService = videoService;
         }
 
-        private async Task<IEnumerable<int>> GetVideosAsync(int limit, int after)
+        public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string? userId = null)
         {
             var videos =await _unitOfWork.Videos.GetAll()
                 .OrderByDescending(v => v.LikesCount)
@@ -26,28 +25,51 @@ namespace OurTube.Application.Services
                 .Select(v => v.Id)
                 .ToListAsync();
 
-            return videos;
-        }
+            var result = new List<VideoMinGetDto>();
+            if (userId == null)
+            {
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId));
+                }
+            }
+            else
+            {
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId, userId));
+                }
+            }
 
-        public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string userId)
-        {
-            var videos =await GetVideosAsync(limit, after);
-            
-            var result = await Task.WhenAll( 
-                videos.Select(async v => await _videoService.GetMinVideoByIdAsync(v, userId)));
-            
             return result;
         }
         
-        public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after)
+        public async Task<IEnumerable<VideoMinGetDto>> GetAdvanceRecomendationsAsync(int limit, int after, string? userId = null)
         {
-            var videos =await GetVideosAsync(limit, after);
-            
-            var result = await Task.WhenAll( 
-                videos.Select(async v => await _videoService.GetMinVideoByIdAsync(v)));
-            
+            var videos =await _unitOfWork.Videos.GetAll()
+                .OrderByDescending(v => v.LikesCount)
+                .Skip(after)
+                .Take(limit)
+                .Select(v => v.Id)
+                .ToListAsync();
+
+            var result = new List<VideoMinGetDto>();
+            if (userId == null)
+            {
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId));
+                }
+            }
+            else
+            {
+                foreach (var videoId in videos)
+                {
+                    result.Add(await _videoService.GetMinVideoByIdAsync(videoId, userId));
+                }
+            }
+
             return result;
         }
-        
     }
 }

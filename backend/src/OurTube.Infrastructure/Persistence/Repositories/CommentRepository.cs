@@ -7,7 +7,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
 {
     public class CommentRepository : Repository<Comment>, ICommentRepository
     {
-        private ApplicationDbContext ApplicationDbContext
+        public ApplicationDbContext ApplicationDbContext
         {
             get { return Context as ApplicationDbContext; }
         }

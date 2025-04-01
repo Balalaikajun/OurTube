@@ -7,7 +7,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories;
 
 public class TagRepository:Repository<Tag>,ITagRepository
 {
-    private ApplicationDbContext ApplicationDbContext
+    public ApplicationDbContext ApplicationDbContext
     {
         get { return Context as ApplicationDbContext; }
     }

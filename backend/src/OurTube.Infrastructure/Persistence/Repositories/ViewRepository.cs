@@ -7,7 +7,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
 {
     public class ViewRepository : Repository<VideoView>, IViewRepository
     {
-        private ApplicationDbContext ApplicationDbContext
+        public ApplicationDbContext ApplicationDbContext
         {
             get { return Context as ApplicationDbContext; }
         }

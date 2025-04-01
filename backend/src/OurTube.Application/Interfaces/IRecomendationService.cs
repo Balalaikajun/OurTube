@@ -4,6 +4,5 @@ namespace OurTube.Application.Interfaces;
 
 public interface IRecomendationService
 {
-    Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after);
-    Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string userId);
+    Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string? userId);
 }
