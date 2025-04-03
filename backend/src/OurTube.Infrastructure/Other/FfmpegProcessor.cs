@@ -6,6 +6,7 @@ namespace OurTube.Infrastructure.Other
     {
         public static async Task HandleVideo(string inputVideo, string outputDir, int videoHeight, string segmentsUri)
         {
+            Xabe.FFmpeg.FFmpeg.SetExecutablesPath(@"X:\tools\bin");
             if (!File.Exists(inputVideo))
                 throw new FileNotFoundException();
 
@@ -16,7 +17,6 @@ namespace OurTube.Infrastructure.Other
 
             Directory.CreateDirectory(Path.Combine(outputDir, "segments"));
 
-            Xabe.FFmpeg.FFmpeg.SetExecutablesPath(@"C:\FFmpeg");
             await FFmpeg.Conversions.New()
                 .AddStream(inputVideoMediaInfo.Streams)
                 .AddParameter($"-vf scale=-1:{videoHeight}")              // Масштабируем видео
