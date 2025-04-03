@@ -47,9 +47,12 @@
 
 <template>
   <MasterHead/>
-  <KebabMenu>
-    
-  </KebabMenu>
+  <KebabMenu
+            v-if="buttonRef"
+            :videoId="video.id"
+            :buttonRef="buttonRef"
+            ref="kebabMenuRef"
+  />
   <div class="video-list">
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     
