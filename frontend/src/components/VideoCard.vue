@@ -1,7 +1,6 @@
 <script setup>
     import { ref } from "vue";
-    import KebabMenu from "./KebabMenu.vue";
-    import KebabButton from "./KebabButton.vue";
+    import KebabButton from "../components/KebabButton.vue";
     import { MINIO_BASE_URL } from "@/assets/config.js";
 
     const props = defineProps({
@@ -27,7 +26,7 @@
     };
     const getPreviewUrl = (fileName) => {
         if (!fileName) return ''; // или URL дефолтного изображения
-        console.log(`${MINIO_BASE_URL}/${fileName}`);
+        // console.log(`${MINIO_BASE_URL}/${fileName}`);
         return `${MINIO_BASE_URL}/videos/${fileName}`;
     };
 </script>
@@ -62,12 +61,7 @@
             </KebabButton>        
         </div>
         <!-- Кебаб-меню -->
-        <KebabMenu
-            v-if="buttonRef"
-            :videoId="video.id"
-            :buttonRef="buttonRef"
-            ref="kebabMenuRef"
-        />
+
     </div>
 </template>
 
