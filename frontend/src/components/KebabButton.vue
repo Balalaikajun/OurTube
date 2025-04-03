@@ -1,16 +1,16 @@
 <script setup>
-import { ref } from "vue";
+  import { ref } from "vue";
 
-const props = defineProps({
-  onClick: {
-    type: Function,
-    required: true,
-  },
-});
+  const props = defineProps({
+    onClick: {
+      type: Function,
+      required: true,
+    },
+  });
 
-const buttonRef = ref(null);
+  const buttonRef = ref(null);
 
-defineExpose({ buttonRef });
+  defineExpose({ buttonRef });
 </script>
 
 <template>
