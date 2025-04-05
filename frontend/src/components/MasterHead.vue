@@ -75,7 +75,7 @@
             <span></span>
         </button>
 
-        <h1 class="logo-text" style="">OurTube</h1>
+        <h1 class="logo-text" style=""><span class="our">Our</span>Tube</h1>
 
         <search class="search-block">
             <form @submit="handleSearch">
@@ -115,6 +115,9 @@
         padding: 0 25px;
         width: 100%; /* Чтобы блок занимал всю ширину */
         z-index: 1000; /* Чтобы блок был поверх других элементов */
+    }
+    .our {
+        color: #F39E60;
     }
     .burger-button {
         display: flex;
