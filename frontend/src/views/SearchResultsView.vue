@@ -46,7 +46,8 @@
     };
 
     watch(() => route.query.q, (newQuery) => {
-    fetchSearchResults(newQuery);
+        searchResults.value = [];
+        fetchSearchResults(newQuery);
     }, { immediate: true });
 </script>
 
@@ -63,16 +64,16 @@
       </div>
   
       <!-- Результаты поиска -->
-      <div v-if="isLoading && !errorMessage" class="results-grid">
+      <div v-if="!isLoading && !errorMessage" class="results-grid">
         <div v-if="searchResults.length === 0" class="empty-results">
-          Ничего не найдено
+            Ничего не найдено
         </div>
   
         <SearchContentBlock
-          v-for="video in searchResults"
-          :key="video.id"
-          :video="video"
-          @toggle-subscribe="toggleSubscribe"
+            v-for="video in searchResults"
+            :key="video.id"
+            :video="video"
+            @toggle-subscribe="toggleSubscribe"
         />
       </div>
     </div>

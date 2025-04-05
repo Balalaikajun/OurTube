@@ -33,11 +33,11 @@
         isLoading.value = true;
         errorMessage.value = "";
         
-        const response = await fetch(`${API_URL}?query=${encodeURIComponent(query)}`);
+        const response = await fetch(`${API_BASE_URL}?query=${encodeURIComponent(query)}`);
         
-        // if (!response.ok) {
-        //     throw new Error(`Ошибка HTTP: ${response.status}`);
-        // }
+        if (!response.ok) {
+            throw new Error(`Ошибка HTTP: ${response.status}`);
+        }
         
         const data = await response.json();
         searchResults.value = data;
@@ -59,11 +59,11 @@
     };
 
     onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
+        document.addEventListener('click', handleClickOutside);
     });
 
     onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside);
+        document.removeEventListener('click', handleClickOutside);
     });
 </script>
 
