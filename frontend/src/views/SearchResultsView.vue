@@ -2,7 +2,7 @@
     import { ref, watch } from 'vue';
     import { useRoute } from 'vue-router';
     import MasterHead from '@/components/MasterHead.vue';
-    import SearchContentBlock from '@/components/SearchContentBlock.vue';
+    import VideoCard from "../components/VideoCard.vue";
     import LoadingState from '@/components/LoadingState.vue'; // Импортируем новый компонент
     import { API_BASE_URL } from '@/assets/config.js';
 
@@ -69,10 +69,11 @@
             Ничего не найдено
         </div>
   
-        <SearchContentBlock
+        <VideoCard
             v-for="video in searchResults"
             :key="video.id"
             :video="video"
+            row-layout
             @toggle-subscribe="toggleSubscribe"
         />
       </div>

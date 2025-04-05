@@ -1,39 +1,55 @@
 <script setup>
 import { ref, onBeforeUnmount, watch, nextTick } from "vue";
 
-const emit = defineEmits(['close', 'add-to-playlist', 'watch-later', 'share']);
+const props = defineProps({
+  videoId: {
+    type: String,
+    default: ''
+  }
+});
+
+const emit = defineEmits(['close']);
 
 const isOpen = ref(false);
 const position = ref({ top: '0px', left: '0px' });
 const menuRef = ref(null);
 
-// Единый обработчик для всех событий закрытия
+const handleAddToPlaylist = () => {
+  console.log(`Добавить видео ${props.videoId} в плейлист`);
+  closeMenu();
+};
+
+const handleWatchLater = () => {
+  console.log(`Отложить видео ${props.videoId}`);
+  closeMenu();
+};
+
+const handleShare = () => {
+  console.log(`Поделиться видео ${props.videoId}`);
+  closeMenu();
+};
+
 const setupEventListeners = () => {
-  // Обработчик кликов вне меню
   const handleClickOutside = (event) => {
     if (menuRef.value && !menuRef.value.contains(event.target)) {
       closeMenu();
     }
   };
 
-  // Обработчик скролла
   const handleScroll = () => {
     closeMenu();
   };
 
-  // Обработчик клавиши ESC
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
       closeMenu();
     }
   };
 
-  // Добавляем все обработчики
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('scroll', handleScroll, { passive: true });
   document.addEventListener('keydown', handleKeyDown);
 
-  // Функция для очистки
   return () => {
     document.removeEventListener('click', handleClickOutside);
     window.removeEventListener('scroll', handleScroll);
@@ -46,12 +62,10 @@ let cleanupListeners = null;
 const openMenu = async (buttonElement) => {
   if (!buttonElement?.getBoundingClientRect) return;
   
-  // Закрываем предыдущее меню, если было открыто
   if (isOpen.value) {
     closeMenu();
   }
   
-  // Рассчитываем позицию
   const rect = buttonElement.getBoundingClientRect();
   position.value = {
     top: `${rect.bottom + window.scrollY}px`,
@@ -60,7 +74,6 @@ const openMenu = async (buttonElement) => {
   
   isOpen.value = true;
   
-  // Ждем обновления DOM и добавляем обработчики
   await nextTick();
   cleanupListeners = setupEventListeners();
 };
@@ -71,14 +84,12 @@ const closeMenu = () => {
   isOpen.value = false;
   emit('close');
   
-  // Удаляем все обработчики событий
   if (cleanupListeners) {
     cleanupListeners();
     cleanupListeners = null;
   }
 };
 
-// Автоматическая очистка при размонтировании
 onBeforeUnmount(() => {
   closeMenu();
 });
@@ -94,12 +105,27 @@ defineExpose({ openMenu, closeMenu });
     :style="position"
     @click.stop
   >
+    <button @click="handleAddToPlaylist">Добавить в плейлист</button>
+    <button @click="handleWatchLater">Смотреть позже</button>
+    <span class="line"></span>
+    <button @click="handleShare">Поделиться</button>
+  </div>
+</template>
+
+<!-- <template>
+  <div
+    v-if="isOpen"
+    ref="menuRef"
+    class="kebab-menu"
+    :style="position"
+    @click.stop
+  >
     <button @click="$emit('add-to-playlist')">Добавить в плейлист</button>
     <button @click="$emit('watch-later')">Смотреть позже</button>
     <span class="line"></span>
     <button @click="$emit('share')">Поделиться</button>
   </div>
-</template>
+</template> -->
 
 <style scoped>
 .kebab-menu {
