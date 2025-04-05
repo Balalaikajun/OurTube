@@ -10,14 +10,30 @@
     },
     });
 
-    const buttonRef = ref(null);
-    const kebabMenuRef = ref(null);
+    const emit = defineEmits(['click', 'kebab-click']);
 
-    const handleKebabMenuClick = () => {
-    if (kebabMenuRef.value) {
-        kebabMenuRef.value.toggleMenu(); // Вызываем toggleMenu из KebabMenu
-    }
+    const buttonRef = ref(null);
+
+    const handleKebabClick = (event) => {
+    event.stopPropagation();
+    if (!buttonRef.value) return;
+        // Получаем DOM-элемент кнопки
+        const buttonElement = buttonRef.value.$el || buttonRef.value;
+        emit('kebab-click', {
+            videoId: props.video.id,
+            buttonElement
+        });
     };
+
+    const handleCardClick = () => {
+    emit('click', props.video.id);
+    };
+
+    // const handleKebabMenuClick = () => {
+    // if (kebabMenuRef.value) {
+    //     kebabMenuRef.value.toggleMenu(); // Вызываем toggleMenu из KebabMenu
+    // }
+    // };
     const handleImageError = (event) => {
         // Установите fallback изображение
         event.target.src = '/path/to/default-thumbnail.jpg';
@@ -29,10 +45,11 @@
         // console.log(`${MINIO_BASE_URL}/${fileName}`);
         return `${MINIO_BASE_URL}/videos/${fileName}`;
     };
+    defineExpose({buttonRef});
 </script>
 
 <template>
-  <div class="video-card">
+  <div class="video-card" @click="handleCardClick">
     <div class="video-block">
       <div class="thumbnail-overlay-badge">
         <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
@@ -56,12 +73,10 @@
             </div>
             <!-- Кнопка управления -->
             <KebabButton 
-                ref="kebabButtonRef" 
-                :onClick="handleKebabMenuClick">
+                ref="buttonRef" 
+                :onClick="handleKebabClick">
             </KebabButton>        
         </div>
-        <!-- Кебаб-меню -->
-
     </div>
 </template>
 
@@ -69,6 +84,8 @@
     .video-card {
         display: block;
         width: 20%;
+        padding-bottom: 20px;
+        cursor: pointer;
     }
 
     .video-block {
@@ -110,22 +127,19 @@
 
     .bottom-block {
         display: flex;
-        width: 100%;
         justify-content: space-between;
+        width: 100%;
     }
 
     .video-info {
         display: flex;
+        margin-top: 1vh;
+        width: 90%;
         flex-direction: column;
-        gap: 2vh;
         color: #f3f0e9;
-        width: 12vw;
         overflow: hidden;
         word-wrap: break-word;
         white-space: normal;
-    }
-    .video-info:first-child {
-        padding-top: 1vh;
     }
 
     .video-title,
@@ -134,7 +148,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2; /* Ограничение в 2 строки */
+        -webkit-box-orient: vertical; /* Вертикальное направление */
+        line-height: 1.4; /* Оптимальный межстрочный интервал */
+        max-height: calc(2 * 1.4em); /* Дополнительная страховка */
+        word-break: break-word; /* Перенос длинных слов */
     }
 </style>

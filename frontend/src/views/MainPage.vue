@@ -1,16 +1,22 @@
 <script setup>
   import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
   import { useRouter } from "vue-router";
-  import VideoCard from "../components/VideoCard.vue";
-  import KebabMenu from "../components/KebabMenu.vue";
   import MasterHead from "../components/MasterHead.vue";
   import LoadingState from "@/components/LoadingState.vue"; // Импортируем компонент
+  import KebabMenu from "../components/KebabMenu.vue";
+  import VideoCard from "../components/VideoCard.vue";
+  import AddToPlaylist from "@/components/AddToPlayList.vue";
+  import CreatePlaylist from "@/components/CreatePlaylist.vue";
+  import ShareOverlay from "@/components/ShareOverlay.vue";
   import { API_BASE_URL } from "@/assets/config.js";
 
   const router = useRouter();
   const videos = ref([]);
   const loading = ref(false);
   const errorMessage = ref("");
+
+  const currentVideoId = ref("");
+  const kebabMenuRef = ref(null);
 
   const fetchVideos = async () => {
     loading.value = true;
@@ -36,6 +42,27 @@
     router.push(`/video/${videoId}`);
   };
 
+  const handleKebabClick = ({ videoId, buttonElement }) => {
+    if (!buttonElement) {
+      console.error('Button element is missing');
+      return;
+    }
+    currentVideoId.value = videoId;
+    kebabMenuRef.value?.openMenu(buttonElement);
+  };
+
+  const handleAddToPlaylist = () => {
+    console.log(`Добавить видео ${currentVideoId.value} в плейлист`);
+  };
+
+  const handleWatchLater = () => {
+    console.log(`Отложить видео ${currentVideoId.value}`);
+  };
+
+  const handleShare = () => {
+    console.log(`Поделиться видео ${currentVideoId.value}`);
+  };
+
   onMounted(async () => {
     await fetchVideos();
   });
@@ -47,16 +74,16 @@
 
 <template>
   <MasterHead/>
-  <KebabMenu
-            v-if="buttonRef"
-            :videoId="video.id"
-            :buttonRef="buttonRef"
-            ref="kebabMenuRef"
+  <KebabMenu 
+    ref="kebabMenuRef" 
+    @close="currentVideoId = ''"
+    @add-to-playlist="handleAddToPlaylist"
+    @watch-later="handleWatchLater"
+    @share="handleShare"
   />
   <div class="video-list">
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    
-    <!-- Заменяем старый лоадер на компонент LoadingState -->
+
     <LoadingState v-if="loading" />
     
     <div v-else ref="videosGridRef" class="videos-grid">
@@ -65,49 +92,47 @@
         :key="video.id"
         :video="video"
         @click="navigateToVideo(video.id)"
+        @kebab-click="handleKebabClick"
       />
     </div>
   </div>
 </template>
 
 <style scoped>
-  .video-list {
-    box-sizing: border-box;
-    width: 100%;
-    padding: 20px 100px;
-    margin-top: 70px;
-  }
-
-  .error {
-    color: red;
-    text-align: center;
-    margin-top: 10px;
-  }
-
-  .videos-grid {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    /* gap: 15px; */
-  }
-
-  .videos-grid .video-card {
-    flex: 0 0 auto;
-  }
-
-  @media (max-width: 768px) {
     .video-list {
-      padding: 20px;
+        box-sizing: border-box;
+        width: 100%;
+        height: 1000vh;
+        padding: 20px 100px;
+        margin-top: 70px;
     }
-    
-    .videos-grid .video-card {
-      width: 200px;
-    }
-  }
 
-  @media (max-width: 480px) {
-    .videos-grid .video-card {
-      width: 160px;
+    .error {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
     }
-  }
+
+    .videos-grid {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        /* gap: 15px; */
+    }
+
+    @media (max-width: 768px) {
+        .video-list {
+          padding: 20px;
+        }
+        
+        .videos-grid .video-card {
+          width: 200px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .videos-grid .video-card {
+          width: 160px;
+        }
+    }
 </style>

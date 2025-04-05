@@ -1,7 +1,7 @@
 <template>
     <div class="loading-state">
       <div class="spinner"></div>
-      <p>Загрузка результатов...</p>
+      <p>Загрузка...</p>
     </div>
   </template>
   
