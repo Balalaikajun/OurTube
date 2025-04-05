@@ -1,7 +1,8 @@
 <script setup>
-    import { defineProps } from 'vue';
+    import { defineProps, ref } from 'vue';
     import { useRouter } from 'vue-router';
     import { API_BASE_URL } from '@/assets/config.js';
+    import KebabButton from './KebabButton.vue';
 
     const router = useRouter();
     const props = defineProps({
@@ -34,6 +35,8 @@
         })
     }
     });
+
+    const buttonRef = ref(null);
 
     const navigateToVideo = () => {
     router.push(`/video/${props.video.id}`);
@@ -107,6 +110,10 @@
             </div>
         </div>
 
+        <KebabButton 
+            ref="buttonRef" 
+            :onClick="handleKebabClick">
+        </KebabButton>  
   </div>
 </template>
 
