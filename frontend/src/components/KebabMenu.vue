@@ -80,20 +80,6 @@ const openMenu = async (buttonElement) => {
     // Корректируем позицию после рендера
     if (menuRef.value) {
       const menuRect = menuRef.value.getBoundingClientRect();
-      console.log(menuRect.width, menuRect.height);
-      console.log(window.innerWidth, window.innerHeight);
-      console.log(window.scrollX, window.scrollY);
-      console.log(rect.left - menuRect.width, rect.top - menuRect.height);
-      // position.value = {
-      //   top: `${Math.min(
-      //     rect.bottom + window.scrollY,
-      //     window.innerHeight + window.scrollY - menuRect.height - 10
-      //   )}px`,
-      //   left: `${Math.min(
-      //     rect.left + window.scrollX,
-      //     window.innerWidth + window.scrollX - menuRect.width - 10
-      //   )}px`
-      // };
       position.value = {
         left: `${rect.left - menuRect.width}px`,
         top: `${rect.top}px`
