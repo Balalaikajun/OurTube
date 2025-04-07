@@ -3,16 +3,23 @@ import { ref, onBeforeUnmount, watch, nextTick } from "vue";
 
 const props = defineProps({
   videoId: {
-    type: String,
+    type: [String, Number],
     default: ''
   }
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'add-to-playlist', 'watch-later', 'share']);
 
 const isOpen = ref(false);
 const position = ref({ top: '0px', left: '0px' });
 const menuRef = ref(null);
+let cleanupListeners = null;
+
+const handleClick = (event) => {
+  emit('kebab-click', { 
+    buttonElement: event.currentTarget 
+  });
+};
 
 const handleAddToPlaylist = () => {
   console.log(`Добавить видео ${props.videoId} в плейлист`);
@@ -36,15 +43,8 @@ const setupEventListeners = () => {
     }
   };
 
-  const handleScroll = () => {
-    closeMenu();
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      closeMenu();
-    }
-  };
+  const handleScroll = () => closeMenu();
+  const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
 
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('scroll', handleScroll, { passive: true });
@@ -57,37 +57,70 @@ const setupEventListeners = () => {
   };
 };
 
-let cleanupListeners = null;
-
 const openMenu = async (buttonElement) => {
-  if (!buttonElement?.getBoundingClientRect) return;
-  
-  if (isOpen.value) {
-    closeMenu();
+  try {
+    if (!buttonElement?.getBoundingClientRect) {
+      console.error('Invalid button element');
+      return;
+    }
+    
+    // Если меню уже открыто - сначала закрываем
+    if (isOpen.value) {
+      await closeMenu();
+    }
+    
+    // Получаем позицию кнопки
+    const rect = buttonElement.getBoundingClientRect();
+    
+    isOpen.value = true;
+    
+    // Ждем рендера меню
+    await nextTick();
+    
+    // Корректируем позицию после рендера
+    if (menuRef.value) {
+      const menuRect = menuRef.value.getBoundingClientRect();
+      console.log(menuRect.width, menuRect.height);
+      console.log(window.innerWidth, window.innerHeight);
+      console.log(window.scrollX, window.scrollY);
+      console.log(rect.left - menuRect.width, rect.top - menuRect.height);
+      // position.value = {
+      //   top: `${Math.min(
+      //     rect.bottom + window.scrollY,
+      //     window.innerHeight + window.scrollY - menuRect.height - 10
+      //   )}px`,
+      //   left: `${Math.min(
+      //     rect.left + window.scrollX,
+      //     window.innerWidth + window.scrollX - menuRect.width - 10
+      //   )}px`
+      // };
+      position.value = {
+        left: `${rect.left - menuRect.width}px`,
+        top: `${rect.top}px`
+      };
+    }
+    
+    // Устанавливаем обработчики
+    cleanupListeners = setupEventListeners();
+  } catch (error) {
+    console.error('Error opening menu:', error);
   }
-  
-  const rect = buttonElement.getBoundingClientRect();
-  position.value = {
-    top: `${rect.bottom + window.scrollY}px`,
-    left: `${rect.left + window.scrollX}px`
-  };
-  
-  isOpen.value = true;
-  
-  await nextTick();
-  cleanupListeners = setupEventListeners();
 };
 
-const closeMenu = () => {
+const closeMenu = async () => {
   if (!isOpen.value) return;
   
   isOpen.value = false;
   emit('close');
   
+  // Очищаем обработчики
   if (cleanupListeners) {
     cleanupListeners();
     cleanupListeners = null;
   }
+  
+  // Даем время на анимацию закрытия
+  await nextTick();
 };
 
 onBeforeUnmount(() => {
@@ -103,7 +136,7 @@ defineExpose({ openMenu, closeMenu });
     ref="menuRef"
     class="kebab-menu"
     :style="position"
-    @click.stop
+    @click.stop="handleClick"
   >
     <button @click="handleAddToPlaylist">Добавить в плейлист</button>
     <button @click="handleWatchLater">Смотреть позже</button>
@@ -111,21 +144,6 @@ defineExpose({ openMenu, closeMenu });
     <button @click="handleShare">Поделиться</button>
   </div>
 </template>
-
-<!-- <template>
-  <div
-    v-if="isOpen"
-    ref="menuRef"
-    class="kebab-menu"
-    :style="position"
-    @click.stop
-  >
-    <button @click="$emit('add-to-playlist')">Добавить в плейлист</button>
-    <button @click="$emit('watch-later')">Смотреть позже</button>
-    <span class="line"></span>
-    <button @click="$emit('share')">Поделиться</button>
-  </div>
-</template> -->
 
 <style scoped>
 .kebab-menu {

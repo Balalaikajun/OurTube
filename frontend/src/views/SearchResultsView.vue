@@ -2,6 +2,7 @@
     import { ref, watch } from 'vue';
     import { useRoute } from 'vue-router';
     import MasterHead from '@/components/MasterHead.vue';
+    import KebabMenu from '@/components/KebabMenu.vue';
     import VideoCard from "../components/VideoCard.vue";
     import LoadingState from '@/components/LoadingState.vue'; // Импортируем новый компонент
     import { API_BASE_URL } from '@/assets/config.js';
@@ -10,6 +11,8 @@
     const searchResults = ref([]);
     const isLoading = ref(false);
     const errorMessage = ref('');
+    const currentVideoId = ref('');
+    const kebabMenuRef = ref(null);
 
     const fetchSearchResults = async (query) => {
     if (!query) {
@@ -37,12 +40,17 @@
     }
     };
 
-    const toggleSubscribe = (userId) => {
-    const user = searchResults.value.find(v => v.user.id === userId)?.user;
-    if (user) {
-        user.isSubscribed = !user.isSubscribed;
-        // Здесь можно добавить вызов API для обновления подписки
-    }
+    // const toggleSubscribe = (userId) => {
+    // const user = searchResults.value.find(v => v.user.id === userId)?.user;
+    // if (user) {
+    //     user.isSubscribed = !user.isSubscribed;
+    //     // Здесь можно добавить вызов API для обновления подписки
+    // }
+    // };
+
+    const handleKebabClick = ({ videoId, buttonElement }) => {
+        currentVideoId.value = videoId;
+        kebabMenuRef.value?.openMenu(buttonElement);
     };
 
     watch(() => route.query.q, (newQuery) => {
@@ -53,7 +61,11 @@
 
 <template>
     <MasterHead />
-    
+    <KebabMenu 
+        ref="kebabMenuRef"
+        :video-id="currentVideoId"
+        @close="currentVideoId = ''"
+    />
     <div class="search-results-container">
       <!-- Используем новый компонент -->
       <LoadingState v-if="isLoading" />
@@ -74,7 +86,7 @@
             :key="video.id"
             :video="video"
             row-layout
-            @toggle-subscribe="toggleSubscribe"
+            @kebab-click="handleKebabClick"
         />
       </div>
     </div>

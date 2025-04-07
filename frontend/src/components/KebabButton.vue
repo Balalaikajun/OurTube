@@ -1,14 +1,16 @@
 <script setup>
     import { ref, onMounted, onBeforeUnmount } from "vue";
 
-    const props = defineProps({
-      onClick: {
-        type: Function,
-        required: true
-      }
-    });
+    const emit = defineEmits(['kebab-click']);
 
     const buttonRef = ref(null);
+
+    const handleClick = (event) => {
+      event.stopPropagation();
+      emit('kebab-click', { 
+        buttonElement: event.currentTarget 
+      });
+    };
 
     defineExpose({ buttonRef});
 </script>
@@ -17,7 +19,7 @@
   <button 
     class="control-button" 
     ref="buttonRef" 
-    @click.stop="onClick($event)"
+    @click.stop="handleClick"
     aria-label="Меню действий"    
   >
     <span class="kebab-dots">
