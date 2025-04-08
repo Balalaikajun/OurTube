@@ -32,6 +32,9 @@ public class Video
     [Required] public VideoPreview Preview { get; private set; }
 
     [Required] public VideoSource Source { get; private set; }
+    
+    [Required]
+    public TimeSpan Duration { get; private set; }
 
     public ICollection<VideoPlaylist> Files { get; private set; }
     public ICollection<VideoVote> Votes { get; private set; }
@@ -50,7 +53,8 @@ public class Video
         VideoSource source,
         string applicationUserId,
         ICollection<VideoPlaylist> files,
-        ICollection<VideoTags> tags)
+        ICollection<VideoTags> tags,
+        TimeSpan duration)
     {
         Title = title;
         Description = description;
@@ -59,6 +63,7 @@ public class Video
         ApplicationUserId = applicationUserId;
         Files = files;
         Tags = tags;
+        Duration = duration;
     }
     
     public void UpdateLikesCount(int delta)

@@ -79,6 +79,10 @@ namespace OurTube.Infrastructure.Data
                 .HasForeignKey<VideoSource>(vp => vp.VideoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Video>()
+                .Property(v => v.Duration)
+                .HasColumnType("interval");
+
             // Views
             modelBuilder.Entity<VideoView>()
                 .ToTable(nameof(VideoView));

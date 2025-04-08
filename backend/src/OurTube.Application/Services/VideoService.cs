@@ -214,6 +214,8 @@ namespace OurTube.Application.Services
                     tags.Add(new VideoTags(tag.Id));
                 }
 
+                var duration = await FfmpegProcessor.GetVideoDuration(tempSourcePath);
+                
                 // Создаём сущность
                 var video = new Video(
                     videoDto.Title,
@@ -222,7 +224,8 @@ namespace OurTube.Application.Services
                     source,
                     userId,
                     files,
-                    tags
+                    tags,
+                    duration
                 );
                 
                 _unitOfWork.Videos.Add(video);

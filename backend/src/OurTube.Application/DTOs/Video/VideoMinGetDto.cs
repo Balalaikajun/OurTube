@@ -9,6 +9,8 @@ namespace OurTube.Application.DTOs.Video
         public string Title { get; set; }
         public int ViewsCount { get; set; }
         public bool? Vote { get; set; }
+        
+        public TimeSpan Duration { get; set; }
         public TimeSpan? EndTime { get; set; }
         public DateTime Created { get; set; }
         public VideoPreviewDto Preview { get; set; }

@@ -29,5 +29,11 @@ namespace OurTube.Infrastructure.Other
                 .SetOutput(localPlaylistPath)
                 .Start();
         }
+        
+        public static async Task<TimeSpan> GetVideoDuration(string filePath)
+        {
+            var mediaInfo = await FFmpeg.GetMediaInfo(filePath);
+            return mediaInfo.Duration;
+        }
     }
 }
