@@ -1,13 +1,6 @@
 <script setup>
 import { ref, onBeforeUnmount, watch, nextTick } from "vue";
 
-const props = defineProps({
-  videoId: {
-    type: [String, Number],
-    default: ''
-  }
-});
-
 const emit = defineEmits(['close', 'add-to-playlist', 'watch-later', 'share']);
 
 const isOpen = ref(false);
@@ -32,8 +25,7 @@ const handleWatchLater = () => {
 };
 
 const handleShare = () => {
-  console.log(`Поделиться видео ${props.videoId}`);
-  closeMenu();
+  emit('share');
 };
 
 const setupEventListeners = () => {
@@ -127,7 +119,7 @@ defineExpose({ openMenu, closeMenu });
     <button @click="handleAddToPlaylist">Добавить в плейлист</button>
     <button @click="handleWatchLater">Смотреть позже</button>
     <span class="line"></span>
-    <button @click="handleShare">Поделиться</button>
+    <button @click.stop="handleShare">Поделиться</button>
   </div>
 </template>
 
@@ -151,7 +143,7 @@ defineExpose({ openMenu, closeMenu });
   cursor: pointer;
   padding: 10px 12px;
   text-align: left;
-  transition: background-color 0.2s ease;
+  transition: background-color 1s ease;
 }
 
 .kebab-menu button:first-child {

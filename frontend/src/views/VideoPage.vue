@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import MasterHead from "../components/MasterHead.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
 import LoadingState from "@/components/LoadingState.vue"; // Импортируем компонент загрузки
 import { API_BASE_URL } from "@/assets/config.js";
@@ -13,6 +14,11 @@ const hlsUrl = ref("");
 const isLoading = ref(true); // Добавляем состояние загрузки
 const error = ref(null); // Добавляем обработку ошибок
 
+const ensureHttpUrl = (url) => {
+  if (!url) return '';
+  return url.startsWith('http') ? url : `http://${url}`;
+};
+
 const fetchVideoData = async () => {
   isLoading.value = true;
   error.value = null;
@@ -24,9 +30,15 @@ const fetchVideoData = async () => {
     const data = await response.json();
     videoData.value = data;
     
-    if (data.files && data.files.length > 0) {
+    if (data.files?.length) {
+      // Используем реальные данные из API
       const file = data.files[0];
-      hlsUrl.value = `${MINIO_BASE_URL}/videos/0f9c22f2-ce05-4fbc-bba5-8c706196ce89/1080/playlist.m3u8`;
+      // console.log(data)
+      // console.log(file.fileName)
+      // Убеждаемся, что URL начинается с http://
+      console.log(`${MINIO_BASE_URL}/${file.fileName}`, 39)
+      hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
+      console.log("hlsURL", hlsUrl.value)
     }
   } catch (err) {
     error.value = err.message;
@@ -42,32 +54,51 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="video-page">
-    <!-- Отображаем загрузку -->
+  <MasterHead />
+  <main class="video-page">
+    <!-- Состояние загрузки -->
     <LoadingState v-if="isLoading" />
     
-    <!-- Отображаем ошибку -->
+    <!-- Состояние ошибки -->
     <div v-else-if="error" class="error-message">
       {{ error }}
     </div>
     
-    <!-- Отображаем контент когда загружено -->
+    <!-- Основной контент -->
     <template v-else>
-      <VideoPlayer v-if="hlsUrl" :video-src="hlsUrl" />
-      <div v-else class="no-video">Видео недоступно</div>
+      <section class="video-container">
+        <VideoPlayer 
+          v-if="hlsUrl" 
+          :video-src="hlsUrl" 
+          :poster="videoData?.thumbnailUrl"
+          class="video-player"
+        />
+        <div v-else class="no-video">
+          Видео недоступно
+        </div>
+      </section>
       
-      <div v-if="videoData" class="video-info">
-        <h1>{{ videoData.title }}</h1>
-        <p>{{ videoData.description }}</p>
-        <!-- Другая информация о видео -->
-      </div>
+      <section 
+        v-if="videoData" 
+        class="video-info"
+      >
+        <h1 class="video-title">{{ videoData.title }}</h1>
+        <div class="video-meta">
+          <span v-if="videoData.views">{{ videoData.views }} просмотров</span>
+          <span v-if="videoData.uploadDate">{{ formatDate(videoData.uploadDate) }}</span>
+        </div>
+        <p class="video-description">{{ videoData.description }}</p>
+      </section>
     </template>
-  </div>
+  </main>
 </template>
 
 <style scoped>
 .video-page {
-  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 20px 100px;
+  margin-top: 70px;
 }
 
 .error-message {

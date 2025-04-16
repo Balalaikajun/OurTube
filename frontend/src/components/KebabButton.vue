@@ -7,9 +7,7 @@
 
     const handleClick = (event) => {
       event.stopPropagation();
-      emit('kebab-click', { 
-        buttonElement: event.currentTarget 
-      });
+      emit('kebab-click', event);
     };
 
     defineExpose({ buttonRef});
@@ -43,7 +41,7 @@
         padding: 0;
         cursor: pointer;
         background: transparent;
-        transition: background 0.3s ease;
+        transition: background 1s ease;
         border-radius: 50%;
         margin-top: 1vh;
     }
@@ -58,8 +56,6 @@
         height: clamp(24px, 1.5vw, 36px);
         justify-content: center;
         align-items: center;
-        width: 100%;
-        height: 100%;
         flex-direction: column;
         gap: 3px;
     }

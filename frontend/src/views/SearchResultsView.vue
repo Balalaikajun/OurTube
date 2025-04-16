@@ -1,18 +1,21 @@
 <script setup>
     import { ref, watch } from 'vue';
-    import { useRoute } from 'vue-router';
+    import { useRoute, useRouter } from 'vue-router';
     import MasterHead from '@/components/MasterHead.vue';
     import KebabMenu from '@/components/KebabMenu.vue';
+    import ShareOverlay from "../components/ShareOverlay.vue";
     import VideoCard from "../components/VideoCard.vue";
     import LoadingState from '@/components/LoadingState.vue'; // Импортируем новый компонент
     import { API_BASE_URL } from '@/assets/config.js';
 
-    const route = useRoute();
+    const route = useRoute(); // Переименовано для ясности
+    const router = useRouter(); 
     const searchResults = ref([]);
     const isLoading = ref(false);
     const errorMessage = ref('');
     const currentVideoId = ref('');
     const kebabMenuRef = ref(null);
+    const shareRef = ref(null);
 
     const fetchSearchResults = async (query) => {
     if (!query) {
@@ -48,9 +51,24 @@
     // }
     // };
 
+    const navigateToVideo = (videoId) => {
+        console.log(videoId)
+        router.push(`/video/${videoId}`);
+    };
+
     const handleKebabClick = ({ videoId, buttonElement }) => {
         currentVideoId.value = videoId;
         kebabMenuRef.value?.openMenu(buttonElement);
+    };
+    
+    const handleShareClick = () => {
+        // Проверяем, что ссылка существует и имеет метод
+        if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
+        shareRef.value.openMenu();
+        } else {
+        console.error('ShareOverlay ref is not properly set or missing openMenu method');
+        }
+        
     };
 
     watch(() => route.query.q, (newQuery) => {
@@ -63,8 +81,12 @@
     <MasterHead />
     <KebabMenu 
         ref="kebabMenuRef"
-        :video-id="currentVideoId"
         @close="currentVideoId = ''"
+        @share="handleShareClick"
+    />
+    <ShareOverlay
+        ref="shareRef" 
+        :videoId="currentVideoId"
     />
     <div class="search-results-container">
       <!-- Используем новый компонент -->
@@ -82,11 +104,13 @@
         </div>
   
         <VideoCard
+            class="video-card"
             v-for="video in searchResults"
             :key="video.id"
             :video="video"
             row-layout
             @kebab-click="handleKebabClick"
+            @click="navigateToVideo(video.id)"        
         />
       </div>
     </div>

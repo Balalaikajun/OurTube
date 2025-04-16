@@ -38,16 +38,16 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['click', 'kebab-click']);
+const emit = defineEmits(['click', 'kebab-click', 'share']);
 
 const handleCardClick = () => {
   emit('click', props.video.id);
 };
 
-const handleKebabButtonClick = ({ buttonElement }) => {
+const handleKebabButtonClick = (event) => {
   emit('kebab-click', {
     videoId: props.video.id,
-    buttonElement
+    buttonElement: event.currentTarget
   });
 };
 
@@ -137,10 +137,10 @@ const formatDate = (dateString) => {
 
   .video-card.row-layout {
       display: flex;
-      width: 100%;
+      width: 80%;
       gap: 20px;
       margin-top: 10px;
-      transition: background 0.3s ease;
+      transition: background 1s ease;
   }
 
   .video-block {
@@ -152,8 +152,27 @@ const formatDate = (dateString) => {
   }
 
   .video-card.row-layout .video-block {
-      width: 20%;
+      flex-grow: 1;
+      flex-shrink: 2;
+      flex-basis: 30%;
+      /* width: 20%; */
       flex-shrink: 0;
+  }
+
+  
+  .bottom-block {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+  }
+
+  .video-card.row-layout .bottom-block {
+      flex-grow: 2;
+      flex-shrink: 1;
+      flex-basis: 70%;
+      /* flex-direction: row; */
+      justify-content: flex-start;
+      gap: 10px;
   }
 
   /* .video-card.row-layout .video-block {
@@ -181,22 +200,10 @@ const formatDate = (dateString) => {
       background: #f39e60;
   }
 
-  .bottom-block {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-  }
-
-  .video-card.row-layout .bottom-block {
-      flex-direction: row;
-      justify-content: flex-start;
-      gap: 10px;
-  }
-
   .video-info {
       display: flex;
       margin-top: 1vh;
-      width: 90%;
+      width: 80%;
       flex-direction: column;
       color: #f3f0e9;
       overflow: hidden;
