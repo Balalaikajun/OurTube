@@ -187,7 +187,7 @@
         background-color: #F39E60;
         color: #100E0E;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color 1s ease;
         font-size: 14px;
     }
 

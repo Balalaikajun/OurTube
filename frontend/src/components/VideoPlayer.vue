@@ -18,7 +18,7 @@ const hls = ref(null);
 const playerError = ref(null);
 const userInteracted = ref(false);
 
-// Вычисляемые свойства для стилей
+// Вычисляемые свойства остаются без изменений
 const progressBarStyle = computed(() => ({
   background: `linear-gradient(to right, #F39E60 ${(currentTime.value / (videoDuration.value || 1)) * 100}%, #ddd ${(currentTime.value / (videoDuration.value || 1)) * 100}%)`
 }));
@@ -28,17 +28,62 @@ const volumeBarStyle = computed(() => ({
 }));
 
 const initHls = () => {
+  if (!props.videoSrc) {
+    playerError.value = 'Источник видео не указан';
+    return;
+  }
+
   try {
+    debugger;
     if (Hls.isSupported() && videoPlayer.value) {
-      hls.value = new Hls();
+      debugger;
+      hls.value = new Hls({
+        xhrSetup: function(xhr, url) {
+          // Добавляем http:// если отсутствует
+          const fullUrl = url.startsWith('http') ? url : `http://${url}`;
+          debugger;
+          xhr.open('GET', fullUrl, true);
+        }
+      });
+      debugger;
       hls.value.loadSource(props.videoSrc);
+      debugger;
       hls.value.attachMedia(videoPlayer.value);
 
+      // ДОБАВЛЕНО: Обработчик для события загрузки метаданных
       hls.value.on(Hls.Events.MANIFEST_PARSED, () => {
+        videoPlayer.value.addEventListener('loadedmetadata', () => {
+          // Обновляем длительность видео при загрузке метаданных
+          videoDuration.value = videoPlayer.value.duration;
+        });
+      });
+
+      hls.value.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          switch(data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              playerError.value = 'Ошибка сети при загрузке видео';
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              playerError.value = 'Ошибка медиа-данных';
+              break;
+            default:
+              playerError.value = 'Неизвестная ошибка воспроизведения';
+              break;
+          }
+        }
+      });
+    } 
+    else if (videoPlayer.value?.canPlayType('application/vnd.apple.mpegurl')) {
+      // Для Safari
+      videoPlayer.value.src = props.videoSrc;
+      // ДОБАВЛЕНО: Обработчик метаданных для Safari
+      videoPlayer.value.addEventListener('loadedmetadata', () => {
         videoDuration.value = videoPlayer.value.duration;
       });
-    } else if (videoPlayer.value?.canPlayType('application/vnd.apple.mpegurl')) {
-      videoPlayer.value.src = props.videoSrc;
+    } 
+    else {
+      playerError.value = 'Ваш браузер не поддерживает воспроизведение HLS';
     }
   } catch (error) {
     playerError.value = 'Ошибка инициализации плеера';
@@ -48,15 +93,19 @@ const initHls = () => {
 
 const handlePlayClick = async () => {
   try {
-    await videoPlayer.value.play();
-    userInteracted.value = true;
-    isPlaying.value = true;
+    // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayer
+    if (videoPlayer.value) {
+      await videoPlayer.value.play();
+      userInteracted.value = true;
+      isPlaying.value = true;
+    }
   } catch (error) {
     playerError.value = 'Не удалось начать воспроизведение';
   }
 };
 
 const togglePlay = () => {
+  // ИЗМЕНЕНО: Улучшена проверка на существование videoPlayer
   if (!videoPlayer.value) return;
   
   if (isPlaying.value) {
@@ -70,6 +119,7 @@ const togglePlay = () => {
 };
 
 const seek = (event) => {
+  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayer
   if (videoPlayer.value) {
     videoPlayer.value.currentTime = event.target.value;
   }
@@ -77,25 +127,38 @@ const seek = (event) => {
 
 const changeVolume = (event) => {
   volume.value = event.target.value;
+  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayer
   if (videoPlayer.value) {
     videoPlayer.value.volume = volume.value;
   }
 };
 
+// ИЗМЕНЕНО: Полностью переработан хук onMounted
 onMounted(() => {
   initHls();
   
-  if (videoPlayer.value) {
-    videoPlayer.value.addEventListener('timeupdate', () => {
+  // Выносим обработчик в отдельную функцию для последующего удаления
+  const updateTime = () => {
+    // Добавляем проверку на существование videoPlayer
+    if (videoPlayer.value) {
       currentTime.value = videoPlayer.value.currentTime;
-    });
+    }
+  };
+  
+  // Добавляем обработчик только если videoPlayer существует
+  if (videoPlayer.value) {
+    videoPlayer.value.addEventListener('timeupdate', updateTime);
   }
-});
-
-onBeforeUnmount(() => {
-  if (hls.value) {
-    hls.value.destroy();
-  }
+  
+  // ДОБАВЛЕНО: Правильное удаление обработчиков при размонтировании
+  onBeforeUnmount(() => {
+    if (videoPlayer.value) {
+      videoPlayer.value.removeEventListener('timeupdate', updateTime);
+    }
+    if (hls.value) {
+      hls.value.destroy();
+    }
+  });
 });
 </script>
 

@@ -17,6 +17,7 @@
 <style scoped>
     .side-menu {
         position: fixed;
+        font-size: 24px;
         top: 70px; /* Высота верхней панели */
         left: 0;
         width: 250px;
