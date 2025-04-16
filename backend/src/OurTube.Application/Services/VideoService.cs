@@ -160,7 +160,7 @@ namespace OurTube.Application.Services
                         tempSourcePath,
                         Path.Combine(tempVideoDir, resolution.ToString()),
                         resolution,
-                        Path.Combine(playlist.Bucket,filePref).Replace(@"\", @"/"));
+                        "");
 
 
                     //Отправка

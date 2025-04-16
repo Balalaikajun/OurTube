@@ -34,20 +34,29 @@ const initHls = () => {
   }
 
   try {
-    debugger;
+    // debugger;
     if (Hls.isSupported() && videoPlayer.value) {
-      debugger;
+      // debugger;
       hls.value = new Hls({
         xhrSetup: function(xhr, url) {
-          // Добавляем http:// если отсутствует
-          const fullUrl = url.startsWith('http') ? url : `http://${url}`;
+        // Проверяем, является ли URL относительным
+        console.log('Full URL:', props.videoSrc.substring(0, props.videoSrc.lastIndexOf('/') + 1));
+        if (!url.startsWith('http')) {
+          // Получаем базовый путь из videoSrc (удаляем имя файла)
+          const basePath = props.videoSrc.substring(0, props.videoSrc.lastIndexOf('/') + 1);
+          // Собираем полный URL
+          const fullUrl = `${basePath}${url}`;
           debugger;
+          console.log('Full URL:', fullUrl);
           xhr.open('GET', fullUrl, true);
+        } else {
+          xhr.open('GET', url, true);
         }
+      }
       });
-      debugger;
+      // debugger;
       hls.value.loadSource(props.videoSrc);
-      debugger;
+      // debugger;
       hls.value.attachMedia(videoPlayer.value);
 
       // ДОБАВЛЕНО: Обработчик для события загрузки метаданных

@@ -36,9 +36,9 @@ const fetchVideoData = async () => {
       // console.log(data)
       // console.log(file.fileName)
       // Убеждаемся, что URL начинается с http://
-      console.log(`${MINIO_BASE_URL}/${file.fileName}`, 39)
+      // console.log(`${MINIO_BASE_URL}/${file.fileName}`, 39)
       hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
-      console.log("hlsURL", hlsUrl.value)
+      // console.log("hlsURL", hlsUrl.value)
     }
   } catch (err) {
     error.value = err.message;
@@ -50,6 +50,7 @@ const fetchVideoData = async () => {
 
 onMounted(() => {
   fetchVideoData();
+  
 });
 </script>
 

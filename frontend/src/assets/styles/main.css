@@ -39,7 +39,7 @@ body {
     align-items: center;
 }
 
-p, h3, h1, input, button {
+p, h3, h1, input, button, a {
     font-family: "Corsa Grotesk", sans-serif;
     font-weight: 400;
     font-style: normal; 
