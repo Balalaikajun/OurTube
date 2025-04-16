@@ -43,8 +43,7 @@ namespace OurTube.Api.Controllers
             {
                 await _videoService.PostVideo(
                     videoUploadDto,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    configuration["Minio:Endpoint"]);
+                    User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Created();
             }
             catch (FormatException ex)

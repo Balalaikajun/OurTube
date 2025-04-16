@@ -106,8 +106,7 @@ namespace OurTube.Application.Services
         
         public async Task PostVideo(
             VideoUploadDto videoUploadDto,
-            string userId,
-            string segmentsUriPrefix)
+            string userId)
         {
             // Валидация
             _validator.ValidateVideo(videoUploadDto);
@@ -161,7 +160,7 @@ namespace OurTube.Application.Services
                         tempSourcePath,
                         Path.Combine(tempVideoDir, resolution.ToString()),
                         resolution,
-                        segmentsUriPrefix);
+                        Path.Combine(playlist.Bucket,filePref).Replace(@"\", @"/"));
 
 
                     //Отправка
