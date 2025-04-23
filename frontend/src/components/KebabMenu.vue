@@ -26,6 +26,7 @@ const handleWatchLater = () => {
 
 const handleShare = () => {
   emit('share');
+  closeMenu();
 };
 
 const setupEventListeners = () => {

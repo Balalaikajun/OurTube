@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, onUnmounted, computed } from 'vue';
 import Hls from 'hls.js';
 
 const props = defineProps({
@@ -10,13 +10,18 @@ const props = defineProps({
 });
 
 const videoPlayer = ref(null);
+const videoContainer = ref(null);
+const isFullscreen = ref(false);
+const controlPannerVisible = ref(false);
+const hls = ref(null);
 const isPlaying = ref(false);
 const currentTime = ref(0);
 const videoDuration = ref(0);
 const volume = ref(0.2);
-const hls = ref(null);
 const playerError = ref(null);
 const userInteracted = ref(false);
+const videoDimensions = ref({ width: 0, height: 0 });
+const aspectRatio = ref(16/9); // Соотношение по умолчанию 16:9
 
 // Вычисляемые свойства остаются без изменений
 const progressBarStyle = computed(() => ({
@@ -34,29 +39,22 @@ const initHls = () => {
   }
 
   try {
-    // debugger;
     if (Hls.isSupported() && videoPlayer.value) {
-      // debugger;
       hls.value = new Hls({
         xhrSetup: function(xhr, url) {
         // Проверяем, является ли URL относительным
-        console.log('Full URL:', props.videoSrc.substring(0, props.videoSrc.lastIndexOf('/') + 1));
         if (!url.startsWith('http')) {
           // Получаем базовый путь из videoSrc (удаляем имя файла)
           const basePath = props.videoSrc.substring(0, props.videoSrc.lastIndexOf('/') + 1);
           // Собираем полный URL
           const fullUrl = `${basePath}${url}`;
-          debugger;
-          console.log('Full URL:', fullUrl);
           xhr.open('GET', fullUrl, true);
         } else {
           xhr.open('GET', url, true);
         }
       }
       });
-      // debugger;
       hls.value.loadSource(props.videoSrc);
-      // debugger;
       hls.value.attachMedia(videoPlayer.value);
 
       // ДОБАВЛЕНО: Обработчик для события загрузки метаданных
@@ -100,31 +98,75 @@ const initHls = () => {
   }
 };
 
-const handlePlayClick = async () => {
-  try {
-    // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayer
-    if (videoPlayer.value) {
-      await videoPlayer.value.play();
-      userInteracted.value = true;
-      isPlaying.value = true;
-    }
-  } catch (error) {
-    playerError.value = 'Не удалось начать воспроизведение';
+const updateVideoDimensions = () => {
+  console.log(1);
+  if (videoPlayer.value && videoPlayer.value.videoWidth && videoPlayer.value.videoHeight) {
+    aspectRatio.value = videoPlayer.value.videoWidth / videoPlayer.value.videoHeight;
+    videoDimensions.value = {
+      width: videoPlayer.value.videoWidth,
+      height: videoPlayer.value.videoHeight
+    };
+    videoDuration.value = videoPlayer.value.duration;
   }
 };
 
-const togglePlay = () => {
+const showControlPannel = async () => {
+  controlPannerVisible.value = true;
+
+  if (window.controlPanelTimeout) {
+    clearTimeout(window.controlPanelTimeout);
+  }
+
+  window.controlPanelTimeout = setTimeout(() => {
+    controlPannerVisible.value = false;
+  }, 2000);
+}
+
+const toggleFullscreen = () => {
+  if (!document.fullscreenElement) {
+    videoContainer.value.requestFullscreen()
+      .then(() => {
+        isFullscreen.value = true;
+        videoContainer.value.classList.add('fullscreen');
+      })
+      .catch(err => {
+        console.error('Error attempting to enable fullscreen:', err);
+      });
+  } else {
+    document.exitFullscreen()
+      .then(() => {
+        isFullscreen.value = false;
+        videoContainer.value.classList.remove('fullscreen');
+      });
+  }
+};
+
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement;
+};
+
+
+  // Выносим обработчик в отдельную функцию для последующего удаления
+  const updateTime = () => {
+    // Добавляем проверку на существование videoPlayer
+    if (videoPlayer.value) {
+      currentTime.value = videoPlayer.value.currentTime;
+    }
+  };
+
+const togglePlay = async () => {
   // ИЗМЕНЕНО: Улучшена проверка на существование videoPlayer
   if (!videoPlayer.value) return;
   
   if (isPlaying.value) {
-    videoPlayer.value.pause();
+    await videoPlayer.value.pause();
   } else {
-    videoPlayer.value.play().catch(e => {
+    await videoPlayer.value.play().catch(e => {
       playerError.value = 'Требуется взаимодействие пользователя';
     });
   }
   isPlaying.value = !isPlaying.value;
+  userInteracted.value = !userInteracted.value;
 };
 
 const seek = (event) => {
@@ -142,53 +184,79 @@ const changeVolume = (event) => {
   }
 };
 
+
+const destroyPlayer = () => {
+  try {
+    if (hls.value) {
+      if (typeof hls.value.detachMedia === 'function') {
+        hls.value.detachMedia();
+      }
+      if (typeof hls.value.destroy === 'function') {
+        hls.value.destroy();
+      }
+      hls.value = null;
+    }
+
+    if (videoPlayer.value) {
+      videoPlayer.value.pause();
+      videoPlayer.value.removeAttribute('src');
+      videoPlayer.value.load();
+    }
+  } catch (error) {
+    console.error('Error destroying player:', error);
+  }
+};
 // ИЗМЕНЕНО: Полностью переработан хук onMounted
 onMounted(() => {
   initHls();
-  
-  // Выносим обработчик в отдельную функцию для последующего удаления
-  const updateTime = () => {
-    // Добавляем проверку на существование videoPlayer
-    if (videoPlayer.value) {
-      currentTime.value = videoPlayer.value.currentTime;
-    }
-  };
-  
-  // Добавляем обработчик только если videoPlayer существует
   if (videoPlayer.value) {
     videoPlayer.value.addEventListener('timeupdate', updateTime);
+    videoPlayer.value.addEventListener('loadedmetadata', updateVideoDimensions);
   }
-  
-  // ДОБАВЛЕНО: Правильное удаление обработчиков при размонтировании
-  onBeforeUnmount(() => {
-    if (videoPlayer.value) {
-      videoPlayer.value.removeEventListener('timeupdate', updateTime);
-    }
-    if (hls.value) {
-      hls.value.destroy();
-    }
-  });
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+});
+
+onBeforeUnmount(() => {
+  if (videoPlayer.value) {
+    videoPlayer.value.removeEventListener('timeupdate', updateTime);
+    videoPlayer.value.removeEventListener('loadedmetadata', updateVideoDimensions);
+  }
+  if (hls.value) hls.value.destroy();
+  document.removeEventListener('fullscreenchange', handleFullscreenChange);
+});
+
+onUnmounted(() => {
+  destroyPlayer();
+});
+
+defineExpose({
+  destroyPlayer
 });
 </script>
 
 <template>
-  <div class="video-container" @click="handlePlayClick">
+  <div ref="videoContainer" class="video-container" 
+    :style="{
+      '--aspect-ratio': aspectRatio,
+      '--video-width': videoDimensions.width + 'px'
+    }"
+    @click="togglePlay" @mousemove="showControlPannel">
     <video 
       ref="videoPlayer" 
-      class="player"
+      class="player"      
       :volume="volume"
       playsinline
     ></video>
 
     <div v-if="!userInteracted" class="play-overlay">
-      <button @click.stop="handlePlayClick">▶</button>
+      <button>▶</button>
     </div>
 
     <div v-if="playerError" class="error-message">
       {{ playerError }}
     </div>
 
-    <div class="controls-overlay" @click.stop>
+    <div v-if="true" class="controls-overlay" @click.stop>
       <div class="progress-bar-container">
         <input 
           class="seek-bar"
@@ -202,24 +270,34 @@ onMounted(() => {
       </div>
 
       <div class="control-panel">
-        <button @click="togglePlay" class="control-button">
-          <svg width="17" height="20" fill="#F3F0E9">
-            <path v-if="!isPlaying" d="M17 10 0 20V0l17 10Z" />
-            <path v-if="isPlaying" d="M.5 19.5V.5h2.886v19H.5Zm16 0h-2.886V.5H16.5v19Z"/>
-          </svg>
-        </button>
+        <div class="left-block">
+          <button @click="togglePlay" class="control-button">
+            <svg width="17" height="20" fill="#F3F0E9">
+              <path v-if="!isPlaying" d="M17 10 0 20V0l17 10Z"/>
+              <path v-if="isPlaying" d="M.5 19.5V.5h2.886v19H.5Zm16 0h-2.886V.5H16.5v19Z"/>
+            </svg>
+          </button>
 
-        <div class="volume-control">
-          <input 
-            class="volume-bar"
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            :value="volume"
-            @input="changeVolume"
-            :style="volumeBarStyle"
-          />
+          <div class="volume-control">
+            <input 
+              class="volume-bar"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              :value="volume"
+              @input="changeVolume"
+              :style="volumeBarStyle"
+            />
+          </div>
+        </div>
+        <div class="right-block">
+          <button @click="toggleFullscreen" class="control-button screen-button">
+              <div class="corner-1"></div>
+              <div class="corner-2"></div>
+              <div class="corner-3"></div>
+              <div class="corner-4"></div>
+          </button>
         </div>
       </div>
     </div>
@@ -229,9 +307,31 @@ onMounted(() => {
 <style scoped>
 .video-container {
   position: relative;
-  width: 880px;
-  height: 510px;
-  background: #4A4947;
+  aspect-ratio: var(--aspect-ratio);
+  width: 100%;
+}
+
+
+.video-container:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.control-button {
+  cursor: pointer;
+}
+
+.left-block {
+  display: flex;
+  height: 100%;
+  flex-direction: row;
+  align-content: center;
+  flex-wrap: wrap;
+  column-gap: 1vw;
 }
 
 .player {
@@ -259,7 +359,7 @@ onMounted(() => {
   height: 60px;
   border-radius: 50%;
   font-size: 24px;
-  color: white;
+  color: #F3F0E9;
   cursor: pointer;
 }
 
@@ -279,7 +379,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-  padding: 10px 15px;
+  padding: 0px 15px 10px;
 }
 
 .seek-bar {
@@ -329,4 +429,49 @@ onMounted(() => {
   display: flex;
   align-items: center;
 }
+
+.screen-button {
+  width: 20px;
+  height: 20px;
+}
+
+.screen-button div {
+  position: absolute;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+}
+
+.corner-1 {
+  top: 0;
+  left: 0;
+  border-left: 2px solid #F3F0E9;
+  border-top: 2px solid #F3F0E9;
+  border-bottom: 0 none transparent;
+  border-right: 0 none transparent;
+}
+.corner-2 {
+  top: 0;
+  right: 0;
+  border-left: 0 none transparent;
+  border-top: 2px solid #F3F0E9;
+  border-bottom: 0 none transparent;
+  border-right: 2px solid #F3F0E9;
+}
+.corner-3 {
+  bottom: 0;
+  left: 0;
+  border-left: 2px solid #F3F0E9;
+  border-top: 0 none transparent;
+  border-bottom: 2px solid #F3F0E9;
+  border-right: 0 none transparent;
+}
+.corner-4 {
+  bottom: 0;
+  right: 0;
+  border-left: 0 none transparent;
+  border-top: 0 none transparent;
+  border-bottom: 2px solid #F3F0E9;
+  border-right: 2px solid #F3F0E9;
+} 
 </style>

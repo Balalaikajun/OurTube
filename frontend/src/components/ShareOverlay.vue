@@ -13,12 +13,13 @@
 
     const isOpen = ref(false);
     const shareRef = ref(null);
+    const overlayContentRef = ref(null);
 
     const openMenu = async () => {
         try {        
             // Если меню уже открыто - сначала закрываем
             if (isOpen.value) {
-            await closeMenu();
+                await closeMenu();
             }
             
             isOpen.value = true;
@@ -27,6 +28,7 @@
             await nextTick();            
             
             // Устанавливаем обработчики
+            document.addEventListener('click', handleClickOutside);
         } catch (error) {
             console.error('Error opening menu:', error);
         }
@@ -34,6 +36,13 @@
 
     const closeMenu = () => {
         isOpen.value = false;
+        document.removeEventListener('click', handleClickOutside);
+    };
+
+    const handleClickOutside = (event) => {
+        if (overlayContentRef.value && !overlayContentRef.value.contains(event.target)) {
+            closeMenu();
+        }
     };
 
     const copyLink = () => {
@@ -50,8 +59,14 @@
         });
     };
 
+    onBeforeUnmount(() => {
+        document.removeEventListener('click', handleClickOutside);
+    });
+
     defineExpose({
-        openMenu
+        openMenu,
+        closeMenu,
+        isOpen
     });
 </script>
 
@@ -60,7 +75,10 @@
     v-if="isOpen"
     ref="shareRef"
     class="overlay">
-        <div class="overlay-content">
+        <div 
+            ref="overlayContentRef"
+            class="overlay-content"
+            @click.stop>
             <p style="color: #F3F0E9;">Ссылка на видео:</p>
             <!-- <input type="text" :value="`https://localhost:5173/video/${videoId}`" readonly /> -->
             <input type="text" :value="`localhost:5173/video/${videoId}`" readonly />

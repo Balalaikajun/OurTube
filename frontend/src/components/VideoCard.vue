@@ -12,6 +12,7 @@ const props = defineProps({
       title: '',
       viewsCount: 0,
       vote: false,
+      duration: "00:00:00",
       endTime: '',
       created: '',
       preview: {
@@ -78,6 +79,30 @@ const formatDate = (dateString) => {
     day: 'numeric'
   });
 };
+
+const formatDuration = (duration) => {
+  if (!duration) return '0:00';
+  
+  // Разбиваем строку на часы, минуты, секунды
+  const parts = duration.split(':');
+  if (parts.length !== 3) return duration;
+  
+  let [hours, minutes, seconds] = parts.map(Number);
+  
+  // Округляем секунды в большую сторону
+  seconds = Math.ceil(seconds);
+  if (seconds === 60) {
+    seconds = 0;
+    minutes += 1;
+  }
+  
+  // Форматируем в зависимости от наличия часов
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+};
 </script>
 
 <template>
@@ -88,9 +113,10 @@ const formatDate = (dateString) => {
   >
     <div class="video-block">
       <div class="thumbnail-overlay-badge">
-        <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
+        <div class="badge-text">{{ formatDuration(video.duration) }}</div>
+        <!-- <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
           <div class="badge-text">{{ video.duration }}</div>
-        </div>
+        </div> -->
       </div>
       <img 
         class="video-thumbnail" 
