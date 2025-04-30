@@ -15,7 +15,7 @@
 
 <template>
   <button 
-    class="control-button" 
+    class="kebab-button control-button" 
     ref="buttonRef" 
     @click.stop="handleClick"
     aria-label="Меню действий"    
@@ -29,7 +29,7 @@
 </template>
 
 <style scoped>
-    .control-button {
+    .kebab-button {
         display: flex;
         position: relative;
         justify-self: center;
@@ -46,7 +46,7 @@
         margin-top: 1vh;
     }
 
-    .control-button:hover {
+    .kebab-button:hover {
         background: #4A4947;
     }
 

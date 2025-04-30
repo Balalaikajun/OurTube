@@ -9,7 +9,7 @@ const props = defineProps({
   }
 });
 
-const videoPlayer = ref(null);
+const videoPlayerRef = ref(null);
 const videoContainer = ref(null);
 const isFullscreen = ref(false);
 const controlPannerVisible = ref(false);
@@ -19,7 +19,6 @@ const currentTime = ref(0);
 const videoDuration = ref(0);
 const volume = ref(0.2);
 const playerError = ref(null);
-const userInteracted = ref(false);
 const videoDimensions = ref({ width: 0, height: 0 });
 const aspectRatio = ref(16/9); // Соотношение по умолчанию 16:9
 
@@ -39,7 +38,7 @@ const initHls = () => {
   }
 
   try {
-    if (Hls.isSupported() && videoPlayer.value) {
+    if (Hls.isSupported() && videoPlayerRef.value) {
       hls.value = new Hls({
         xhrSetup: function(xhr, url) {
         // Проверяем, является ли URL относительным
@@ -55,13 +54,13 @@ const initHls = () => {
       }
       });
       hls.value.loadSource(props.videoSrc);
-      hls.value.attachMedia(videoPlayer.value);
+      hls.value.attachMedia(videoPlayerRef.value);
 
       // ДОБАВЛЕНО: Обработчик для события загрузки метаданных
       hls.value.on(Hls.Events.MANIFEST_PARSED, () => {
-        videoPlayer.value.addEventListener('loadedmetadata', () => {
+        videoPlayerRef.value.addEventListener('loadedmetadata', () => {
           // Обновляем длительность видео при загрузке метаданных
-          videoDuration.value = videoPlayer.value.duration;
+          videoDuration.value = videoPlayerRef.value.duration;
         });
       });
 
@@ -81,12 +80,12 @@ const initHls = () => {
         }
       });
     } 
-    else if (videoPlayer.value?.canPlayType('application/vnd.apple.mpegurl')) {
+    else if (videoPlayerRef.value?.canPlayType('application/vnd.apple.mpegurl')) {
       // Для Safari
-      videoPlayer.value.src = props.videoSrc;
+      videoPlayerRef.value.src = props.videoSrc;
       // ДОБАВЛЕНО: Обработчик метаданных для Safari
-      videoPlayer.value.addEventListener('loadedmetadata', () => {
-        videoDuration.value = videoPlayer.value.duration;
+      videoPlayerRef.value.addEventListener('loadedmetadata', () => {
+        videoDuration.value = videoPlayerRef.value.duration;
       });
     } 
     else {
@@ -98,17 +97,16 @@ const initHls = () => {
   }
 };
 
-const updateVideoDimensions = () => {
-  console.log(1);
-  if (videoPlayer.value && videoPlayer.value.videoWidth && videoPlayer.value.videoHeight) {
-    aspectRatio.value = videoPlayer.value.videoWidth / videoPlayer.value.videoHeight;
-    videoDimensions.value = {
-      width: videoPlayer.value.videoWidth,
-      height: videoPlayer.value.videoHeight
-    };
-    videoDuration.value = videoPlayer.value.duration;
-  }
-};
+// const updateVideoDimensions = () => {
+//   if (videoPlayerRef.value && videoPlayerRef.value.videoWidth && videoPlayerRef.value.videoHeight) {
+//     aspectRatio.value = videoPlayerRef.value.videoWidth / videoPlayerRef.value.videoHeight;
+//     videoDimensions.value = {
+//       width: videoPlayerRef.value.videoWidth,
+//       height: videoPlayerRef.value.videoHeight
+//     };
+//     videoDuration.value = videoPlayerRef.value.duration;
+//   }
+// };
 
 const showControlPannel = async () => {
   controlPannerVisible.value = true;
@@ -148,39 +146,43 @@ const handleFullscreenChange = () => {
 
   // Выносим обработчик в отдельную функцию для последующего удаления
   const updateTime = () => {
-    // Добавляем проверку на существование videoPlayer
-    if (videoPlayer.value) {
-      currentTime.value = videoPlayer.value.currentTime;
+    // Добавляем проверку на существование videoPlayerRef
+    if (videoPlayerRef.value) {
+      currentTime.value = videoPlayerRef.value.currentTime;
     }
   };
 
 const togglePlay = async () => {
-  // ИЗМЕНЕНО: Улучшена проверка на существование videoPlayer
-  if (!videoPlayer.value) return;
+  if (!videoPlayerRef.value) return;
   
-  if (isPlaying.value) {
-    await videoPlayer.value.pause();
-  } else {
-    await videoPlayer.value.play().catch(e => {
-      playerError.value = 'Требуется взаимодействие пользователя';
-    });
+  try {
+    if (videoPlayerRef.value.paused) {
+      await videoPlayerRef.value.play().catch(e => {
+        throw e; // Перебрасываем ошибку для обработки
+      });
+      isPlaying.value = true;
+    } else {
+      videoPlayerRef.value.pause();
+      isPlaying.value = false;
+    }
+  } catch (error) {
+    console.error('Ошибка воспроизведения:', error);
+    playerError.value = 'Ошибка воспроизведения. Кликните для повторной попытки.';
   }
-  isPlaying.value = !isPlaying.value;
-  userInteracted.value = !userInteracted.value;
 };
 
 const seek = (event) => {
-  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayer
-  if (videoPlayer.value) {
-    videoPlayer.value.currentTime = event.target.value;
+  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayerRef
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.currentTime = event.target.value;
   }
 };
 
 const changeVolume = (event) => {
   volume.value = event.target.value;
-  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayer
-  if (videoPlayer.value) {
-    videoPlayer.value.volume = volume.value;
+  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayerRef
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.volume = volume.value;
   }
 };
 
@@ -197,10 +199,10 @@ const destroyPlayer = () => {
       hls.value = null;
     }
 
-    if (videoPlayer.value) {
-      videoPlayer.value.pause();
-      videoPlayer.value.removeAttribute('src');
-      videoPlayer.value.load();
+    if (videoPlayerRef.value) {
+      videoPlayerRef.value.pause();
+      videoPlayerRef.value.removeAttribute('src');
+      videoPlayerRef.value.load();
     }
   } catch (error) {
     console.error('Error destroying player:', error);
@@ -208,47 +210,46 @@ const destroyPlayer = () => {
 };
 // ИЗМЕНЕНО: Полностью переработан хук onMounted
 onMounted(() => {
-  initHls();
-  if (videoPlayer.value) {
-    videoPlayer.value.addEventListener('timeupdate', updateTime);
-    videoPlayer.value.addEventListener('loadedmetadata', updateVideoDimensions);
+  initHls(); // HLS сам управляет источниками
+  
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.addEventListener('play', () => isPlaying.value = true);
+    videoPlayerRef.value.addEventListener('pause', () => isPlaying.value = false);
+    videoPlayerRef.value.addEventListener('timeupdate', updateTime);
+    // videoPlayerRef.value.addEventListener('loadedmetadata', updateVideoDimensions);
   }
+  
   document.addEventListener('fullscreenchange', handleFullscreenChange);
 });
 
 onBeforeUnmount(() => {
-  if (videoPlayer.value) {
-    videoPlayer.value.removeEventListener('timeupdate', updateTime);
-    videoPlayer.value.removeEventListener('loadedmetadata', updateVideoDimensions);
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.removeEventListener('timeupdate', updateTime);
+    // videoPlayerRef.value.removeEventListener('loadedmetadata', updateVideoDimensions);
   }
   if (hls.value) hls.value.destroy();
   document.removeEventListener('fullscreenchange', handleFullscreenChange);
 });
 
-onUnmounted(() => {
-  destroyPlayer();
-});
-
 defineExpose({
-  destroyPlayer
+  destroyPlayer,
+  toggleFullscreen,
+  togglePlay
 });
 </script>
 
 <template>
   <div ref="videoContainer" class="video-container" 
-    :style="{
-      '--aspect-ratio': aspectRatio,
-      '--video-width': videoDimensions.width + 'px'
-    }"
+    
     @click="togglePlay" @mousemove="showControlPannel">
     <video 
-      ref="videoPlayer" 
+      ref="videoPlayerRef" 
       class="player"      
       :volume="volume"
       playsinline
     ></video>
 
-    <div v-if="!userInteracted" class="play-overlay">
+    <div v-if="!isPlaying" class="play-overlay">
       <button>▶</button>
     </div>
 
@@ -272,9 +273,9 @@ defineExpose({
       <div class="control-panel">
         <div class="left-block">
           <button @click="togglePlay" class="control-button">
-            <svg width="17" height="20" fill="#F3F0E9">
-              <path v-if="!isPlaying" d="M17 10 0 20V0l17 10Z"/>
-              <path v-if="isPlaying" d="M.5 19.5V.5h2.886v19H.5Zm16 0h-2.886V.5H16.5v19Z"/>
+            <svg width="17" height="20" style="fill: #F3F0E9 !important;">
+              <path style="fill: inherit;" v-if="!isPlaying" d="M17 10 0 20V0l17 10Z" />
+              <path style="fill: inherit;" v-if="isPlaying" d="M.5 19.5V.5h2.886v19H.5Zm16 0h-2.886V.5H16.5v19Z"/>
             </svg>
           </button>
 
@@ -307,10 +308,8 @@ defineExpose({
 <style scoped>
 .video-container {
   position: relative;
-  aspect-ratio: var(--aspect-ratio);
   width: 100%;
 }
-
 
 .video-container:fullscreen {
   width: 100vw !important;
@@ -319,10 +318,6 @@ defineExpose({
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.control-button {
-  cursor: pointer;
 }
 
 .left-block {
@@ -336,7 +331,6 @@ defineExpose({
 
 .player {
   width: 100%;
-  height: 100%;
   object-fit: contain;
 }
 
@@ -431,15 +425,18 @@ defineExpose({
 }
 
 .screen-button {
-  width: 20px;
-  height: 20px;
+  position: relative;
+  background: transparent;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
 }
 
 .screen-button div {
   position: absolute;
   box-sizing: border-box;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .corner-1 {

@@ -13,20 +13,20 @@
         loadingComponent: { template: '<div>Загрузка видео...</div>' },
         errorComponent: { template: '<div>Ошибка загрузки видео</div>' }
     });
-    const Auth = defineAsyncComponent(() => import("./views/Auth.vue"));
-    const Reg = defineAsyncComponent(() => import("./views/Reg.vue"));
-    const FogPass = defineAsyncComponent(() => import("./views/FogPass.vue"));
-    const ResetPassword = defineAsyncComponent(() => import("./views/ResetPassword.vue"));
-    const SearchResults = defineAsyncComponent(() => import("./views/SearchResultsView.vue"));
+    const AuthPage = defineAsyncComponent(() => import("./views/AuthPage.vue"));
+    const RegPage = defineAsyncComponent(() => import("./views/RegPage.vue"));
+    const FogPassPage = defineAsyncComponent(() => import("./views/FogPassPage.vue"));
+    const ResetPasswordPage = defineAsyncComponent(() => import("./views/ResetPasswordPage.vue"));
+    const SearchResultPage = defineAsyncComponent(() => import("./views/SearchResultPage.vue"));
 
     const currentComponent = computed(() => {
         if (route.path === "/") return MainPage;
         if (route.path.startsWith("/video/")) return VideoPage;
-        if (route.path === "/login") return Auth;
-        if (route.path === "/register") return Reg;
-        if (route.path === "/forgot-password") return FogPass;
-        if (route.path === "/reset-password") return ResetPassword;
-        if (route.path === "/search") return SearchResults;
+        if (route.path === "/login") return AuthPage;
+        if (route.path === "/register") return RegPage;
+        if (route.path === "/forgot-password") return FogPassPage;
+        if (route.path === "/reset-password") return ResetPasswordPage;
+        if (route.path === "/search") return SearchResultPage;
         
         return MainPage; // или 404
     });

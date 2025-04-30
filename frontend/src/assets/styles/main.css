@@ -12,35 +12,72 @@
     font-display: swap;
 }
 
+html {
+    font-size: 16px; /* Базовый размер для rem */
+}
+main {
+    padding: 20px 100px;
+}
+  
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+    main {
+        padding: 20px 25px;
+    }
+}
+  
+@media (max-width: 480px) {
+    html {
+        font-size: 12px;
+    }
+}
+
 body {
     background: #100E0E;
 }
 
 .control-button {
     display: flex;
+    color: #F3F0E9;
+    box-sizing: border-box;
     position: relative;
     top: 0;
     right: 0;
     justify-content: center;
     align-items: center;
     border: 0;
-    padding: 0;
     cursor: pointer;
+    border-radius: 4px;
     background: transparent;
-    width: 20px;
-    height: 20px;
 }
 
 .control-button svg {
     display: inherit;
-    width: 20px;
-    height: 20px;
+    box-sizing: border-box;
     justify-content: center;
     align-items: center;
 }
 
-p, h3, h1, input, button, a {
+.control-button svg path {
+    fill: none; 
+    stroke: #f3f0e9; 
+    stroke-width: 2;
+}
+
+p, span, h3, h1, input, button, a, textarea, ::placeholder {
     font-family: "Corsa Grotesk", sans-serif;
     font-weight: 400;
     font-style: normal; 
+}
+
+.user-avatar {
+    display: block;
+    width: var(--avatar-size, 40px);
+    height: var(--avatar-size, 40px);
+    border-radius: var(--avatar-radius, 4px);
+    background: #F3F0E9;
+    object-fit: cover;
+    color: #100E0E;
 }

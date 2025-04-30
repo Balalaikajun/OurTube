@@ -5,10 +5,6 @@
             type: [String, Number],
             required: true
         },
-        // show: {
-        //     type: Boolean,
-        //     required: true
-        // }
     })
 
     const isOpen = ref(false);
@@ -82,8 +78,10 @@
             <p style="color: #F3F0E9;">Ссылка на видео:</p>
             <!-- <input type="text" :value="`https://localhost:5173/video/${videoId}`" readonly /> -->
             <input type="text" :value="`localhost:5173/video/${videoId}`" readonly />
-            <button @click.stop="copyLink"><span>Копировать ссылку</span></button>
-            <button @click.stop="closeMenu"><span>Закрыть</span></button>
+            <div class="buttons-wrapper">
+                <button class="control-button" @click.stop="copyLink"><span>Копировать ссылку</span></button>
+                <button class="control-button" @click.stop="closeMenu"><span>Закрыть</span></button>
+            </div>
         </div>
     </div>
 </template>
@@ -103,6 +101,7 @@
     }
 
     .overlay-content {
+        width: 30%;
         background: #4A4947;
         padding: 20px;
         border-radius: 4px;
@@ -121,14 +120,12 @@
     }
 
     .overlay-content button {
-        margin: 8px;
         padding: 8px 16px;
         background: #100E0E;
         border: none;
         color: #F3F0E9;
         cursor: pointer;
         transition: background 1s ease;
-
     }
 
     .overlay-content button span {
@@ -139,5 +136,11 @@
     .overlay-content button:hover {
         color: #100E0E;
         background: #F39E60;
+    }
+
+    .buttons-wrapper {
+        display: flex;
+        justify-content: center;
+        gap: 0 10px;
     }
 </style>

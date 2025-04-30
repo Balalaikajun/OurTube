@@ -106,15 +106,17 @@
 <style scoped>
     .master-head-block {
         display: flex;
-        flex-direction: row;
+        justify-content: space-between; /* Равномерное распределение пространства */
+        box-sizing: border-box;
         align-items: center;
         position: fixed;
         background: #100E0E;
         top: 0;
         height: 70px;
         padding: 0 25px;
-        width: 100%; /* Чтобы блок занимал всю ширину */
-        z-index: 1000; /* Чтобы блок был поверх других элементов */
+        width: 100%;
+        z-index: 1000;
+        gap: 20px; /* Добавляем отступ между элементами */
     }
     .our {
         color: #F39E60;
@@ -134,22 +136,20 @@
 
     .logo-text {
         position: relative; 
-        top: -2px; 
-        margin-left: 25px;
         color: #F3F0E9; 
-        line-height: 1px;
     }
 
     .search-block {
         display: flex;
-        align-items: center;
-        margin-left: 25vw;
+        flex-grow: 1; /* Занимает все доступное пространство */
+        justify-content: center; /* Центрируем содержимое */
+        margin: 0 auto; /* Дополнительное центрирование */
     }
 
     .search-block form {
         display: flex;
-        flex-direction: row;
-        align-items: center;
+        width: 100%; /* Форма занимает всю ширину search-block */
+        justify-content: safe; /* Центрируем элементы формы */
     }
 
     .search-input {
