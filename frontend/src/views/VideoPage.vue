@@ -268,8 +268,16 @@ onUnmounted(() => {
   background: #f39e60;
 }
 
+.sub-button:hover {
+  opacity: 0.8;
+}
+
 .unsub-button {
   background: #f3f0e9;
+}
+
+.unsub-button:hover {
+  opacity: 0.8;
 }
 
 

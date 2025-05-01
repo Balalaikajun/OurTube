@@ -28,28 +28,28 @@
     }
     };
 
-    const fetchVideos = async (query) => {
-    try {
-        isLoading.value = true;
-        errorMessage.value = "";
+    // const fetchVideos = async (query) => { B666
+    // try {
+    //     isLoading.value = true;
+    //     errorMessage.value = "";
         
-        const response = await fetch(`${API_BASE_URL}?query=${encodeURIComponent(query)}`);
+    //     const response = await fetch(`${API_BASE_URL}?query=${encodeURIComponent(query)}`);
         
-        if (!response.ok) {
-            throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
+    //     if (!response.ok) {
+    //         throw new Error(`Ошибка HTTP: ${response.status}`);
+    //     }
         
-        const data = await response.json();
-        searchResults.value = data;
+    //     const data = await response.json();
+    //     searchResults.value = data;
         
-    } catch (error) {
-        console.error("Ошибка поиска:", error);
-        errorMessage.value = "Не удалось загрузить результаты. Попробуйте позже.";
-        searchResults.value = [];
-    } finally {
-        isLoading.value = false;
-    }
-    };
+    // } catch (error) {
+    //     console.error("Ошибка поиска:", error);
+    //     errorMessage.value = "Не удалось загрузить результаты. Попробуйте позже.";
+    //     searchResults.value = [];
+    // } finally {
+    //     isLoading.value = false;
+    // }
+    // };
 
     const handleSearch = async (event) => {
         event.preventDefault();

@@ -17,7 +17,7 @@
         try {
             // Back
             // Эндпоинты менять не забывайте
-            const response = await fetch(`${API_BASE_URL}/identity/login?useCookies=true&useSessionCookies=true`, {
+            const response = await fetch(`${API_BASE_URL}/identity/login?useCookies=false&useSessionCookies=false`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -32,6 +32,10 @@
                 //const result = await response.json();
                 throw new Error("Ошибка входа");
             }
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+
 
             router.push("/");
 

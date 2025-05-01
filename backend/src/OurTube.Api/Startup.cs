@@ -35,6 +35,10 @@ namespace OurTube.Api
             services.AddDbContext<DbContext, ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
+            services.AddAuthorization();
+            services.AddAuthentication()
+                .AddBearerToken(IdentityConstants.BearerScheme);
+
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;

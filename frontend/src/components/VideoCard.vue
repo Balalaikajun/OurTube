@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import KebabButton from "../components/KebabButton.vue";
 import { MINIO_BASE_URL } from "@/assets/config.js";
+import formatter from "@/assets/utils/formatter.js";
 
 const props = defineProps({
   video: {
@@ -131,8 +132,8 @@ const formatDuration = (duration) => {
         <h3 class="video-title">{{ video.title }}</h3>
         
         <div v-if="rowLayout" class="video-stats">
-          <span class="views-count">{{ formatViews(video.viewsCount) }} просмотров</span>
-          <span class="upload-time">{{ formatDate(video.created) }}</span>
+          <span class="views-count">{{ formatter.countFormatter(props.video.viewsCount,'views')}}</span>
+          <span class="upload-time">{{ formatter.formatRussianDate(props.video.created)}}</span>
         </div>
         
         <div v-if="rowLayout" class="channel-info">
