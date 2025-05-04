@@ -6,6 +6,7 @@ import VideoPlayer from "@/components/VideoPlayer.vue";
 import LoadingState from "@/components/LoadingState.vue"; // Импортируем компонент загрузки
 import ShareOverlay from "@/components/ShareOverlay.vue";
 import CreateCommentBlock from "@/components/CreateCommentBlock.vue";
+import VideoContentPresentation from "@/components/VideoContentPresentation.vue";
 import { API_BASE_URL } from "@/assets/config.js";
 import { MINIO_BASE_URL } from "@/assets/config.js";
 import formatter from "@/assets/utils/formatter.js";
@@ -30,7 +31,7 @@ const ensureHttpUrl = (url) => {
 };
 
 const handleKeyDown = (e) => {
-  if(addComment.value.showButtons) return;
+  if(addComment.value) return;
   if (e.code === 'KeyF') {
     e.preventDefault(); // Вызываем на событии (e), а не на videoPage
     Player.value?.toggleFullscreen();
@@ -192,13 +193,41 @@ onUnmounted(() => {
       </div>
          
       <aside class="side-recomendation">
-
+        <VideoContentPresentation
+          context="recomend"
+          :row-layout=true
+        />
       </aside>
     </template>
   </main>
 </template>
 
 <style scoped>
+
+ /* @media (min-width: 1920px) {
+    .video-page {
+      width: 200px;
+    }
+  }
+
+  @media (min-width: 1200px) and (max-width: 1920px) {
+    .video-card {
+      width: 24%;
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .video-card {
+      width: 32%;
+    }
+  }
+
+  @media (max-width: 800px) {
+    .video-card {
+      width: 49%;
+    }
+  } */
+
 .video-page {
   display: flex;
   flex-direction: row;

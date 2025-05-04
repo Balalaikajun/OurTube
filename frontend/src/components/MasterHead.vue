@@ -15,18 +15,22 @@
     const API_URL = API_BASE_URL + "/api/Search";
 
     const toggleSideMenu = (event) => {
-    if (event.target.closest('.burger-button')) {
-        isSideMenuVisible.value = !isSideMenuVisible.value;
-    }
+        if (event.target.closest('.burger-button')) {
+            isSideMenuVisible.value = !isSideMenuVisible.value;
+        }
     };
 
     const handleClickOutside = (event) => {
-    if (isSideMenuVisible.value && 
-        !event.target.closest('.side-menu') && 
-        !event.target.closest('.burger-button')) {
-        isSideMenuVisible.value = false;
-    }
+        if (isSideMenuVisible.value && 
+            !event.target.closest('.side-menu') && 
+            !event.target.closest('.burger-button')) {
+            isSideMenuVisible.value = false;
+        }
     };
+
+    const pushToMain = () => {
+        router.push(`/`);
+    }
 
     // const fetchVideos = async (query) => { B666
     // try {
@@ -75,7 +79,7 @@
             <span></span>
         </button>
 
-        <h1 class="logo-text" style=""><span class="our">Our</span>Tube</h1>
+        <h1 class="logo-text" @click="pushToMain"><span class="our">Our</span>Tube</h1>
 
         <search class="search-block">
             <form @submit="handleSearch">

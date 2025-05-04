@@ -62,59 +62,17 @@ const getPreviewUrl = (fileName) => {
   return `${MINIO_BASE_URL}/videos/${fileName}`;
 };
 
-const formatViews = (count) => {
-  if (count >= 1000000) {
-    return `${(count / 1000000).toFixed(1)}M`;
-  }
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}K`;
-  }
-  return count;
-};
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('ru-RU', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
-const formatDuration = (duration) => {
-  if (!duration) return '0:00';
-  
-  // Разбиваем строку на часы, минуты, секунды
-  const parts = duration.split(':');
-  if (parts.length !== 3) return duration;
-  
-  let [hours, minutes, seconds] = parts.map(Number);
-  
-  // Округляем секунды в большую сторону
-  seconds = Math.ceil(seconds);
-  if (seconds === 60) {
-    seconds = 0;
-    minutes += 1;
-  }
-  
-  // Форматируем в зависимости от наличия часов
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  } else {
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-};
 </script>
 
 <template>
   <div 
     class="video-card" 
-    @click="handleCardClick"
     :class="{ 'row-layout': rowLayout }"
+    @click="handleCardClick"
   >
     <div class="video-block">
       <div class="thumbnail-overlay-badge">
-        <div class="badge-text">{{ formatDuration(video.duration) }}</div>
+        <div class="badge-text">{{ formatter.formatDuration(video.duration) }}</div>
         <!-- <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
           <div class="badge-text">{{ video.duration }}</div>
         </div> -->
@@ -166,7 +124,6 @@ const formatDuration = (duration) => {
       display: flex;
       width: 80%;
       gap: 20px;
-      margin-top: 10px;
       transition: background 1s ease;
   }
 
@@ -245,20 +202,32 @@ const formatDuration = (duration) => {
 
   .video-title,
   .channel-name {
-      margin: 0;
+      /* margin: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       line-height: 1.4;
-      max-height: calc(2 * 1.4em);
+      max-height: calc(1 * 1.4em);
+      word-break: break-word; */
+
+      display: -webkit-box;
+      -webkit-line-clamp: 1; /* Ограничиваем одной строкой */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      
+      /* Дополнительные свойства для лучшего отображения */
+      line-height: 1.4em;
+      max-height: 1.4em; /* Высота одной строки */
       word-break: break-word;
   }
 
   .video-card.row-layout .video-title {
-      font-size: 18px;
-      -webkit-line-clamp: 2;
+    font-size: 18px;
+    -webkit-line-clamp: 1; /* Сохраняем одну строку */
+    max-height: 1.4em;
   }
 
   .video-stats {

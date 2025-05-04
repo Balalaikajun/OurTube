@@ -12,20 +12,24 @@
     font-display: swap;
 }
 
+#app {
+    box-sizing: border-box;
+}
+
 html {
     font-size: 16px; /* Базовый размер для rem */
 }
-main {
+/* main {
     padding: 20px 100px;
-}
+} */
   
 @media (max-width: 768px) {
     html {
         font-size: 14px;
     }
-    main {
+    /* main {
         padding: 20px 25px;
-    }
+    } */
 }
   
 @media (max-width: 480px) {

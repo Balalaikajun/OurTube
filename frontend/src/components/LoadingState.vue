@@ -13,6 +13,7 @@
   .loading-state {
     display: flex;
     flex-direction: column;
+    justify-self: center;
     align-items: center;
     gap: 15px;
     padding: 40px 0;

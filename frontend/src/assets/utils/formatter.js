@@ -47,7 +47,32 @@ function formatRussianDate(dateString)
       .format(date)
       .replace(' г.', '');
 }
+
+const formatDuration = (duration) => {
+  if (!duration) return '0:00';
+  
+  // Разбиваем строку на часы, минуты, секунды
+  const parts = duration.split(':');
+  if (parts.length !== 3) return duration;
+  
+  let [hours, minutes, seconds] = parts.map(Number);
+  
+  // Округляем секунды в большую сторону
+  seconds = Math.ceil(seconds);
+  if (seconds === 60) {
+    seconds = 0;
+    minutes += 1;
+  }
+  
+  // Форматируем в зависимости от наличия часов
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  } else {
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+};
 export default {
     formatRussianDate,
-    countFormatter
+    countFormatter,
+    formatDuration
 }
