@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick, provide } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
 import { useRoute } from "vue-router";
 import MasterHead from "../components/MasterHead.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
@@ -14,8 +14,7 @@ import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
 
 const route = useRoute();
 const videoPage = ref(null);
-const videoId = route.params.id;
-// CreateCommentBlock.videoId.value = route.params.id;
+const videoId = computed(() => route.params.id);
 const Player = ref(null);
 const addComment = ref(null);
 const videoData = ref(null);
@@ -26,6 +25,7 @@ const shareRef = ref(null);
 
 const showFullDescription = ref(false);
 const isDescriptionClamped = ref(false);
+const descriptionElement = ref(null); 
 
 const { focusedElement } = useFocusEngine();
 
@@ -35,16 +35,17 @@ const ensureHttpUrl = (url) => {
 };
 
 const handleKeyDown = (e) => {
-  if (focusedElement.value) return;
-  
+  // Добавьте проверку, что плеер инициализирован
+  if (focusedElement.value || !Player.value) return;
+
   if (e.code === 'KeyF') {
     e.preventDefault();
-    Player.value?.toggleFullscreen();
+    Player.value.toggleFullscreen();
   } else if (e.code === 'Space') {
     e.preventDefault();
-    if (Player.value?.videoPlayerRef) {
-      Player.value.videoPlayerRef.paused 
-        ? Player.value.videoPlayerRef.play() 
+    if (Player.value.videoPlayerRef) {
+      Player.value.videoPlayerRef.paused
+        ? Player.value.videoPlayerRef.play()
         : Player.value.videoPlayerRef.pause();
     }
   }
@@ -53,29 +54,70 @@ const handleKeyDown = (e) => {
 const fetchVideoData = async () => {
   isLoading.value = true;
   error.value = null;
-  
+  videoData.value = null; // Очищаем предыдущие данные
+  hlsUrl.value = ""; // Очищаем предыдущий URL видео
+
+  console.log("Fetching video data for ID:", videoId.value); // Добавьте лог для отслеживания
+
+  // Добавьте проверку на наличие videoId перед запросом
+  if (!videoId.value) {
+      error.value = "Идентификатор видео не предоставлен.";
+      isLoading.value = false;
+      return;
+  }
+
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/Video/${videoId}`);
-    if (!response.ok) throw new Error("Ошибка загрузки видео");
-    
-    const data = await response.json();
-    videoData.value = data;
-    
-    if (data.files?.length) {
-      // Используем реальные данные из API
-      const file = data.files[0];
-      hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
+    const response = await fetch(`${API_BASE_URL}/api/Video/${videoId.value}`);
+    if (!response.ok) {
+        // Попробуем прочитать тело ответа для более детальной ошибки
+        const errorBody = await response.text().catch(() => 'Не удалось прочитать тело ошибки');
+        console.error(`Ошибка HTTP при загрузке видео ${videoId.value}: ${response.status} ${response.statusText}`, errorBody);
+        throw new Error(`Ошибка загрузки видео: ${response.status} ${response.statusText}`);
     }
+
+    const data = await response.json();
+
+    // Проверка наличия необходимых данных
+    if (!data) {
+        throw new Error("Получены пустые данные видео");
+    }
+    if (!data.files || data.files.length === 0) {
+         console.warn(`Видео ${videoId.value} не содержит файлов.`);
+    }
+
+    videoData.value = data;
+
+    if (data.files?.length) {
+      const file = data.files[0]; // Предполагаем, что нужен первый файл
+      if (file.fileName) {
+         hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
+         console.log("HLS URL:", hlsUrl.value);
+      } else {
+         console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
+         hlsUrl.value = ""; // Убедимся, что hlsUrl пуст, если нет fileName
+      }
+    } else {
+        hlsUrl.value = ""; // Убедимся, что hlsUrl пуст, если нет файлов
+    }
+
+    // Обновляем заголовок страницы
+    document.title = videoData.value.title ? `${videoData.value.title} | MyApp` : 'MyApp';
+
     nextTick(() => {
       checkTextOverflow();
     });
+
   } catch (err) {
     error.value = err.message;
     console.error("Ошибка загрузки данных видео:", err);
+    // Очищаем данные при ошибке
+    videoData.value = null;
+    hlsUrl.value = "";
   } finally {
     isLoading.value = false;
   }
-  console.log(videoData.value)
+  // console.log(videoData.value)
 };
 
 const handleShareClick = () => {
@@ -89,53 +131,92 @@ const handleShareClick = () => {
 
 const checkTextOverflow = () => {
   nextTick(() => {
-    const descElement = document.querySelector('.video-description');
+    // Используем ref для элемента описания
+    const descElement = descriptionElement.value;
     if (descElement) {
-      isDescriptionClamped.value = descElement.scrollHeight > descElement.clientHeight;
+      // Проверяем, что scrollHeight и clientHeight являются числами и больше 0
+      if (descElement.scrollHeight > 0 && descElement.clientHeight > 0) {
+         isDescriptionClamped.value = descElement.scrollHeight > descElement.clientHeight;
+         console.log(`Description scrollHeight: ${descElement.scrollHeight}, clientHeight: ${descElement.clientHeight}, isClamped: ${isDescriptionClamped.value}`);
+      } else {
+         // Если размеры нулевые или не определены, возможно, элемент ещё не отрисован
+         isDescriptionClamped.value = false; // Или true, в зависимости от желаемого поведения
+         console.warn("Description element has zero or undefined dimensions, cannot check overflow.");
+      }
+    } else {
+        console.warn("Description element ref is not set.");
+        isDescriptionClamped.value = false;
     }
   });
 };
 
 onMounted(() => {
-  fetchVideoData();
+  console.log("VideoPage mounted");
+  fetchVideoData(); // Вызываем при первом монтировании
   document.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('resize', checkTextOverflow); // Проверяем при изменении размера окна
 });
 onUnmounted(() => {
   console.log("Размонтирование VideoPage");
-  
-  // 1. Всегда удаляем глобальный обработчик клавиш
   document.removeEventListener('keydown', handleKeyDown);
-  
-  // 2. Проверяем и очищаем плеер (защитная проверка)
+  window.removeEventListener('resize', checkTextOverflow); // Удаляем при размонтировании
+
+  // Проверяем и очищаем плеер
   if (Player.value) {
     console.log("Player ref существует, попытка очистки");
-    
-    // 2.1. Проверяем и вызываем метод destroyPlayer если доступен
     if (typeof Player.value.destroyPlayer === 'function') {
       console.log("Вызов destroyPlayer");
       Player.value.destroyPlayer();
     }
-    
-    // 2.2. Дополнительная ручная очистка video элемента
+     // Очистка video элемента
     if (Player.value.videoPlayerRef) {
-      console.log("Ручная очистка video элемента");
-      try {
-        Player.value.videoPlayerRef.pause();
-        Player.value.videoPlayerRef.removeAttribute('src');
-        Player.value.videoPlayerRef.load();
-      } catch (e) {
-        console.error("Ошибка при ручной очистке video элемента:", e);
-      }
+        console.log("Ручная очистка video элемента");
+        try {
+            Player.value.videoPlayerRef.pause();
+            // Важно: удаляем src, а не устанавливаем null или пустую строку,
+            // чтобы полностью отсоединить ресурс. load() затем очистит буфер.
+            Player.value.videoPlayerRef.removeAttribute('src');
+            Player.value.videoPlayerRef.load();
+        } catch (e) {
+            console.error("Ошибка при ручной очистке video элемента:", e);
+        }
     }
   } else {
-    console.log("Player ref уже null, очистка не требуется");
+    console.log("Player ref уже null или недоступен, очистка не требуется");
   }
-  
-  // 3. Дополнительные очистки если есть
-  // Например, очистка таймеров, подписок и т.д.
+
+  // Очистка других ресурсов
   if (window.controlPanelTimeout) {
     clearTimeout(window.controlPanelTimeout);
   }
+
+  // Очистка данных компонента при размонтировании, если это необходимо
+  videoData.value = null;
+  hlsUrl.value = "";
+});
+
+// Добавляем watcher для videoId
+watch(videoId, (newVideoId, oldVideoId) => {
+    console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
+    // Если новый videoId отличается от старого и не пустой, загружаем новые данные
+    if (newVideoId && newVideoId !== oldVideoId) {
+        fetchVideoData();
+    } else if (!newVideoId) {
+        // Обработка случая, когда videoId становится пустым (например, при ошибке маршрутизации)
+        videoData.value = null;
+        hlsUrl.value = "";
+        isLoading.value = false;
+        error.value = "Идентификатор видео отсутствует.";
+    }
+});
+
+// Дополнительный watcher для videoData, чтобы обновить описание после загрузки
+watch(videoData, (newData) => {
+    if (newData) {
+        nextTick(() => {
+            checkTextOverflow();
+        });
+    }
 });
 </script>
 
@@ -152,7 +233,7 @@ onUnmounted(() => {
       {{ error }}
     </div>
     
-    <template v-else>
+    <template v-else-if="videoData">
       <div class="content-wrapper">
         <section>
           <VideoPlayer
@@ -160,6 +241,7 @@ onUnmounted(() => {
             v-if="hlsUrl" 
             :video-src="hlsUrl" 
             :poster="videoData?.thumbnailUrl"
+            :key="hlsUrl"
           />
           <div v-else class="no-video">
             Видео недоступно
@@ -229,7 +311,7 @@ onUnmounted(() => {
 
           <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
         </section>
-        <CreateCommentBlock :video-id="{videoId}" style="margin-top: 40px;" ref="addComment"/>
+        <CreateCommentBlock :video-id="Number(videoId.value)" style="margin-top: 40px;" ref="addComment"/>
       </div>
          
       <aside class="side-recomendation">

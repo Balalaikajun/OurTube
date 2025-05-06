@@ -21,6 +21,7 @@
 
     const { register, unregister } = injectFocusEngine();
 
+    const userAvatar = ref('/default-avatar.jpg'); // Путь к дефолтному аватару
     const commentText = ref('');
     const textareaRef = ref(null);
     const showButtons = ref(false);
