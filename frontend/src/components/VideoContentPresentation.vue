@@ -16,9 +16,9 @@
             type: String,
             required: true,
             validator: (value) => [
-            'recomend', 
-            'aside-recomend',
-            'search'
+                'recomend', 
+                'aside-recomend',
+                'search'
             ].includes(value)
         },
         searchQuery: {
@@ -114,39 +114,38 @@
         }
     };
 
-    const navigateToVideo = (videoId) => {
-        console.log('tovideo')
-        router.push(`/video/${videoId}`);
+    const navigateToVideo = (video) => {
+        console.log('Navigating to video:', video.id); // Для отладки
+        router.push(`/video/${video.id}`);
     };
-
 
     const updateDimensions = () => {
         if (!container.value) return;
         
         const rect = container.value.getBoundingClientRect();
-        parentWidth.value = rect.width;
+        parentWidth.value = rect.width - 20;
         console.log('Ширина контейнера:', parentWidth.value);
     };
-    const adaptiveView = async () => {
-    await nextTick();
-    updateDimensions();
-    
-    if (!container.value) return;
+    const adaptiveView = async () => { // правки
+        await nextTick();
+        updateDimensions();
+        
+        if (!container.value) return;
 
-    const gap = blocksInRow.value > 1 
-        ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value)) / (blocksInRow.value - 1))) : 0;
-    
-        container.value.style.gap = `30px ${Math.floor(gap)}px`;
-        console.log('Обновлены отступы:', container.value.style.gap);
-    };
+        const gap = blocksInRow.value > 1 
+            ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value)) / (blocksInRow.value - 1)) - 20) : 0;
+        
+            container.value.style.gap = `30px ${Math.floor(gap)}px`;
+            console.log('Обновлены отступы:', container.value.style.gap);
+        };
 
-    const blocksInRow = computed(() => {
-        const widthParent = parentWidth.value;
-        if (widthParent < 600 || props.rowLayout) return 1;
-        if (widthParent < 800) return 2;
-        if (widthParent < 1200) return 3;
-        if (widthParent < 1920) return 4;
-        return 5;
+        const blocksInRow = computed(() => {
+            const widthParent = parentWidth.value;
+            if (widthParent < 600 || props.rowLayout) return 1;
+            if (widthParent < 800) return 2;
+            if (widthParent < 1200) return 3;
+            if (widthParent < 1920) return 4;
+            return 5;
     });
 
     const blockWidth = computed(() => {
@@ -351,7 +350,7 @@
                 :video="video"
                 :key="video.id"
                 :row-layout="rowLayout"
-                @click="navigateToVideo(video.id)"
+                @click="navigateToVideo(video)"
                 @kebab-click="handleKebabClick"
                 :style="{ width: blockWidth }"
             />

@@ -15,6 +15,7 @@ import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
 const route = useRoute();
 const videoPage = ref(null);
 const videoId = route.params.id;
+// CreateCommentBlock.videoId.value = route.params.id;
 const Player = ref(null);
 const addComment = ref(null);
 const videoData = ref(null);
@@ -228,7 +229,7 @@ onUnmounted(() => {
 
           <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
         </section>
-        <CreateCommentBlock style="margin-top: 40px;" ref="addComment"/>
+        <CreateCommentBlock :video-id="{videoId}" style="margin-top: 40px;" ref="addComment"/>
       </div>
          
       <aside class="side-recomendation">

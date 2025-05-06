@@ -2,6 +2,7 @@
     import { ref } from "vue";
     import { useRouter } from "vue-router";
     import { API_BASE_URL } from "@/assets/config"; // Импортируем базовый URL
+    import axios from "axios";
     
     const email = ref("");
     const password = ref("");
@@ -10,40 +11,53 @@
 
     const router = useRouter();
 
+    const api = axios.create({
+        baseURL: API_BASE_URL,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
     const submitForm = async () => {
-        errorMessage.value = "";
-        loading.value = true;
+    errorMessage.value = "";
+    loading.value = true;
 
-        try {
-            // Back
-            // Эндпоинты менять не забывайте
-            const response = await fetch(`${API_BASE_URL}/identity/login?useCookies=false&useSessionCookies=false`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    email: email.value,
-                    password: password.value
-                })
-            });
+    try {
+        const response = await api.post("/identity/login", {
+            email: email.value,
+            password: password.value,
+        });
 
-            if (!response.ok) {
-                //const result = await response.json();
-                throw new Error("Ошибка входа");
+        // Сохраняем токен
+        localStorage.setItem("token", response.data.accessToken);
+        
+        // Добавляем интерсептер для автоматической подстановки токена
+        api.interceptors.request.use((config) => {
+            const token = localStorage.getItem("token");
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
             }
+            return config;
+        });
 
-            const data = await response.json();
-            localStorage.setItem('token', data.token);
-
-
-            router.push("/");
-
-        } catch (error) {
-            errorMessage.value = error.message;
-        } finally {
-            loading.value = false;
+        router.push("/");
+    } catch (error) {
+        if (error.response) {
+        // Обрабатываем ответ сервера
+        const errorData = error.response.data;
+        errorMessage.value = errorData.title || "Ошибка авторизации";
+        
+        // Показываем детали ошибок валидации
+        if (errorData.errors) {
+            const errors = Object.values(errorData.errors).flat();
+            errorMessage.value += ": " + errors.join(", ");
         }
+        } else {
+        errorMessage.value = "Ошибка соединения с сервером";
+        }
+    } finally {
+        loading.value = false;
+    }
     };
 </script>
 

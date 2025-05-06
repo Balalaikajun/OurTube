@@ -1,12 +1,40 @@
 <script setup>
     import { ref, onMounted, onUnmounted} from "vue";
+    import axios from 'axios';
+    import { useRouter } from 'vue-router';
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
+    import { API_BASE_URL } from "@/assets/config.js";
+
+    const props = defineProps({
+        videoId: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        parentId: {
+            type: Number,
+            default: null
+        }
+    })
+
+    const router = useRouter();
 
     const { register, unregister } = injectFocusEngine();
 
     const commentText = ref('');
     const textareaRef = ref(null);
     const showButtons = ref(false);
+    const errorMessage = ref("");
+    const parentId = ref(null);
+
+    const api = axios.create({
+        baseURL: API_BASE_URL,
+        withCredentials: true, // Важно для передачи кук
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
     function adjustHeight() {
         if (textareaRef.value) {
             textareaRef.value.style.height = 'auto';
@@ -29,21 +57,59 @@
     };
 
     const handleCancel = () => {
-        // 1. Явно снимаем фокус с textarea
         textareaRef.value.blur();
-        
-        // 2. Очищаем текст
         commentText.value = '';
+    };
+
+    const handleComment = async () => {
+        errorMessage.value = "";
         
-        // 3. Не меняем showButtons здесь - это сделает handleBlur
+        if (!commentText.value.trim()) {
+            errorMessage.value = "Комментарий не может быть пустым";
+            return;
+        }
+
+        try {
+            if(localStorage.getItem("token"))
+            {
+                console.log("Токен не действителен"); //правки
+                confirm("Переадресация на страницу авторизации.")
+                router.push(`/login`);
+                return;
+            }   
+            const response = await api.post('/api/Video/Comment', {
+                videoId: props.videoId,
+                text: commentText.value,
+                parentId: parentId.value
+            });
+
+            // Успешная отправка
+            commentText.value = '';
+            showButtons.value = false;
+            
+            // emit('comment-created'); //правки
+            
+        } catch (error) {
+            if (error.response) {
+            // Сервер ответил с ошибкой
+            if (error.response.status === 401) {
+                errorMessage.value = "Пожалуйста, войдите в систему";
+            } else {
+                errorMessage.value = error.response.data?.message || "Ошибка сервера";
+            }
+            } else if (error.request) {
+            // Запрос был сделан, но нет ответа
+            errorMessage.value = "Нет ответа от сервера";
+            } else {
+            // Ошибка при настройке запроса
+            errorMessage.value = "Ошибка при отправке комментария";
+            }
+            console.error('Ошибка:', error);
+        }
     };
 
     onMounted(() => {
         adjustHeight();
-    });
-    defineExpose({
-        showButtons,
-        textareaRef
     });
 </script>
 
@@ -81,6 +147,7 @@
               'comment-isFilled': commentText.trim() 
             }"
             :disabled="!commentText.trim()"
+            @click="handleComment" 
           >
             Комментировать
           </button>
@@ -107,9 +174,9 @@
     }
     .component-input {
         width: 100%;
-        min-height: 10px;
+        min-height: 15px;
         color: #F3F0E9;
-        line-height: 10px; 
+        line-height: 15px; 
         font-size: 14px; /* Размер шрифта */
         overflow-wrap: break-word;
         outline: none;
@@ -119,8 +186,8 @@
         border-bottom: 1px solid #F3F0E9;
     }
     .component-input:focus {
-        min-height: 20px; /* Базовая высота */
-        height: 20px;
+        min-height: 15px; /* Базовая высота */
+        height: 15px;
     }
     .component-input:focus::placeholder {
         opacity: 0;

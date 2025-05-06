@@ -42,11 +42,13 @@ const props = defineProps({
 
 const emit = defineEmits(['click', 'kebab-click', 'share']);
 
-const handleCardClick = () => {
-  emit('click', props.video.id);
+const handleCardClick = (e) => {
+  e.stopPropagation();
+  emit('click');
 };
 
 const handleKebabButtonClick = (event) => {
+  event.stopPropagation();
   emit('kebab-click', {
     videoId: props.video.id,
     buttonElement: event.currentTarget
@@ -118,7 +120,7 @@ const getPreviewUrl = (fileName) => {
   .video-card {
       display: block;
       cursor: pointer;
-      pointer-events: auto;
+      pointer-events: auto !important;
   }
 
   .video-card.row-layout {

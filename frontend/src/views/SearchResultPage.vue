@@ -14,6 +14,7 @@
     const searchQuery = ref('');
 
     watch(() => route.query.q, (newQuery) => {
+        console.log("смена запроса")
         searchQuery.value = newQuery || '';
     }, { immediate: true });
 </script>
