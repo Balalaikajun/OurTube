@@ -118,6 +118,7 @@ const getPreviewUrl = (fileName) => {
   .video-card {
       display: block;
       cursor: pointer;
+      pointer-events: auto;
   }
 
   .video-card.row-layout {

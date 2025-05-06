@@ -57,20 +57,19 @@
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
     const isInitialized = ref(false);
+    const resizeObserver = ref(null);
     const testWidth = ref(1089);
 
     const emit = defineEmits(['load-more']);
 
     const handleScroll = () => {
-        if (!props.isInfiniteScroll) return;
+        if (!props.isInfiniteScroll || loading.value) return;
 
         const element = getScrollElement();
         if (!element) return;
 
         const { scrollTop, scrollHeight, clientHeight } = element;
-        const isNearBottom = scrollTop + clientHeight >= scrollHeight - 500;
-
-        if (isNearBottom) {
+        if (scrollTop + clientHeight >= scrollHeight - 500) {
             loadMoreVideos();
         }
     };
@@ -84,6 +83,18 @@
         if (props.scrollElement === 'window') return document.documentElement;
         if (props.scrollElement === 'parent') return container.value?.parentElement;
         return document.querySelector(props.scrollElement);
+    };
+
+    const initResizeObserver = () => {
+        if (resizeObserver.value) return;
+        
+        resizeObserver.value = new ResizeObserver(() => {
+            adaptiveView();
+        });
+        
+        if (container.value) {
+            resizeObserver.value.observe(container.value);
+        }
     };
 
     const handleKebabClick = ({ videoId, buttonElement }) => {
@@ -108,34 +119,29 @@
         router.push(`/video/${videoId}`);
     };
 
-    const adaptiveView = () => {
-        return new Promise((resolve) => {
-            if (!container.value) return resolve();
-            
-            nextTick(() => {
-            const rect = container.value.getBoundingClientRect();
-            parentWidth.value = rect.width - 20;
-            console.log('Ширина родителя:', parentWidth.value);
-            
-            if (isNaN(parentWidth.value)) {
-                console.error("Не удалось вычислить ширину родителя");
-                return resolve();
-            }
 
-            const gap = blocksInRow.value > 1 
-                ? Math.floor(Math.max(0, (parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value))) / (blocksInRow.value - 1))
-                : 0;
-            
-            container.value.style.gap = `30px ${Math.floor(gap)}px`;
-            console.log('Gap установлен:', container.value.style.gap);
-            resolve();
-            });
-        });
+    const updateDimensions = () => {
+        if (!container.value) return;
+        
+        const rect = container.value.getBoundingClientRect();
+        parentWidth.value = rect.width;
+        console.log('Ширина контейнера:', parentWidth.value);
+    };
+    const adaptiveView = async () => {
+    await nextTick();
+    updateDimensions();
+    
+    if (!container.value) return;
+
+    const gap = blocksInRow.value > 1 
+        ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value)) / (blocksInRow.value - 1))) : 0;
+    
+        container.value.style.gap = `30px ${Math.floor(gap)}px`;
+        console.log('Обновлены отступы:', container.value.style.gap);
     };
 
     const blocksInRow = computed(() => {
         const widthParent = parentWidth.value;
-        console.log(widthParent, 'ширина родителя в blocksInRow')
         if (widthParent < 600 || props.rowLayout) return 1;
         if (widthParent < 800) return 2;
         if (widthParent < 1200) return 3;
@@ -144,18 +150,13 @@
     });
 
     const blockWidth = computed(() => {
-        const widthParent = parentWidth.value;
-        // const widthParent = testWidth.value;
-        console.log(widthParent, 'ширина родителя в blockWidth', "\n",props.rowLayout, "стройчный вид")
-        if (!widthParent || widthParent <= 0 || props.rowLayout) return "100%"; // Запасной вариант
+        if (!parentWidth.value || parentWidth.value <= 0 || props.rowLayout) return "100%";
 
-        if (widthParent < 600)      {console.log(widthParent, 'ширина блока в blockWidth');                                 return `${widthParent}px`};
-        if (widthParent < 800)      {console.log(Math.floor(widthParent * 0.49), 'ширина блока в blockWidth');              return `${Math.floor(widthParent * 0.49)}px`};
-        if (widthParent < 1200)     {console.log(Math.floor(widthParent * 0.32), 'ширина блока в blockWidth');              return `${Math.floor(widthParent * 0.32)}px`};
-        if (widthParent < 1920)     {console.log(Math.floor(widthParent * 0.24), 'ширина блока в blockWidth');              return `${Math.floor(widthParent * 0.24)}px`};
-        if (widthParent >= 1920)    {console.log(Math.floor(widthParent * 0.19), 'ширина блока в blockWidth');              return `${Math.floor(widthParent * 0.19)}px`};
-        
-        return "200px"; // Запасной вариант
+        if (parentWidth.value < 600) return `${parentWidth.value}px`;
+        if (parentWidth.value < 800) return `${Math.floor(parentWidth.value * 0.49)}px`;
+        if (parentWidth.value < 1200) return `${Math.floor(parentWidth.value * 0.32)}px`;
+        if (parentWidth.value < 1920) return `${Math.floor(parentWidth.value * 0.24)}px`;
+        return `${Math.floor(parentWidth.value * 0.19)}px`;
     });
 
     const fetchMethods = {
@@ -279,8 +280,9 @@
             // 1. Инициализация DOM элементов
             scrollElement.value = getScrollElement();
             if (scrollElement.value) {
-            scrollElement.value.addEventListener('scroll', handleScroll);
+                scrollElement.value.addEventListener('scroll', handleScroll);
             }
+            window.addEventListener('resize', adaptiveView);
             
             // 2. Ожидаем полный рендеринг
             await nextTick();
@@ -305,8 +307,13 @@
     onUnmounted(() => {
         if (scrollElement.value) {
             scrollElement.value.removeEventListener('scroll', handleScroll);
-        }        
+        }
+        
         window.removeEventListener('resize', adaptiveView);
+        
+        if (resizeObserver.value && container.value) {
+            resizeObserver.value.unobserve(container.value);
+        }
     });
 
     watch(() => props.context, () => fetchVideos(true));

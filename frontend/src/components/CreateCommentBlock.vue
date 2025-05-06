@@ -1,5 +1,9 @@
 <script setup>
-    import { ref, onMounted, onUnmounted } from "vue";
+    import { ref, onMounted, onUnmounted} from "vue";
+    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
+
+    const { register, unregister } = injectFocusEngine();
+
     const commentText = ref('');
     const textareaRef = ref(null);
     const showButtons = ref(false);
@@ -9,37 +13,80 @@
             textareaRef.value.style.height = `${textareaRef.value.scrollHeight}px`;
         }
     }
+    const handleFocus = () => {
+        register('commentBlock', () => {
+            showButtons.value = true;
+        });
+    };
+
+    const handleBlur = () => {
+        setTimeout(() => {
+            if (!document.activeElement?.closest('.comment-create')) {
+            unregister('commentBlock');
+            showButtons.value = false;
+            }
+        }, 100);        
+    };
+
+    const handleCancel = () => {
+        // 1. Явно снимаем фокус с textarea
+        textareaRef.value.blur();
+        
+        // 2. Очищаем текст
+        commentText.value = '';
+        
+        // 3. Не меняем showButtons здесь - это сделает handleBlur
+    };
+
     onMounted(() => {
         adjustHeight();
     });
     defineExpose({
-        showButtons
+        showButtons,
+        textareaRef
     });
 </script>
 
-<template >
-  <div class="comment-create">
-    <img @error="event => event.target.style.display = 'none'" class="user-avatar" :src="data" alt="User avatar">
-    <div class="comment-container">
+<template>
+    <div class="comment-create">
+      <img 
+        @error="event => event.target.style.display = 'none'" 
+        class="user-avatar" 
+        :src="data" 
+        alt="User avatar"
+      >
+      <div class="comment-container">
         <textarea  
-            ref="textareaRef"
-            @focus="showButtons = true"            
-            @input="adjustHeight" 
-            v-model="commentText" 
-            class="component-input" 
-            placeholder="Комментарий" 
-            rows="1"></textarea>
+          ref="textareaRef"
+          @focus="handleFocus"
+          @blur="handleBlur"
+          @input="adjustHeight" 
+          v-model="commentText" 
+          class="component-input" 
+          placeholder="Комментарий" 
+          rows="1"
+        ></textarea>
         <div v-if="showButtons" class="functional-buttons-block">
-            <button @click="showButtons = false; commentText = ''" class="control-button comment-button">
-                Отмена</button>
-            <button 
-                class="control-button comment-button"
-                :class="{ 'disabled-button': !commentText.trim(), 'comment-isFilled': commentText.trim() }"
-                :disabled="!commentText.trim()">
-                Комментировать</button>
+          <button 
+            @click="handleCancel" 
+            @mousedown.prevent
+            class="control-button comment-button"
+          >
+            Отмена
+          </button>
+          <button 
+            class="control-button comment-button"
+            :class="{ 
+              'disabled-button': !commentText.trim(), 
+              'comment-isFilled': commentText.trim() 
+            }"
+            :disabled="!commentText.trim()"
+          >
+            Комментировать
+          </button>
         </div>
+      </div>
     </div>
-  </div>
 </template>
 
 <style scoped>

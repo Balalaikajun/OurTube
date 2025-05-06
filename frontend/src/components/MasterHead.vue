@@ -1,10 +1,12 @@
 <script setup>
-    import { ref, onMounted, onUnmounted } from "vue";
+    import { ref, onMounted, onUnmounted, inject } from "vue";
     import MainMenu from "./MainMenu.vue"; // Импортируем компонент бокового меню
     import { API_BASE_URL } from "@/assets/config.js"
     import { useRouter } from 'vue-router';
+    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
 
     const router = useRouter();
+    const { register, unregister } = injectFocusEngine();
 
     const isSideMenuVisible = ref(false);
     const searchQuery = ref("");
@@ -13,6 +15,18 @@
     const errorMessage = ref("");
 
     const API_URL = API_BASE_URL + "/api/Search";
+
+    const handleFocus = () => {
+        register('searchInput');
+    };
+
+    const handleBlur = () => {
+        setTimeout(() => {
+            if (!document.activeElement?.closest('.search-block')) {
+            unregister('searchInput');
+            }
+        }, 100);
+    };
 
     const toggleSideMenu = (event) => {
         if (event.target.closest('.burger-button')) {
@@ -31,29 +45,6 @@
     const pushToMain = () => {
         router.push(`/`);
     }
-
-    // const fetchVideos = async (query) => { B666
-    // try {
-    //     isLoading.value = true;
-    //     errorMessage.value = "";
-        
-    //     const response = await fetch(`${API_BASE_URL}?query=${encodeURIComponent(query)}`);
-        
-    //     if (!response.ok) {
-    //         throw new Error(`Ошибка HTTP: ${response.status}`);
-    //     }
-        
-    //     const data = await response.json();
-    //     searchResults.value = data;
-        
-    // } catch (error) {
-    //     console.error("Ошибка поиска:", error);
-    //     errorMessage.value = "Не удалось загрузить результаты. Попробуйте позже.";
-    //     searchResults.value = [];
-    // } finally {
-    //     isLoading.value = false;
-    // }
-    // };
 
     const handleSearch = async (event) => {
         event.preventDefault();
@@ -89,6 +80,8 @@
                     placeholder="Поиск видео..."
                     aria-label="Поиск видео"
                     class="search-input"
+                    @focus="handleFocus"
+                    @blur="handleBlur"
                     @keypress.enter="handleSearch"
                 >
                 <button 

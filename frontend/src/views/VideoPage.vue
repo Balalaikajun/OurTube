@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick, provide } from "vue";
 import { useRoute } from "vue-router";
 import MasterHead from "../components/MasterHead.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
@@ -10,6 +10,7 @@ import VideoContentPresentation from "@/components/VideoContentPresentation.vue"
 import { API_BASE_URL } from "@/assets/config.js";
 import { MINIO_BASE_URL } from "@/assets/config.js";
 import formatter from "@/assets/utils/formatter.js";
+import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
 
 const route = useRoute();
 const videoPage = ref(null);
@@ -25,19 +26,26 @@ const shareRef = ref(null);
 const showFullDescription = ref(false);
 const isDescriptionClamped = ref(false);
 
+const { focusedElement } = useFocusEngine();
+
 const ensureHttpUrl = (url) => {
   if (!url) return '';
   return url.startsWith('http') ? url : `http://${url}`;
 };
 
 const handleKeyDown = (e) => {
-  if(addComment.value) return;
+  if (focusedElement.value) return;
+  
   if (e.code === 'KeyF') {
-    e.preventDefault(); // Вызываем на событии (e), а не на videoPage
+    e.preventDefault();
     Player.value?.toggleFullscreen();
   } else if (e.code === 'Space') {
-    e.preventDefault(); // Вызываем на событии (e)
-    Player.value?.togglePlay();
+    e.preventDefault();
+    if (Player.value?.videoPlayerRef) {
+      Player.value.videoPlayerRef.paused 
+        ? Player.value.videoPlayerRef.play() 
+        : Player.value.videoPlayerRef.pause();
+    }
   }
 };
 
@@ -92,9 +100,40 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeyDown);
 });
 onUnmounted(() => {
+  console.log("Размонтирование VideoPage");
+  
+  // 1. Всегда удаляем глобальный обработчик клавиш
+  document.removeEventListener('keydown', handleKeyDown);
+  
+  // 2. Проверяем и очищаем плеер (защитная проверка)
   if (Player.value) {
-    Player.value.destroyPlayer();
-    document.removeEventListener('keydown', handleKeyDown);
+    console.log("Player ref существует, попытка очистки");
+    
+    // 2.1. Проверяем и вызываем метод destroyPlayer если доступен
+    if (typeof Player.value.destroyPlayer === 'function') {
+      console.log("Вызов destroyPlayer");
+      Player.value.destroyPlayer();
+    }
+    
+    // 2.2. Дополнительная ручная очистка video элемента
+    if (Player.value.videoPlayerRef) {
+      console.log("Ручная очистка video элемента");
+      try {
+        Player.value.videoPlayerRef.pause();
+        Player.value.videoPlayerRef.removeAttribute('src');
+        Player.value.videoPlayerRef.load();
+      } catch (e) {
+        console.error("Ошибка при ручной очистке video элемента:", e);
+      }
+    }
+  } else {
+    console.log("Player ref уже null, очистка не требуется");
+  }
+  
+  // 3. Дополнительные очистки если есть
+  // Например, очистка таймеров, подписок и т.д.
+  if (window.controlPanelTimeout) {
+    clearTimeout(window.controlPanelTimeout);
   }
 });
 </script>
@@ -160,7 +199,7 @@ onUnmounted(() => {
                   Поделиться
                 </button>
                 <button class="control-button">
-                  Сорханить
+                  Сохранить
                 </button>
               </div>
 
@@ -235,6 +274,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   width: 100%;  
   margin-top: 70px;
+  padding: 20px 100px;
 }
 
 .content-wrapper {

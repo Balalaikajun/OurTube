@@ -96,18 +96,6 @@ const initHls = () => {
     console.error('HLS init error:', error);
   }
 };
-
-// const updateVideoDimensions = () => {
-//   if (videoPlayerRef.value && videoPlayerRef.value.videoWidth && videoPlayerRef.value.videoHeight) {
-//     aspectRatio.value = videoPlayerRef.value.videoWidth / videoPlayerRef.value.videoHeight;
-//     videoDimensions.value = {
-//       width: videoPlayerRef.value.videoWidth,
-//       height: videoPlayerRef.value.videoHeight
-//     };
-//     videoDuration.value = videoPlayerRef.value.duration;
-//   }
-// };
-
 const showControlPannel = async () => {
   controlPannerVisible.value = true;
 
@@ -189,17 +177,17 @@ const changeVolume = (event) => {
 
 const destroyPlayer = () => {
   try {
+    console.log("Destroying player...");
+    
     if (hls.value) {
-      if (typeof hls.value.detachMedia === 'function') {
-        hls.value.detachMedia();
-      }
-      if (typeof hls.value.destroy === 'function') {
-        hls.value.destroy();
-      }
+      console.log("Destroying HLS instance");
+      hls.value.detachMedia();
+      hls.value.destroy();
       hls.value = null;
     }
 
     if (videoPlayerRef.value) {
+      console.log("Cleaning up video element");
       videoPlayerRef.value.pause();
       videoPlayerRef.value.removeAttribute('src');
       videoPlayerRef.value.load();
@@ -223,18 +211,21 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  destroyPlayer(); // Вызываем метод очистки
+  
   if (videoPlayerRef.value) {
+    videoPlayerRef.value.removeEventListener('play', () => isPlaying.value = true);
+    videoPlayerRef.value.removeEventListener('pause', () => isPlaying.value = false);
     videoPlayerRef.value.removeEventListener('timeupdate', updateTime);
-    // videoPlayerRef.value.removeEventListener('loadedmetadata', updateVideoDimensions);
   }
-  if (hls.value) hls.value.destroy();
   document.removeEventListener('fullscreenchange', handleFullscreenChange);
 });
 
 defineExpose({
   destroyPlayer,
   toggleFullscreen,
-  togglePlay
+  togglePlay,
+  videoPlayerRef
 });
 </script>
 
