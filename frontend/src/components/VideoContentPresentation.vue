@@ -133,7 +133,7 @@
         if (!container.value) return;
 
         const gap = blocksInRow.value > 1 
-            ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value)) / (blocksInRow.value - 1)) - 20) : 0;
+            ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value)) / (blocksInRow.value - 1))) : 0;
         
             container.value.style.gap = `30px ${Math.floor(gap)}px`;
             console.log('Обновлены отступы:', container.value.style.gap);

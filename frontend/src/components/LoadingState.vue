@@ -12,6 +12,7 @@
   <style scoped>
   .loading-state {
     display: flex;
+    width: 100%;
     flex-direction: column;
     justify-self: center;
     align-items: center;

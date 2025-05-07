@@ -102,7 +102,7 @@ const fetchVideoData = async () => {
     }
 
     // Обновляем заголовок страницы
-    document.title = videoData.value.title ? `${videoData.value.title} | MyApp` : 'MyApp';
+    document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
 
     nextTick(() => {
       checkTextOverflow();
