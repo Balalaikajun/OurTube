@@ -3,6 +3,7 @@
     import axios from 'axios';
     import { useRouter } from 'vue-router';
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
+    import UserAvatar from "./UserAvatar.vue";
     import { API_BASE_URL } from "@/assets/config.js";
 
     const props = defineProps({
@@ -111,17 +112,19 @@
 
     onMounted(() => {
         adjustHeight();
+        console.log(props.videoId)
     });
 </script>
 
 <template>
     <div class="comment-create">
-      <img 
+        <UserAvatar/>
+      <!-- <img 
         @error="event => event.target.style.display = 'none'" 
         class="user-avatar" 
         :src="data" 
         alt="User avatar"
-      >
+      > -->
       <div class="comment-container">
         <textarea  
           ref="textareaRef"

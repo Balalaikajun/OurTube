@@ -14,8 +14,8 @@ const routes = [
         meta: { 
             title: 'Просмотр', //правки - на название видео
             requiresAuth: false 
-        },
-        props: route => ({ id: Number(route.params.id) }) // Передаем параметры маршрута как props
+        }
+        // props: route => ({ id: Number(route.params.id) }) // Передаем параметры маршрута как props //правки
     },
     { 
         path: '/login', 

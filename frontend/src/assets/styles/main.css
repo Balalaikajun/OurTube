@@ -42,6 +42,12 @@ body {
     background: #100E0E;
 }
 
+p, span, h3, h1, input, button, a, textarea, ::placeholder {
+    font-family: "Corsa Grotesk", sans-serif;
+    font-weight: 400;
+    font-style: normal; 
+}
+
 .control-button {
     display: flex;
     color: #F3F0E9;
@@ -70,8 +76,14 @@ body {
     stroke-width: 2;
 }
 
-p, span, h3, h1, input, button, a, textarea, ::placeholder {
-    font-family: "Corsa Grotesk", sans-serif;
-    font-weight: 400;
-    font-style: normal; 
-}
+
+
+/* .user-avatar {
+    display: block;
+    width: var(--avatar-size, 40px);
+    height: var(--avatar-size, 40px);
+    border-radius: var(--avatar-radius, 4px);
+    background: #F3F0E9;
+    object-fit: cover;
+    color: #100E0E;
+} */

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
-import KebabButton from "../components/KebabButton.vue";
+import KebabButton from "./KebabButton.vue";
+import UserAvatar from "./UserAvatar.vue";
 import { MINIO_BASE_URL } from "@/assets/config.js";
 import formatter from "@/assets/utils/formatter.js";
 
@@ -97,14 +98,7 @@ const getPreviewUrl = (fileName) => {
         </div>
         
         <div v-if="rowLayout" class="channel-info">
-          <img 
-            v-if="video.user.userAvatar?.fileName"
-            :src="`${MINIO_BASE_URL}/${video.user.userAvatar.fileDirInStorage}/${video.user.userAvatar.fileName}`"
-            :alt="video.user.userName"
-            class="channel-avatar"
-            @error="(e) => e.target.src = '/placeholder-avatar.jpg'"
-          >
-          <div v-else class="avatar-placeholder"></div>
+          <UserAvatar/>
           <span class="channel-name">{{video.user.userName}}</span>
         </div>
         

@@ -7,6 +7,7 @@ import LoadingState from "@/components/LoadingState.vue"; // Импортиру�
 import ShareOverlay from "@/components/ShareOverlay.vue";
 import CreateCommentBlock from "@/components/CreateCommentBlock.vue";
 import VideoContentPresentation from "@/components/VideoContentPresentation.vue";
+import UserAvatar from "@/components/UserAvatar.vue";
 import { API_BASE_URL } from "@/assets/config.js";
 import { MINIO_BASE_URL } from "@/assets/config.js";
 import formatter from "@/assets/utils/formatter.js";
@@ -254,7 +255,8 @@ watch(videoData, (newData) => {
           <h1 class="video-title">{{ videoData.title }}</h1>
           <section class="channel-row">
             <div class="channel-block">
-              <img @error="event => event.target.style.display = 'none'" class="user-avatar" :src="videoData.user?.userAvatar?.fileDirInStorage" alt="Channel avatar">
+              <UserAvatar :user-avatar-path="videoData.user?.userAvatar?.fileDirInStorage"/>
+              <!-- <img @error="event => event.target.style.display = 'none'" class="user-avatar" :src="videoData.user?.userAvatar?.fileDirInStorage" alt="Channel avatar"> -->
               <div class="channel-data">
                 <p>{{videoData.user?.userName}}</p>
                 <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
@@ -311,7 +313,7 @@ watch(videoData, (newData) => {
 
           <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
         </section>
-        <CreateCommentBlock :video-id="Number(videoId.value)" style="margin-top: 40px;" ref="addComment"/>
+        <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
       </div>
          
       <aside class="side-recomendation">
@@ -362,6 +364,7 @@ watch(videoData, (newData) => {
 
 .content-wrapper {
   width: 70%;
+  container-type: inline-size;
 }
 
 .side-recomendation {

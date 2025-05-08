@@ -364,6 +364,8 @@
         display: flex;
         flex-wrap: wrap;
         box-sizing: border-box !important;
+        container-type: inline-size;
+        container-name: recommendations-container;
     }
     .container-wrapper.context-recomend {
         width: 100%;

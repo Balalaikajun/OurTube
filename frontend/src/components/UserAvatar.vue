@@ -1,5 +1,5 @@
 <script setup>
-    import { ref } from 'vue';
+    import { onMounted, ref } from 'vue';
 
     const props = defineProps(
         {
@@ -9,57 +9,108 @@
         }
     )
 
-    const isSVG = ref(false)
+    const showImage = ref(false);
+
+    onMounted(() => {
+        showImage.value = !!props.userAvatarPath; // Показываем только если путь не пустой
+    });
 </script>
 
 <template>
-    <img
-        v-if="!isSVG"
-        @error="isSVG = true" 
-        class="user-avatar" 
-        :src="data" 
+    <div class="avatar-container">
+        <!-- Показываем изображение только если есть путь И не было ошибки -->
+        <img
+        v-if="showImage"
+        class="user-avatar"
+        :src="props.userAvatarPath"
         alt="User avatar"
-    >
-    <svg v-if="isSVG" width="17" height="20" style="fill: #F3F0E9 !important;">
-        <path style="fill: inherit;" v-if="!isPlaying" d="M17 10 0 20V0l17 10Z" />
-        <path style="fill: inherit;" v-if="isPlaying" d="M.5 19.5V.5h2.886v19H.5Zm16 0h-2.886V.5H16.5v19Z"/>
-    </svg>
+        >
+    
+        <!-- Fallback SVG -->
+        <svg 
+        v-else
+            class="user-avatar"
+            viewBox="0 0 40 40"
+            style="fill: #F3F0E9"
+        >
+        <circle cx="20" cy="20" r="5" fill="#100E0E"/>
+        <text x="20" y="20" text-anchor="middle" fill="#100E0E">?</text>
+        </svg>
+  </div>
 </template>
 
 <style scoped>
+    :root {
+        --avatar-size: 40px;
+        --avatar-radius: 4px;
+    }
+    .avatar-container {
+        display: inline-block;
+        border-radius: 4px;
+        /* overflow: hidden; */
+        width: var(--avatar-size, 40px);
+        height: var(--avatar-size, 40px);
+        background: #F3F0E9;
+    }
+
+    
+    @container (max-width: 500px) {
+        .avatar-container {
+            --avatar-size: 30px;
+        }
+    }
+    @container (max-width: 300px) {
+        .avatar-container {
+            --avatar-size: 20px;
+        }
+    }
+
+    .user-avatar {
+        width: 100%;
+        height: 100%;
+    }
+    img.user-avatar {
+        display: block;
+        object-fit: cover;
+    }
+
+    svg.user-avatar {
+        display: block;
+        object-fit: cover;
+        box-sizing: border-box;
+        justify-content: center;
+        align-items: center;
+        width: var(--avatar-size, 40px);
+        height: var(--avatar-size, 40px);
+        border-radius: var(--avatar-radius);
+        /* background: #F3F0E9; */
+        background: transparent;
+    }
     .channel-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
     }
     .video-thumbnail {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: #f39e60;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #f39e60;
     }     
     .control-button svg {
-    display: inherit;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-}
+        display: inherit;
+        box-sizing: border-box;
+        justify-content: center;
+        align-items: center;
+    }
 
-.control-button svg path {
-    fill: none; 
-    stroke: #f3f0e9; 
-    stroke-width: 2;
-}
+    .control-button svg path {
+        fill: none; 
+        stroke: #f3f0e9; 
+        stroke-width: 2;
+    }
 
-.user-avatar {
-    display: block;
-    width: var(--avatar-size, 40px);
-    height: var(--avatar-size, 40px);
-    border-radius: var(--avatar-radius, 4px);
-    background: #F3F0E9;
-    object-fit: cover;
-    color: #100E0E;
-}
+
 </style>
