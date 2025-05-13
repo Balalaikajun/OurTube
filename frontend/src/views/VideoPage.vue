@@ -1,17 +1,21 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
 import { useRoute } from "vue-router";
+import axios from 'axios';
 import MasterHead from "../components/MasterHead.vue";
 import VideoPlayer from "@/components/VideoPlayer.vue";
 import LoadingState from "@/components/LoadingState.vue"; // Импортируем компонент загрузки
 import ShareOverlay from "@/components/ShareOverlay.vue";
 import CreateCommentBlock from "@/components/CreateCommentBlock.vue";
-import VideoContentPresentation from "@/components/VideoContentPresentation.vue";
+import VideoContentPresentation from "@/components/VideosPresentation.vue";
+import CommentsPresentation from "@/components/CommentsPresentation.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
+import ReactionBlock from "@/components/ReactionBlock.vue";
 import { API_BASE_URL } from "@/assets/config.js";
 import { MINIO_BASE_URL } from "@/assets/config.js";
 import formatter from "@/assets/utils/formatter.js";
 import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
+import useTextOverflow from "@/assets/utils/useTextOverflow";
 
 const route = useRoute();
 const videoPage = ref(null);
@@ -24,8 +28,10 @@ const isLoading = ref(true); // Добавляем состояние загру
 const error = ref(null); // Добавляем обработку ошибок
 const shareRef = ref(null);
 
+provide('videoId', videoId);
+
 const showFullDescription = ref(false);
-const isDescriptionClamped = ref(false);
+const { isClamped: isDescriptionClamped, checkTextOverflow } = useTextOverflow()
 const descriptionElement = ref(null); 
 
 const { focusedElement } = useFocusEngine();
@@ -34,6 +40,14 @@ const ensureHttpUrl = (url) => {
   if (!url) return '';
   return url.startsWith('http') ? url : `http://${url}`;
 };
+
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    withCredentials: true, // Важно для передачи кук
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
 
 const handleKeyDown = (e) => {
   // Добавьте проверку, что плеер инициализирован
@@ -58,67 +72,64 @@ const fetchVideoData = async () => {
   videoData.value = null; // Очищаем предыдущие данные
   hlsUrl.value = ""; // Очищаем предыдущий URL видео
 
-  console.log("Fetching video data for ID:", videoId.value); // Добавьте лог для отслеживания
+  console.log("Fetching video data for ID:", videoId.value); // Лог
 
-  // Добавьте проверку на наличие videoId перед запросом
   if (!videoId.value) {
-      error.value = "Идентификатор видео не предоставлен.";
-      isLoading.value = false;
-      return;
+    error.value = "Идентификатор видео не предоставлен.";
+    isLoading.value = false;
+    return;
   }
 
-
   try {
-    const response = await fetch(`${API_BASE_URL}/api/Video/${videoId.value}`);
-    if (!response.ok) {
-        // Попробуем прочитать тело ответа для более детальной ошибки
-        const errorBody = await response.text().catch(() => 'Не удалось прочитать тело ошибки');
-        console.error(`Ошибка HTTP при загрузке видео ${videoId.value}: ${response.status} ${response.statusText}`, errorBody);
-        throw new Error(`Ошибка загрузки видео: ${response.status} ${response.statusText}`);
-    }
+    const response = await api.get(`/api/Video/${videoId.value}`);
+    const data = response.data;
 
-    const data = await response.json();
+    console.log(data, "Информация о видео");
 
-    // Проверка наличия необходимых данных
     if (!data) {
-        throw new Error("Получены пустые данные видео");
+      throw new Error("Получены пустые данные видео");
     }
+
     if (!data.files || data.files.length === 0) {
-         console.warn(`Видео ${videoId.value} не содержит файлов.`);
+      console.warn(`Видео ${videoId.value} не содержит файлов.`);
     }
 
     videoData.value = data;
 
     if (data.files?.length) {
-      const file = data.files[0]; // Предполагаем, что нужен первый файл
+      const file = data.files[0]; // первый файл
       if (file.fileName) {
-         hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
-         console.log("HLS URL:", hlsUrl.value);
+        hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
+        console.log("HLS URL:", hlsUrl.value);
       } else {
-         console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
-         hlsUrl.value = ""; // Убедимся, что hlsUrl пуст, если нет fileName
+        console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
+        hlsUrl.value = "";
       }
     } else {
-        hlsUrl.value = ""; // Убедимся, что hlsUrl пуст, если нет файлов
+      hlsUrl.value = "";
     }
 
-    // Обновляем заголовок страницы
     document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
 
     nextTick(() => {
-      checkTextOverflow();
+      checkTextOverflow(descriptionElement.value);
     });
-
   } catch (err) {
-    error.value = err.message;
-    console.error("Ошибка загрузки данных видео:", err);
-    // Очищаем данные при ошибке
+    if (err.response) {
+      // Ошибка от сервера
+      error.value = err.response.data?.title || 'Ошибка загрузки видео';
+      console.error("Ошибка API:", err.response);
+    } else {
+      // Ошибка сети или другая
+      error.value = err.message || 'Ошибка при загрузке видео';
+      console.error("Ошибка при загрузке видео:", err);
+    }
+    // Очистка данных при ошибке
     videoData.value = null;
     hlsUrl.value = "";
   } finally {
     isLoading.value = false;
   }
-  // console.log(videoData.value)
 };
 
 const handleShareClick = () => {
@@ -130,37 +141,44 @@ const handleShareClick = () => {
   }
 };
 
-const checkTextOverflow = () => {
-  nextTick(() => {
-    // Используем ref для элемента описания
-    const descElement = descriptionElement.value;
-    if (descElement) {
-      // Проверяем, что scrollHeight и clientHeight являются числами и больше 0
-      if (descElement.scrollHeight > 0 && descElement.clientHeight > 0) {
-         isDescriptionClamped.value = descElement.scrollHeight > descElement.clientHeight;
-         console.log(`Description scrollHeight: ${descElement.scrollHeight}, clientHeight: ${descElement.clientHeight}, isClamped: ${isDescriptionClamped.value}`);
-      } else {
-         // Если размеры нулевые или не определены, возможно, элемент ещё не отрисован
-         isDescriptionClamped.value = false; // Или true, в зависимости от желаемого поведения
-         console.warn("Description element has zero or undefined dimensions, cannot check overflow.");
-      }
-    } else {
-        console.warn("Description element ref is not set.");
-        isDescriptionClamped.value = false;
-    }
-  });
-};
+// const checkTextOverflow = () => {
+//   nextTick(() => {
+//     // Используем ref для элемента описания
+//     const descElement = descriptionElement.value;
+//     if (descElement) {
+//       // Проверяем, что scrollHeight и clientHeight являются числами и больше 0
+//       if (descElement.scrollHeight > 0 && descElement.clientHeight > 0) {
+//          isDescriptionClamped.value = descElement.scrollHeight > descElement.clientHeight;
+//          console.log(`Description scrollHeight: ${descElement.scrollHeight}, clientHeight: ${descElement.clientHeight}, isClamped: ${isDescriptionClamped.value}`);
+//       } else {
+//          // Если размеры нулевые или не определены, возможно, элемент ещё не отрисован
+//          isDescriptionClamped.value = false; // Или true, в зависимости от желаемого поведения
+//          console.warn("Description element has zero or undefined dimensions, cannot check overflow.");
+//       }
+//     } else {
+//         console.warn("Description element ref is not set.");
+//         isDescriptionClamped.value = false;
+//     }
+//   });
+// };
+
+// const updateReaction = ({ status, likes, dislikes }) => {
+//   videoData.value.vote = status;
+//   videoData.value.likesCount = likes;
+//   videoData.value.dislikeCount = dislikes;
+// };
 
 onMounted(() => {
   console.log("VideoPage mounted");
+  console.log(localStorage.getItem('token'))
   fetchVideoData(); // Вызываем при первом монтировании
   document.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('resize', checkTextOverflow); // Проверяем при изменении размера окна
+  window.addEventListener('resize', checkTextOverflow(descriptionElement.value, "VideoPage")); // Проверяем при изменении размера окна
 });
 onUnmounted(() => {
   console.log("Размонтирование VideoPage");
   document.removeEventListener('keydown', handleKeyDown);
-  window.removeEventListener('resize', checkTextOverflow); // Удаляем при размонтировании
+  window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "VideoPage")); // Удаляем при размонтировании
 
   // Проверяем и очищаем плеер
   if (Player.value) {
@@ -215,7 +233,7 @@ watch(videoId, (newVideoId, oldVideoId) => {
 watch(videoData, (newData) => {
     if (newData) {
         nextTick(() => {
-            checkTextOverflow();
+            checkTextOverflow(descriptionElement.value, "VideoPage");
         });
     }
 });
@@ -256,7 +274,6 @@ watch(videoData, (newData) => {
           <section class="channel-row">
             <div class="channel-block">
               <UserAvatar :user-avatar-path="videoData.user?.userAvatar?.fileDirInStorage"/>
-              <!-- <img @error="event => event.target.style.display = 'none'" class="user-avatar" :src="videoData.user?.userAvatar?.fileDirInStorage" alt="Channel avatar"> -->
               <div class="channel-data">
                 <p>{{videoData.user?.userName}}</p>
                 <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
@@ -265,20 +282,13 @@ watch(videoData, (newData) => {
               {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}</button>
             </div>
             <div class="actions-wrapper">
-              <div class="control-button">
-                <button class="reaction-btn like control-button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="30" viewBox="-1 -1 12 32">
-                    <path d="M10 0 L10 30 L5 30 L5 15 L0 15 L10 0 Z"/>
-                  </svg>
-                  <span class="grade-count" aria-hidden="true">{{ formatter.countFormatter(videoData.likesCount) }}</span>
-                </button>
-                <button class="reaction-btn dislike control-button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="30" viewBox="-1 -1 12 32">
-                    <path d="M10 0 L10 30 L5 30 L5 15 L0 15 L10 0 Z" transform="rotate(180 5 14)"/>
-                  </svg>
-                  <span class="grade-count" aria-hidden="true">{{ formatter.countFormatter(videoData.dislikeCount) }}</span>
-                </button>
-              </div>
+
+              <ReactionBlock 
+                :reaction-status="videoData?.vote"
+                :likes-count="videoData?.likesCount" 
+                :dislike-count="videoData?.dislikeCount"
+                />
+                <!-- @update-reaction="updateReaction" -->
               <div class="secondary-actions">
                 <button class="control-button" @click.stop="handleShareClick">
                   Поделиться
@@ -313,7 +323,11 @@ watch(videoData, (newData) => {
 
           <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
         </section>
+
         <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
+        <CommentsPresentation
+          :video-id="Number(videoId)"
+        />
       </div>
          
       <aside class="side-recomendation">
@@ -454,40 +468,6 @@ watch(videoData, (newData) => {
 
 .actions-wrapper button:hover {
   background: #4A4947;
-}
-
-.reaction-btn {
-  padding: 0 0 0 10px;
-}
-
-.reaction-btn span {
-  display: inline-block;
-  padding-left: 10px;
-  font-size: 0.9rem;
-  line-height: 1.3;
-}
-
-.reaction-btn:hover {
-  background: #4A4947;
-}
-
-.reaction-btn:first-of-type::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 10%;
-  height: 80%;
-  width: 1px;
-  background-color: #f3f0e9;
-}
-
-.reaction-btn:first-of-type {
-  position: relative;
-  border-radius: 4px 0 0 4px;
-}
-
-.reaction-btn:last-of-type {
-  border-radius: 0 4px 4px 0;
 }
 
 .video-info {

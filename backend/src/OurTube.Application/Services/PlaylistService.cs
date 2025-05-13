@@ -82,7 +82,7 @@ namespace OurTube.Application.Services
             if (element != null)
                 return;
             
-            element = new PlaylistElement( videoId, playlistId, userId);
+            element = new PlaylistElement(playlistId, videoId, userId);
 
             _unitOfWork.PlaylistElements.Add(element);
 

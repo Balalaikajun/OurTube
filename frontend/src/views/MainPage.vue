@@ -8,7 +8,7 @@ import ShareOverlay from "../components/ShareOverlay.vue";
 import VideoCard from "../components/VideoCard.vue";
 import VideoCardSkeleton from "../components/VideoCardSkeleton.vue";
 import { API_BASE_URL } from "@/assets/config.js";
-import VideoContentPresentation from "@/components/VideoContentPresentation.vue";
+import VideoContentPresentation from "@/components/VideosPresentation.vue";
 
 const loadingMore = ref(false);
 const errorMessage = ref("");

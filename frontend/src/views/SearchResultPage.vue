@@ -2,7 +2,7 @@
     import { ref, watch } from 'vue';
     import { useRoute, useRouter } from 'vue-router';
     import MasterHead from '@/components/MasterHead.vue';
-    import VideoContentPresentation from '@/components/VideoContentPresentation.vue';
+    import VideoContentPresentation from '@/components/VideosPresentation.vue';
 
     const route = useRoute(); // Переименовано для ясности
     const searchResults = ref([]);

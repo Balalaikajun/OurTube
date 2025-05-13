@@ -86,31 +86,4 @@
         /* background: #F3F0E9; */
         background: transparent;
     }
-    .channel-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-    .video-thumbnail {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        background: #f39e60;
-    }     
-    .control-button svg {
-        display: inherit;
-        box-sizing: border-box;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .control-button svg path {
-        fill: none; 
-        stroke: #f3f0e9; 
-        stroke-width: 2;
-    }
-
-
 </style>

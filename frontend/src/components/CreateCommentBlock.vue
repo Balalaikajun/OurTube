@@ -72,7 +72,7 @@
         }
 
         try {
-            if(localStorage.getItem("token"))
+            if(!localStorage.getItem("token"))
             {
                 console.log("Токен не действителен"); //правки
                 confirm("Переадресация на страницу авторизации.")

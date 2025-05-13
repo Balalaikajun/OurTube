@@ -1,9 +1,9 @@
 <script setup>
     import { ref, onMounted, onUnmounted, computed, nextTick, watch  } from "vue";
     import { useRoute, useRouter } from 'vue-router';
-    import VideoCard from "../components/VideoCard.vue";
-    import KebabMenu from "../components/KebabMenu.vue";
-    import ShareOverlay from "../components/ShareOverlay.vue";
+    import VideoCard from "./VideoCard.vue";
+    import KebabMenu from "./KebabMenu.vue";
+    import ShareOverlay from "./ShareOverlay.vue";
     import LoadingState from "@/components/LoadingState.vue";
     import { API_BASE_URL } from "@/assets/config.js";
 

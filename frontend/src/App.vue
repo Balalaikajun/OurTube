@@ -1,4 +1,5 @@
 <script setup>
+    const token = localStorage.getItem("token")
 </script>
 
 <template>
