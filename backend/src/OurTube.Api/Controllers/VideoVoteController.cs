@@ -29,7 +29,7 @@ namespace OurTube.Api.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(ex.ToString());
             }
 
         }
@@ -47,7 +47,7 @@ namespace OurTube.Api.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(ex.ToString());
             }
 
         }

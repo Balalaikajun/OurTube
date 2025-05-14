@@ -91,7 +91,11 @@ namespace OurTube.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task RemoveVideoAsync(int playlistId, int videoId, string userId)
+        public async Task RemoveVideoAsync(
+            int playlistId, 
+            int videoId,
+            string userId,
+            bool suppressDomainEvent = false)
         {
             var playlist =await _unitOfWork.Playlists.GetAsync(playlistId);
 
@@ -106,7 +110,11 @@ namespace OurTube.Application.Services
             if (playlistElement == null)
                 return;
 
-            playlistElement.DeleteEvent(userId);
+            if (!suppressDomainEvent)
+            {
+                playlistElement.DeleteEvent(userId);
+            }
+            
             _unitOfWork.PlaylistElements.Remove(playlistElement);
             playlist.Count--;
 

@@ -38,7 +38,7 @@ public class PlaylistLikeHandler:
         }
         else
         {
-            await _playlistService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+            await _playlistService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId, true);
         }
     } 
     

@@ -22,8 +22,9 @@ public class Video
     [Required] public int ViewsCount { get; set; } = 0;
 
     [Required] public DateTime Created { get; private set; } = DateTime.UtcNow;
-    
-    public string ApplicationUserId { get; private set; } 
+
+    public string ApplicationUserId { get; private set; }
+
     //Navigation
     [Required]
     [ForeignKey(nameof(ApplicationUserId))]
@@ -32,15 +33,14 @@ public class Video
     [Required] public VideoPreview Preview { get; private set; }
 
     [Required] public VideoSource Source { get; private set; }
-    
-    [Required]
-    public TimeSpan Duration { get; private set; }
+
+    [Required] public TimeSpan Duration { get; private set; }
 
     public ICollection<VideoPlaylist> Files { get; private set; }
     public ICollection<VideoVote> Votes { get; private set; }
-    public ICollection<Comment> Comments { get; private set;}
-    public ICollection<VideoView> Views { get; private set;}
-    public ICollection<VideoTags> Tags { get;private set; }
+    public ICollection<Comment> Comments { get; private set; }
+    public ICollection<VideoView> Views { get; private set; }
+    public ICollection<VideoTags> Tags { get; private set; }
 
     public Video()
     {
@@ -65,20 +65,11 @@ public class Video
         Tags = tags;
         Duration = duration;
     }
-    
-    public void UpdateLikesCount(int delta)
-    {
-        if (LikesCount + delta < 0)
-            throw new InvalidOperationException("Число лайков не может быть меньше нуля");
 
-        LikesCount += delta;
-    }
+    public void UpdateLikesCount(int delta) =>
+        LikesCount = Math.Max(0, LikesCount + delta);
 
-    public void UpdateDislikesCount(int delta)
-    {
-        if (DislikeCount + delta < 0)
-            throw new InvalidOperationException("Число лайков не может быть меньше нуля");
 
-        DislikeCount += delta;
-    }
+    public void UpdateDislikesCount(int delta) =>
+        DislikeCount = Math.Max(0, DislikeCount + delta);
 }
