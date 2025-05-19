@@ -18,7 +18,7 @@ namespace OurTube.Infrastructure.Persistence
         public IRepository<VideoVote> VideoVotes { get; private set; }
         public IViewRepository Views { get; private set; }
         public ICommentRepository Comments { get; private set; }
-        public IRepository<CommentVote> CommentVoices { get; private set; }
+        public ICommentVoteRepository CommentVoices { get; private set; }
         public IRepository<Tag> Tags { get; private set; }
         public IRepository<VideoTags> VideoTags { get; private set; }
 
@@ -38,7 +38,7 @@ namespace OurTube.Infrastructure.Persistence
             VideoVotes = new Repository<VideoVote>(_context);
             Views = new ViewRepository(_context);
             Comments = new CommentRepository(_context);
-            CommentVoices = new Repository<CommentVote>(_context);
+            CommentVoices = new CommentVoteRepository(_context);
             Tags = new Repository<Tag>(_context);
             VideoTags = new Repository<VideoTags>(_context);
         }

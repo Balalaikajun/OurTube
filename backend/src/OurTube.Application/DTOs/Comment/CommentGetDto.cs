@@ -10,6 +10,7 @@ namespace OurTube.Application.DTOs.Comment
         public DateTime Updated { get; set; }
         public int? ParentId { get; set; }
         public bool Edited { get; set; } = false;
+        public bool? Vote { get; set; }
         public int LikesCount { get; set; }
         public int DisLikesCount { get; set; }
         //Navigation

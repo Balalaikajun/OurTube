@@ -14,7 +14,7 @@ namespace OurTube.Domain.Interfaces
         IRepository<VideoVote> VideoVotes { get; }
         IViewRepository Views { get; }
         ICommentRepository Comments { get; }
-        IRepository<CommentVote> CommentVoices { get; }
+        ICommentVoteRepository CommentVoices { get; }
         IRepository<Tag> Tags { get; }
         IRepository<VideoTags> VideoTags { get; }
         

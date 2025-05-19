@@ -22,7 +22,7 @@ namespace OurTube.Infrastructure.Persistence.Repositories
                 .Include(c => c.Childs)
                     .ThenInclude(c => c.User)
                 .Where(c => c.VideoId == videoId && c.ParentId == parentId)
-                .OrderBy(c => c.LikesCount)
+                .OrderByDescending(c => c.LikesCount)
                 .Skip(after)
                 .Take(limit)
                 .ToListAsync();

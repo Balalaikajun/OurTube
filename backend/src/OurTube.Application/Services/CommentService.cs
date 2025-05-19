@@ -83,7 +83,7 @@ namespace OurTube.Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<List<CommentGetDto>> GetChildsWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
+        public async Task<PagedCommentDto> GetChildsWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
         {
             if (!await _unitOfWork.Videos.ContainsAsync(videoId))
                 throw new InvalidOperationException("Видео не найдено");
@@ -92,9 +92,30 @@ namespace OurTube.Application.Services
                 throw new InvalidOperationException("Комментарий не найден");
 
             var comments = await _unitOfWork.Comments
-                            .GetWithLimitAsync(videoId, limit, after, parentId);
+                            .GetWithLimitAsync(videoId, limit+1, after, parentId);
 
-            return _mapper.Map<List<CommentGetDto>>(comments);
+            var hasMore = comments.Count() > after;
+            var commentsDto = _mapper.Map<IEnumerable<CommentGetDto>>(comments.Take(limit));
+            
+            return new PagedCommentDto{ Comments = commentsDto,NextAfter = limit+after, HasMore = hasMore};
+        }
+        
+        public async Task<PagedCommentDto> GetChildsWithLimitAsync(int videoId, int limit, int after, string userId, int? parentId = null)
+        {
+            var result = await GetChildsWithLimitAsync(videoId, limit, after, parentId);
+
+            if(!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
+                return result;
+
+            var commnetsIds = result.Comments.Select(c => c.Id).ToList();
+            var commentVotes = await _unitOfWork.CommentVoices.GetByUserIdAndCommentIdsAsync(userId, commnetsIds);
+
+            foreach (var vote in commentVotes)
+            {
+                result.Comments.First(c => c.Id == vote.CommentId).Vote = vote.Type;
+            }
+            
+            return result;
         }
 
 

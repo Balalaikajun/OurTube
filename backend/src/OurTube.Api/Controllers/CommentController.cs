@@ -87,21 +87,33 @@ namespace OurTube.Api.Controllers
              [FromQuery] int after = 0,
              [FromQuery] int? parentId = null)
         {
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
             try
             {
-                var result = await _commentService.GetChildsWithLimitAsync(
-                videoId,
-                limit,
-                after,
-                parentId);
-                var nextAfter = after + limit;
-
-
-                return Ok(new PagedCommentDto()
+                PagedCommentDto result;
+                if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    Comments = result,
-                    NextAfter = nextAfter
-                });
+                    result = await _commentService.GetChildsWithLimitAsync(
+                        videoId,
+                        limit,
+                        after,
+                        userId,
+                        parentId);
+                }
+                else
+                {
+                    result = await _commentService.GetChildsWithLimitAsync(
+                        videoId,
+                        limit,
+                        after,
+                        parentId);
+                }
+                
+
+
+                return Ok(result);
             }
             catch (KeyNotFoundException ex)
             {
