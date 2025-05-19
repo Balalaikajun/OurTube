@@ -112,7 +112,7 @@ const fetchVideoData = async () => {
     document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
 
     nextTick(() => {
-      checkTextOverflow(descriptionElement.value);
+      checkTextOverflow(descriptionElement.value, "Описание к видео");
     });
   } catch (err) {
     if (err.response) {
@@ -141,44 +141,17 @@ const handleShareClick = () => {
   }
 };
 
-// const checkTextOverflow = () => {
-//   nextTick(() => {
-//     // Используем ref для элемента описания
-//     const descElement = descriptionElement.value;
-//     if (descElement) {
-//       // Проверяем, что scrollHeight и clientHeight являются числами и больше 0
-//       if (descElement.scrollHeight > 0 && descElement.clientHeight > 0) {
-//          isDescriptionClamped.value = descElement.scrollHeight > descElement.clientHeight;
-//          console.log(`Description scrollHeight: ${descElement.scrollHeight}, clientHeight: ${descElement.clientHeight}, isClamped: ${isDescriptionClamped.value}`);
-//       } else {
-//          // Если размеры нулевые или не определены, возможно, элемент ещё не отрисован
-//          isDescriptionClamped.value = false; // Или true, в зависимости от желаемого поведения
-//          console.warn("Description element has zero or undefined dimensions, cannot check overflow.");
-//       }
-//     } else {
-//         console.warn("Description element ref is not set.");
-//         isDescriptionClamped.value = false;
-//     }
-//   });
-// };
-
-// const updateReaction = ({ status, likes, dislikes }) => {
-//   videoData.value.vote = status;
-//   videoData.value.likesCount = likes;
-//   videoData.value.dislikeCount = dislikes;
-// };
-
 onMounted(() => {
   console.log("VideoPage mounted");
-  console.log(localStorage.getItem('token'))
+  // console.log(localStorage.getItem('token'))
   fetchVideoData(); // Вызываем при первом монтировании
   document.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('resize', checkTextOverflow(descriptionElement.value, "VideoPage")); // Проверяем при изменении размера окна
+  window.addEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Проверяем при изменении размера окна
 });
 onUnmounted(() => {
   console.log("Размонтирование VideoPage");
   document.removeEventListener('keydown', handleKeyDown);
-  window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "VideoPage")); // Удаляем при размонтировании
+  window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
 
   // Проверяем и очищаем плеер
   if (Player.value) {
@@ -233,7 +206,7 @@ watch(videoId, (newVideoId, oldVideoId) => {
 watch(videoData, (newData) => {
     if (newData) {
         nextTick(() => {
-            checkTextOverflow(descriptionElement.value, "VideoPage");
+            checkTextOverflow(descriptionElement.value, "Описание к видео");
         });
     }
 });
@@ -283,11 +256,12 @@ watch(videoData, (newData) => {
             </div>
             <div class="actions-wrapper">
 
-              <ReactionBlock 
+              <ReactionBlock
+                :context="'video'"
                 :reaction-status="videoData?.vote"
                 :likes-count="videoData?.likesCount" 
-                :dislike-count="videoData?.dislikeCount"
-                />
+                :dislikes-count="videoData?.dislikesCount"
+              />
                 <!-- @update-reaction="updateReaction" -->
               <div class="secondary-actions">
                 <button class="control-button" @click.stop="handleShareClick">
@@ -307,7 +281,7 @@ watch(videoData, (newData) => {
             </div>
             <p 
               class="video-description" 
-              :class="{ 'clamped': !showFullDescription }"
+              :class="{ 'clamped': !showFullDescription}"
               ref="descriptionElement"
             >
               {{ videoData.description }}

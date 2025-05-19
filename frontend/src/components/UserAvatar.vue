@@ -20,15 +20,14 @@
     <div class="avatar-container">
         <!-- Показываем изображение только если есть путь И не было ошибки -->
         <img
-        v-if="showImage"
-        class="user-avatar"
-        :src="props.userAvatarPath"
-        alt="User avatar"
+            v-if="showImage"
+            class="user-avatar"
+            :src="props.userAvatarPath"
+            alt="User avatar"
         >
-    
-        <!-- Fallback SVG -->
+
         <svg 
-        v-else
+            v-else
             class="user-avatar"
             viewBox="0 0 40 40"
             style="fill: #F3F0E9"

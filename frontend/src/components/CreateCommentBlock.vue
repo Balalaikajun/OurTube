@@ -20,6 +20,8 @@
 
     const router = useRouter();
 
+    const emit = defineEmits(['close']);
+
     const { register, unregister } = injectFocusEngine();
 
     const userAvatar = ref('/default-avatar.jpg'); // Путь к дефолтному аватару
@@ -27,7 +29,6 @@
     const textareaRef = ref(null);
     const showButtons = ref(false);
     const errorMessage = ref("");
-    const parentId = ref(null);
 
     const api = axios.create({
         baseURL: API_BASE_URL,
@@ -53,14 +54,20 @@
         setTimeout(() => {
             if (!document.activeElement?.closest('.comment-create')) {
             unregister('commentBlock');
-            showButtons.value = false;
             }
         }, 100);        
     };
 
     const handleCancel = () => {
-        textareaRef.value.blur();
         commentText.value = '';
+        textareaRef.value.blur();
+        textareaRef.value.style.height = 'auto';
+        showButtons.value = false;
+        console.log(props.parentId)
+        if (props.parentId != null)
+        {
+            emit('close');
+        }
     };
 
     const handleComment = async () => {
@@ -82,7 +89,7 @@
             const response = await api.post('/api/Video/Comment', {
                 videoId: props.videoId,
                 text: commentText.value,
-                parentId: parentId.value
+                parentId: props.parentId
             });
 
             // Успешная отправка
@@ -112,51 +119,44 @@
 
     onMounted(() => {
         adjustHeight();
-        console.log(props.videoId)
     });
 </script>
 
 <template>
     <div class="comment-create">
         <UserAvatar/>
-      <!-- <img 
-        @error="event => event.target.style.display = 'none'" 
-        class="user-avatar" 
-        :src="data" 
-        alt="User avatar"
-      > -->
-      <div class="comment-container">
-        <textarea  
-          ref="textareaRef"
-          @focus="handleFocus"
-          @blur="handleBlur"
-          @input="adjustHeight" 
-          v-model="commentText" 
-          class="component-input" 
-          placeholder="Комментарий" 
-          rows="1"
-        ></textarea>
-        <div v-if="showButtons" class="functional-buttons-block">
-          <button 
-            @click="handleCancel" 
-            @mousedown.prevent
-            class="control-button comment-button"
-          >
-            Отмена
-          </button>
-          <button 
-            class="control-button comment-button"
-            :class="{ 
-              'disabled-button': !commentText.trim(), 
-              'comment-isFilled': commentText.trim() 
-            }"
-            :disabled="!commentText.trim()"
-            @click="handleComment" 
-          >
-            Комментировать
-          </button>
+        <div class="comment-container">
+            <textarea  
+            ref="textareaRef"
+            @focus="handleFocus"
+            @blur="handleBlur"
+            @input="adjustHeight" 
+            v-model="commentText" 
+            class="component-input" 
+            placeholder="Комментарий" 
+            rows="1"
+            ></textarea>
+            <div v-if="showButtons" class="functional-buttons-block">
+            <button 
+                @click="handleCancel" 
+                @mousedown.prevent
+                class="control-button comment-button"
+            >
+                Отмена
+            </button>
+            <button 
+                class="control-button comment-button"
+                :class="{ 
+                'disabled-button': !commentText.trim(), 
+                'comment-isFilled': commentText.trim() 
+                }"
+                :disabled="!commentText.trim()"
+                @click="handleComment" 
+            >
+                Комментировать
+            </button>
+            </div>
         </div>
-      </div>
     </div>
 </template>
 
@@ -200,6 +200,7 @@
         box-sizing: border-box;
         border-radius: 4px;
         padding: 10px;
+        font-size: 0.875rem;
     }
     .disabled-button {
         cursor: default !important;

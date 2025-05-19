@@ -5,9 +5,14 @@
 
     const props = defineProps(
         {
+            context: {
+                type: String,
+                default: 'comment',
+                validator: (value) => ['comment', 'video'].includes(value)
+            },
             reactionStatus: {
                 type: [Boolean, null], // Accept both Boolean and null
-                required: true,
+                // required: true,
                 default: null
             },
             likesCount: {
@@ -15,7 +20,7 @@
                 required: true,
                 default: 0
             },
-            dislikeCount: {
+            dislikesCount: {
                 type: Number,
                 required: true,
                 default: 0
@@ -35,8 +40,9 @@ const api = axios.create({
 
 const localReaction = ref(props.reactionStatus);
 const localLikesCount = ref(props.likesCount);
-const localDislikesCount = ref(props.dislikeCount);
-const videoId = inject('videoId');
+const localDislikesCount = ref(props.dislikesCount);
+const videoId = inject('videoId', null); // Обязательно для видео и комментариев
+const commentId = inject('commentId', null); // Необязательно, по умолчанию `null`
 const isProcessing = ref(false);
 
 // Синхронизация с пропсами
@@ -48,7 +54,7 @@ watch(() => props.likesCount, (newVal) => {
   localLikesCount.value = newVal;
 });
 
-watch(() => props.dislikeCount, (newVal) => {
+watch(() => props.dislikesCount, (newVal) => {
   localDislikesCount.value = newVal;
 });
 
@@ -89,7 +95,8 @@ const handleReaction = async (isLike) => {
                 localLikesCount.value--;
                 localReaction.value = null
                 console.log("Удаление лайка", localReaction.value)
-                const response = await api.delete(`/api/Video/${videoId.value}/vote`);
+                const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
+                const response = await api.delete(responseContext);
             }
             else
             {
@@ -100,8 +107,9 @@ const handleReaction = async (isLike) => {
                 localLikesCount.value++;
                 localReaction.value = true
                 console.log("Смена дизлайка на лайк или добавление лайка", localReaction.value)
-                const response = await api.post(`/api/Video/${videoId.value}/vote`, 
-                    localReaction.value
+                const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
+                const response = await api.post(responseContext, 
+                    true
                 );
             }
         break
@@ -111,7 +119,8 @@ const handleReaction = async (isLike) => {
                 localDislikesCount.value--;
                 localReaction.value = null;
                 console.log("Удаление дизлайка", localReaction.value)
-                const response = await api.delete(`/api/Video/${videoId.value}/vote`);
+                const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
+                const response = await api.delete(responseContext);
             }
             else
             {
@@ -123,8 +132,9 @@ const handleReaction = async (isLike) => {
                 localDislikesCount.value++;
                 localReaction.value = false
                 console.log("Смена лайка на дизлайк или добавление дизлайка", localReaction.value)
-                const response = await api.post(`/api/Video/${videoId.value}/vote`, 
-                    localReaction.value
+                const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
+                const response = await api.post( responseContext, 
+                    false
                 );
             }
         break

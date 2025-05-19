@@ -41,25 +41,18 @@
             error.value = null;
 
             if (reset) {
-            commentsData.value = [];
-            lastCommentId.value = null;
-            hasMore.value = true;
+                commentsData.value = [];
+                lastCommentId.value = null;
+                hasMore.value = true;
             }
-
-            // const params = {
-            // limit: props.initialLimit
-            // };
-
-            // if (lastCommentId.value && !reset) {
-            //     params.after = lastCommentId.value;
-            // }
 
             const response = await api.get(`/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${nextAfter.value}`);
             const newComments = response.data?.comments || [];
             
             if (newComments.length > 0) {
-            commentsData.value = reset ? newComments : [...commentsData.value, ...newComments];
-            lastCommentId.value = newComments[newComments.length - 1].id;
+                commentsData.value = reset ? newComments : [...commentsData.value, ...newComments];
+                lastCommentId.value = newComments[newComments.length - 1].id;
+                console.log(commentsData.value)
             }
 
             hasMore.value = newComments.length >= props.initialLimit;
@@ -89,27 +82,32 @@
 </script>
 
 <template>
-    <div>
+    <div class="comments-wrapper">
         <LoadingState v-if="isLoading" />
-        <CommentBlock
-            v-else
-          v-for="comment in commentsData"
-          :key="comment.id"
-          :video-id="props.videoId"
-          :parent-id="comment.parentId || null"
-          :comment-text="comment.text"
-          :create-date="comment.createdAt"
-          :update-date="comment.updatedAt"
-          :likes-count="comment.likesCount"
-          :dislikes-count="comment.dislikesCount"
-          :user-info="comment.user"
-          :childs="comment.childs || []"
-        />
+        <template v-if="!isLoading">
+            <CommentBlock
+                v-for="comment in commentsData"
+                :key="comment.id"
+                :video-id="props.videoId"
+                :parent-id="comment.parentId || null"
+                :id="comment.id"
+                :comment-text="comment.text"
+                :create-date="formatter.formatRussianDate(comment.created)"
+                :update-date="formatter.formatRussianDate(comment.updated)"
+                :likes-count="comment.likesCount"
+                :dislikes-count="comment.dislikesCount"
+                :user-info="comment.user"
+                :childs="comment.childs || []"
+            />
+        </template>
     </div>
 </template>
 
 <style scoped>
-    div {
+    .comments-wrapper {
+        display: flex;
+        flex-direction: column;
         margin-top: 40px;
+        gap: 10px;
     }
 </style>
