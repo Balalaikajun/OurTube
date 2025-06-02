@@ -14,7 +14,7 @@ namespace OurTube.Application.DTOs.Comment
         public bool IsDeleted { get; set; } 
         public bool? Vote { get; set; }
         public int LikesCount { get; set; }
-        public int DisLikesCount { get; set; }
+        public int DislikesCount { get; set; }
         //Navigation
         public ApplicationUserDto User { get; set; }
         public ICollection<CommentGetDto> Childs { get; set; }

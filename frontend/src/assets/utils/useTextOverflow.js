@@ -4,7 +4,7 @@ export default function useTextOverflow() {
     const isClamped = ref(false)
     
     const checkTextOverflow = (element, from = "элемент") => {
-        console.log(from)
+        // console.log(from)
         if (!element) {
             console.warn("Element is null or undefined");
             isClamped.value = false;

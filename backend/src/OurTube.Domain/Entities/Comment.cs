@@ -28,7 +28,7 @@ namespace OurTube.Domain.Entities
         [Required]
         public int LikesCount { get; set; } = 0;
         [Required]
-        public int DisLikesCount { get; set; } = 0;
+        public int DislikesCount { get; set; } = 0;
 
 
 

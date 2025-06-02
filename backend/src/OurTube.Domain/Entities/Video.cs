@@ -15,7 +15,7 @@ public class Video
 
     [Required] public int LikesCount { get; private set; } = 0;
 
-    [Required] public int DislikeCount { get; private set; } = 0;
+    [Required] public int DislikesCount { get; private set; } = 0;
 
     [Required] public int CommentsCount { get; set; } = 0;
 
@@ -71,5 +71,5 @@ public class Video
 
 
     public void UpdateDislikesCount(int delta) =>
-        DislikeCount = Math.Max(0, DislikeCount + delta);
+        DislikesCount = Math.Max(0, DislikesCount + delta);
 }

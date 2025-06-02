@@ -1,222 +1,251 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
-import { useRoute } from "vue-router";
-import axios from 'axios';
-import MasterHead from "../components/MasterHead.vue";
-import VideoPlayer from "@/components/VideoPlayer.vue";
-import LoadingState from "@/components/LoadingState.vue"; // Импортируем компонент загрузки
-import ShareOverlay from "@/components/ShareOverlay.vue";
-import CreateCommentBlock from "@/components/CreateCommentBlock.vue";
-import VideoContentPresentation from "@/components/VideosPresentation.vue";
-import CommentsPresentation from "@/components/CommentsPresentation.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
-import ReactionBlock from "@/components/ReactionBlock.vue";
-import { API_BASE_URL } from "@/assets/config.js";
-import { MINIO_BASE_URL } from "@/assets/config.js";
-import formatter from "@/assets/utils/formatter.js";
-import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
-import useTextOverflow from "@/assets/utils/useTextOverflow";
+  import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
+  import { useRoute } from "vue-router";
+  import axios from 'axios';
+  import MasterHead from "../components/Solid/MasterHead.vue";
+  import ConfirmPannel from "@/components/Solid/ConfirmPannel.vue";
+  import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
+  import VideoPlayer from "@/components/Video/VideoPlayer.vue";
+  import LoadingState from "@/components/Solid/LoadingState.vue"; // Импортируем компонент загрузки
+  import ShareOverlay from "@/components/Kebab/ShareOverlay.vue";
+  import CreateCommentBlock from "@/components/Comment/CreateCommentBlock.vue";
+  import VideoPresentation from "@/components/Video/VideosPresentation.vue";
+  import CommentsPresentation from "@/components/Comment/CommentsPresentation.vue";
+  import UserAvatar from "@/components/Solid/UserAvatar.vue";
+  import ReactionBlock from "@/components/Solid/ReactionBlock.vue";
+  import { API_BASE_URL } from "@/assets/config.js";
+  import { MINIO_BASE_URL } from "@/assets/config.js";
+  import formatter from "@/assets/utils/formatter.js";
+  import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
+  import useTextOverflow from "@/assets/utils/useTextOverflow";
 
-const route = useRoute();
-const videoPage = ref(null);
-const videoId = computed(() => route.params.id);
-const Player = ref(null);
-const addComment = ref(null);
-const videoData = ref(null);
-const hlsUrl = ref("");
-const isLoading = ref(true); // Добавляем состояние загрузки
-const error = ref(null); // Добавляем обработку ошибок
-const shareRef = ref(null);
+  const route = useRoute();
+  const videoPage = ref(null);
+  const videoId = computed(() => route.params.id);
+  const Player = ref(null);
+  const addComment = ref(null);
+  const videoData = ref(null);
+  const hlsUrl = ref("");
+  const isLoading = ref(true); // Добавляем состояние загрузки
+  const error = ref(null); // Добавляем обработку ошибок
 
-provide('videoId', videoId);
+  const shareRef = ref(null);
+  const confirmRef = ref(null);
+  const commentsRef = ref(null);
+  const playlistRef =ref(null);
 
-const showFullDescription = ref(false);
-const { isClamped: isDescriptionClamped, checkTextOverflow } = useTextOverflow()
-const descriptionElement = ref(null); 
+  const confirmContext = ref("")
 
-const { focusedElement } = useFocusEngine();
+  provide('videoId', videoId);
 
-const ensureHttpUrl = (url) => {
-  if (!url) return '';
-  return url.startsWith('http') ? url : `http://${url}`;
-};
+  const showFullDescription = ref(false);
+  const { isClamped: isDescriptionClamped, checkTextOverflow } = useTextOverflow()
+  const descriptionElement = ref(null); 
 
-const api = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true, // Важно для передачи кук
-    headers: {
-        'Content-Type': 'application/json'
+  const { focusedElement } = useFocusEngine();
+
+  const ensureHttpUrl = (url) => {
+    if (!url) return '';
+    return url.startsWith('http') ? url : `http://${url}`;
+  };
+
+  const api = axios.create({
+      baseURL: API_BASE_URL,
+      withCredentials: true, // Важно для передачи кук
+      headers: {
+          'Content-Type': 'application/json'
+      }
+  });
+
+  const handleKeyDown = (e) => {
+    // Добавьте проверку, что плеер инициализирован
+    if (focusedElement.value || !Player.value) return;
+
+    if (e.code === 'KeyF') {
+      e.preventDefault();
+      Player.value.toggleFullscreen();
+    } else if (e.code === 'Space') {
+      e.preventDefault();
+      if (Player.value.videoPlayerRef) {
+        Player.value.videoPlayerRef.paused
+          ? Player.value.videoPlayerRef.play()
+          : Player.value.videoPlayerRef.pause();
+      }
     }
-});
+  };
 
-const handleKeyDown = (e) => {
-  // Добавьте проверку, что плеер инициализирован
-  if (focusedElement.value || !Player.value) return;
+  const fetchVideoData = async () => {
+    isLoading.value = true;
+    error.value = null;
+    videoData.value = null; // Очищаем предыдущие данные
+    hlsUrl.value = ""; // Очищаем предыдущий URL видео
 
-  if (e.code === 'KeyF') {
-    e.preventDefault();
-    Player.value.toggleFullscreen();
-  } else if (e.code === 'Space') {
-    e.preventDefault();
-    if (Player.value.videoPlayerRef) {
-      Player.value.videoPlayerRef.paused
-        ? Player.value.videoPlayerRef.play()
-        : Player.value.videoPlayerRef.pause();
-    }
-  }
-};
+    console.log("Fetching video data for ID:", videoId.value); // Лог
 
-const fetchVideoData = async () => {
-  isLoading.value = true;
-  error.value = null;
-  videoData.value = null; // Очищаем предыдущие данные
-  hlsUrl.value = ""; // Очищаем предыдущий URL видео
-
-  console.log("Fetching video data for ID:", videoId.value); // Лог
-
-  if (!videoId.value) {
-    error.value = "Идентификатор видео не предоставлен.";
-    isLoading.value = false;
-    return;
-  }
-
-  try {
-    const response = await api.get(`/api/Video/${videoId.value}`);
-    const data = response.data;
-
-    console.log(data, "Информация о видео");
-
-    if (!data) {
-      throw new Error("Получены пустые данные видео");
+    if (!videoId.value) {
+      error.value = "Идентификатор видео не предоставлен.";
+      isLoading.value = false;
+      return;
     }
 
-    if (!data.files || data.files.length === 0) {
-      console.warn(`Видео ${videoId.value} не содержит файлов.`);
-    }
+    try {
+      const response = await api.get(`/api/Video/${videoId.value}`);
+      const data = response.data;
 
-    videoData.value = data;
+      console.log(data, "Информация о видео");
 
-    if (data.files?.length) {
-      const file = data.files[0]; // первый файл
-      if (file.fileName) {
-        hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
-        console.log("HLS URL:", hlsUrl.value);
+      if (!data) {
+        throw new Error("Получены пустые данные видео");
+      }
+
+      if (!data.files || data.files.length === 0) {
+        console.warn(`Видео ${videoId.value} не содержит файлов.`);
+      }
+
+      videoData.value = data;
+
+      if (data.files?.length) {
+        const file = data.files[0]; // первый файл
+        if (file.fileName) {
+          hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
+          console.log("HLS URL:", hlsUrl.value);
+        } else {
+          console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
+          hlsUrl.value = "";
+        }
       } else {
-        console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
         hlsUrl.value = "";
       }
-    } else {
+
+      document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
+
+      nextTick(() => {
+        checkTextOverflow(descriptionElement.value, "Описание к видео");
+      });
+    } catch (err) {
+      if (err.response) {
+        // Ошибка от сервера
+        error.value = err.response.data?.title || 'Ошибка загрузки видео';
+        console.error("Ошибка API:", err.response);
+      } else {
+        // Ошибка сети или другая
+        error.value = err.message || 'Ошибка при загрузке видео';
+        console.error("Ошибка при загрузке видео:", err);
+      }
+      // Очистка данных при ошибке
+      videoData.value = null;
       hlsUrl.value = "";
+    } finally {
+      isLoading.value = false;
     }
+  };
 
-    document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
-
-    nextTick(() => {
-      checkTextOverflow(descriptionElement.value, "Описание к видео");
-    });
-  } catch (err) {
-    if (err.response) {
-      // Ошибка от сервера
-      error.value = err.response.data?.title || 'Ошибка загрузки видео';
-      console.error("Ошибка API:", err.response);
+  const handleShareClick = () => {
+      // Проверяем, что ссылка существует и имеет метод
+      if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
+      shareRef.value.openMenu();
     } else {
-      // Ошибка сети или другая
-      error.value = err.message || 'Ошибка при загрузке видео';
-      console.error("Ошибка при загрузке видео:", err);
+      console.error('ShareOverlay ref is not properly set or missing openMenu method');
     }
-    // Очистка данных при ошибке
+  };
+
+  const handleDeleteComment = () => {
+      confirmContext.value = "Удаление комментария";
+      confirmRef.value.openMenu();
+  };
+
+  const handleConfirmDelete = () => {
+      if (commentsRef.value) {
+          commentsRef.value.deleteComment();
+      }
+  };
+
+  const saveOpen = () => {
+      playlistRef.value.toggleMenu();
+  }
+
+  onMounted(() => {
+    console.log("VideoPage mounted");
+    // console.log(localStorage.getItem('token'))
+    fetchVideoData(); // Вызываем при первом монтировании
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Проверяем при изменении размера окна
+  });
+  onUnmounted(() => {
+    console.log("Размонтирование VideoPage");
+    document.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
+
+    // Проверяем и очищаем плеер
+    if (Player.value) {
+      console.log("Player ref существует, попытка очистки");
+      if (typeof Player.value.destroyPlayer === 'function') {
+        console.log("Вызов destroyPlayer");
+        Player.value.destroyPlayer();
+      }
+      // Очистка video элемента
+      if (Player.value.videoPlayerRef) {
+          console.log("Ручная очистка video элемента");
+          try {
+              Player.value.videoPlayerRef.pause();
+              // Важно: удаляем src, а не устанавливаем null или пустую строку,
+              // чтобы полностью отсоединить ресурс. load() затем очистит буфер.
+              Player.value.videoPlayerRef.removeAttribute('src');
+              Player.value.videoPlayerRef.load();
+          } catch (e) {
+              console.error("Ошибка при ручной очистке video элемента:", e);
+          }
+      }
+    } else {
+      console.log("Player ref уже null или недоступен, очистка не требуется");
+    }
+
+    // Очистка других ресурсов
+    if (window.controlPanelTimeout) {
+      clearTimeout(window.controlPanelTimeout);
+    }
+
+    // Очистка данных компонента при размонтировании, если это необходимо
     videoData.value = null;
     hlsUrl.value = "";
-  } finally {
-    isLoading.value = false;
-  }
-};
+  });
 
-const handleShareClick = () => {
-    // Проверяем, что ссылка существует и имеет метод
-    if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
-    shareRef.value.openMenu();
-  } else {
-    console.error('ShareOverlay ref is not properly set or missing openMenu method');
-  }
-};
+  // Добавляем watcher для videoId
+  watch(videoId, (newVideoId, oldVideoId) => {
+      console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
+      // Если новый videoId отличается от старого и не пустой, загружаем новые данные
+      if (newVideoId && newVideoId !== oldVideoId) {
+          fetchVideoData();
+      } else if (!newVideoId) {
+          // Обработка случая, когда videoId становится пустым (например, при ошибке маршрутизации)
+          videoData.value = null;
+          hlsUrl.value = "";
+          isLoading.value = false;
+          error.value = "Идентификатор видео отсутствует.";
+      }
+  });
 
-onMounted(() => {
-  console.log("VideoPage mounted");
-  // console.log(localStorage.getItem('token'))
-  fetchVideoData(); // Вызываем при первом монтировании
-  document.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Проверяем при изменении размера окна
-});
-onUnmounted(() => {
-  console.log("Размонтирование VideoPage");
-  document.removeEventListener('keydown', handleKeyDown);
-  window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
-
-  // Проверяем и очищаем плеер
-  if (Player.value) {
-    console.log("Player ref существует, попытка очистки");
-    if (typeof Player.value.destroyPlayer === 'function') {
-      console.log("Вызов destroyPlayer");
-      Player.value.destroyPlayer();
-    }
-     // Очистка video элемента
-    if (Player.value.videoPlayerRef) {
-        console.log("Ручная очистка video элемента");
-        try {
-            Player.value.videoPlayerRef.pause();
-            // Важно: удаляем src, а не устанавливаем null или пустую строку,
-            // чтобы полностью отсоединить ресурс. load() затем очистит буфер.
-            Player.value.videoPlayerRef.removeAttribute('src');
-            Player.value.videoPlayerRef.load();
-        } catch (e) {
-            console.error("Ошибка при ручной очистке video элемента:", e);
-        }
-    }
-  } else {
-    console.log("Player ref уже null или недоступен, очистка не требуется");
-  }
-
-  // Очистка других ресурсов
-  if (window.controlPanelTimeout) {
-    clearTimeout(window.controlPanelTimeout);
-  }
-
-  // Очистка данных компонента при размонтировании, если это необходимо
-  videoData.value = null;
-  hlsUrl.value = "";
-});
-
-// Добавляем watcher для videoId
-watch(videoId, (newVideoId, oldVideoId) => {
-    console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
-    // Если новый videoId отличается от старого и не пустой, загружаем новые данные
-    if (newVideoId && newVideoId !== oldVideoId) {
-        fetchVideoData();
-    } else if (!newVideoId) {
-        // Обработка случая, когда videoId становится пустым (например, при ошибке маршрутизации)
-        videoData.value = null;
-        hlsUrl.value = "";
-        isLoading.value = false;
-        error.value = "Идентификатор видео отсутствует.";
-    }
-});
-
-// Дополнительный watcher для videoData, чтобы обновить описание после загрузки
-watch(videoData, (newData) => {
-    if (newData) {
-        nextTick(() => {
-            checkTextOverflow(descriptionElement.value, "Описание к видео");
-        });
-    }
-});
+  // Дополнительный watcher для videoData, чтобы обновить описание после загрузки
+  watch(videoData, (newData) => {
+      if (newData) {
+          nextTick(() => {
+              checkTextOverflow(descriptionElement.value, "Описание к видео");
+          });
+      }
+  });
 </script>
 
 <template ref="videoPage">
   <MasterHead />
+  <ConfirmPannel 
+    ref="confirmRef" 
+    :action="confirmContext"
+    @confirm="handleConfirmDelete"
+  />
+  <PlaylistOverlay ref="playlistRef" :video-id="Number(videoId)"/>
   <ShareOverlay
     ref="shareRef" 
-    :videoId="videoId"
+    :video-id="videoId"
   />
   <main class="video-page">
     <LoadingState v-if="isLoading" />
@@ -267,7 +296,7 @@ watch(videoData, (newData) => {
                 <button class="control-button" @click.stop="handleShareClick">
                   Поделиться
                 </button>
-                <button class="control-button">
+                <button class="control-button" @click.stop="saveOpen">
                   Сохранить
                 </button>
               </div>
@@ -300,12 +329,14 @@ watch(videoData, (newData) => {
 
         <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
         <CommentsPresentation
+          ref="commentsRef"
           :video-id="Number(videoId)"
+          @delete="handleDeleteComment"
         />
       </div>
          
       <aside class="side-recomendation">
-        <VideoContentPresentation
+        <VideoPresentation
           context="recomend"
           :row-layout=true
         />

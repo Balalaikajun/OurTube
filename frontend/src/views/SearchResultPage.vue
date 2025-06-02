@@ -1,8 +1,8 @@
 <script setup>
     import { ref, watch } from 'vue';
     import { useRoute, useRouter } from 'vue-router';
-    import MasterHead from '@/components/MasterHead.vue';
-    import VideoContentPresentation from '@/components/VideosPresentation.vue';
+    import MasterHead from '@/components/Solid/MasterHead.vue';
+    import VideoPresentation from '@/components/Video/VideosPresentation.vue';
 
     const route = useRoute(); // Переименовано для ясности
     const searchResults = ref([]);
@@ -21,7 +21,7 @@
 
 <template>
     <MasterHead />
-    <VideoContentPresentation
+    <VideoPresentation
         context="search"
         :search-query="searchQuery"
         :is-infinite-scroll="true"
