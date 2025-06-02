@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
@@ -5,26 +7,26 @@ namespace OurTube.Application.Services;
 
 public class TagService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IApplicationDbContext _dbContext;
 
-    public TagService(IUnitOfWork unitOfWork)
+    public TagService(IApplicationDbContext dbContext)
     {
-        _unitOfWork = unitOfWork;
+        _dbContext = dbContext;
     }
 
     public async Task<Tag> GetOrCreate(string name)
     {
         var newTag = new Tag(name);
-        
-        var tag = (await _unitOfWork.Tags.FindAsync(tag => tag.Name == newTag.Name)).FirstOrDefault();
+
+        var tag = await _dbContext.Tags.FirstOrDefaultAsync(tag => tag.Name == newTag.Name);
 
         if (tag == null)
         {
             tag = newTag;
             
-            _unitOfWork.Tags.Add(tag);
+            _dbContext.Tags.Add(tag);
             
-            await _unitOfWork.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             
         }
         

@@ -1,4 +1,5 @@
 using MediatR;
+using OurTube.Application.Interfaces;
 using OurTube.Application.Services;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Events.PlaylistElement;
@@ -11,13 +12,11 @@ public class LikedPlaylistHandler:
     INotificationHandler<PlaylistElementDeleteEvent>
 {
     private VideoVoteService _videoVoteService;
-    private IUnitOfWork _unitOfWork;
 
     
-    public LikedPlaylistHandler(VideoVoteService videoVoteService, IUnitOfWork unitOfWork)
+    public LikedPlaylistHandler(VideoVoteService videoVoteService)
     {
         _videoVoteService = videoVoteService;
-        _unitOfWork = unitOfWork;
     }
     
     public async Task Handle(PlaylistElementCreateEvent notification, CancellationToken cancellationToken)

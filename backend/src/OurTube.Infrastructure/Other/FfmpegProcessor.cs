@@ -1,10 +1,11 @@
-﻿using Xabe.FFmpeg;
+﻿using OurTube.Application.Interfaces;
+using Xabe.FFmpeg;
 
 namespace OurTube.Infrastructure.Other
 {
-    public class FfmpegProcessor
+    public class FfmpegProcessor:IVideoProcessor
     {
-        public static async Task HandleVideo(string inputVideo, string outputDir, int videoHeight, string segmentsUri)
+        public async Task HandleVideo(string inputVideo, string outputDir, int videoHeight, string segmentsUri)
         {
             if (!File.Exists(inputVideo))
                 throw new FileNotFoundException();
@@ -29,7 +30,7 @@ namespace OurTube.Infrastructure.Other
                 .Start();
         }
         
-        public static async Task<TimeSpan> GetVideoDuration(string filePath)
+        public async Task<TimeSpan> GetVideoDuration(string filePath)
         {
             var mediaInfo = await FFmpeg.GetMediaInfo(filePath);
             return mediaInfo.Duration;

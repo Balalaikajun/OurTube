@@ -1,15 +1,17 @@
-﻿using OurTube.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Interfaces;
+using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class SubscriptionService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IApplicationDbContext _dbContext;
 
-        public SubscriptionService(IUnitOfWork unitOfWork)
+        public SubscriptionService(IApplicationDbContext dbContext)
         {
-            _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
         }
 
         public async Task SubscribeAsync(string userId, string userToId)
@@ -17,17 +19,17 @@ namespace OurTube.Application.Services
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            var user =await _unitOfWork.ApplicationUsers.GetAsync(userId);
+            var user =await _dbContext.ApplicationUsers.FindAsync(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var userTo =await _unitOfWork.ApplicationUsers.GetAsync(userToId);
+            var userTo =await _dbContext.ApplicationUsers.FindAsync(userToId);
 
             if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            var subscription =await _unitOfWork.Subscriptions.GetAsync(userId, userToId);
+            var subscription =await _dbContext.Subscriptions.FindAsync(userId, userToId);
             if (subscription != null)
                 return;
 
@@ -37,12 +39,12 @@ namespace OurTube.Application.Services
                 SubscribedToId = userToId
             };
 
-            _unitOfWork.Subscriptions.Add(subscription);
+            _dbContext.Subscriptions.Add(subscription);
 
             user.SubscribedToCount++;
             userTo.SubscribersCount++;
 
-            await _unitOfWork.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task UnSubscribeAsync(string userId, string userToId)
@@ -50,33 +52,33 @@ namespace OurTube.Application.Services
             if (userId == userToId)
                 throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-            var user =await _unitOfWork.ApplicationUsers.GetAsync(userId);
+            var user =await _dbContext.ApplicationUsers.FindAsync(userId);
 
             if (user == null)
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var userTo =await _unitOfWork.ApplicationUsers.GetAsync(userToId);
+            var userTo =await _dbContext.ApplicationUsers.FindAsync(userToId);
 
             if (userTo == null)
                 throw new InvalidOperationException("Канал не найден");
 
-            var subscription =await _unitOfWork.Subscriptions.GetAsync(userId, userToId);
+            var subscription =await _dbContext.Subscriptions.FindAsync(userId, userToId);
 
             if (subscription == null)
                 return;
 
-            _unitOfWork.Subscriptions.Remove(subscription);
+            _dbContext.Subscriptions.Remove(subscription);
 
             user.SubscribedToCount--;
             userTo.SubscribersCount--;
 
-            await _unitOfWork.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<bool> IsSubscribeAsync(string userId, string userToId)
         {
-            return await _unitOfWork.Subscriptions
-                .ContainsAsync(userId, userToId);
+            return await _dbContext.Subscriptions
+                .AnyAsync(s => s.SubscribedToId==userId && s.SubscriberId==userToId);
         }
     }
 }

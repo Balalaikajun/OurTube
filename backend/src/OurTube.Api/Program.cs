@@ -5,15 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using OurTube.Application.Handlers;
+using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping;
 using OurTube.Application.Services;
 using OurTube.Application.Validators;
-using OurTube.Domain.Entities;
-using OurTube.Domain.Interfaces;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
-using OurTube.Infrastructure.Persistence;
-using OurTube.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -26,6 +23,7 @@ Xabe.FFmpeg.FFmpeg.SetExecutablesPath(configuration["FFmpeg:ExecutablesPath"]);
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 services.AddDbContext<DbContext, ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
 
 // Auth
 services.AddAuthorization();
@@ -72,15 +70,9 @@ services.AddScoped<SubscriptionService>();
 services.AddScoped<SearchService>();
 services.AddScoped<TagService>();
 
-// Repositories
-services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
-services.AddScoped<IPlaylistRepository, PlaylistRepository>();
-services.AddScoped<IRepository<PlaylistElement>, Repository<PlaylistElement>>();
-
 // Infrastructure
-services.AddScoped<MinioService>();
-services.AddScoped<FfmpegProcessor>();
-services.AddScoped<IUnitOfWork, UnitOfWork>();
+services.AddScoped<IBlobService,MinioService>();
+services.AddScoped<IVideoProcessor,FfmpegProcessor>();
 
 // Other
 services.AddScoped<LocalFilesService>();

@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Minio;
 using Minio.DataModel.Args;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Infrastructure.Other
 {
-    public class MinioService
+    public class MinioService:IBlobService
     {
         private readonly IMinioClient _minioClient;
 
