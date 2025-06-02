@@ -18,9 +18,13 @@ namespace OurTube.Domain.Entities
         [Required]
         public DateTime Created { get; set; } = DateTime.UtcNow;
         public DateTime? Updated { get; set; } = null;
+        public DateTime? Deleted { get; set; } = null;
+
         public int? ParentId { get; set; }
         [Required]
-        public bool Edited { get; set; } = false;
+        public bool IsEdited { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
+
         [Required]
         public int LikesCount { get; set; } = 0;
         [Required]

@@ -95,7 +95,7 @@ namespace OurTube.Api.Controllers
                 PagedCommentDto result;
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    result = await _commentService.GetChildsWithLimitAsync(
+                    result = await _commentService.GetChildrenWithLimitAsync(
                         videoId,
                         limit,
                         after,
@@ -104,7 +104,7 @@ namespace OurTube.Api.Controllers
                 }
                 else
                 {
-                    result = await _commentService.GetChildsWithLimitAsync(
+                    result = await _commentService.GetChildrenWithLimitAsync(
                         videoId,
                         limit,
                         after,

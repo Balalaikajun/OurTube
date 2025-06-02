@@ -8,7 +8,12 @@ namespace OurTube.Application.Mapping
     {
         public CommentProfile()
         {
-            CreateMap<Comment, CommentGetDto>();
+            CreateMap<Comment, CommentGetDto>()
+                .AfterMap((comment, dto) =>
+                {
+                    if (comment.IsDeleted)
+                        dto.Text = "";
+                });
         }
     }
 }

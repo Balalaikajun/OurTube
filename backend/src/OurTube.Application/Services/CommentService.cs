@@ -31,7 +31,8 @@ namespace OurTube.Application.Services
                 ApplicationUserId = userId,
                 VideoId = postDto.VideoId,
                 Text = postDto.Text,
-                Parent = parent
+                Parent = parent,
+                Created = DateTime.Now
             };
 
             _unitOfWork.Comments.Add(comment);
@@ -52,10 +53,14 @@ namespace OurTube.Application.Services
             if (comment.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного комментария");
 
+            if (comment.IsDeleted == true)
+                throw new InvalidOperationException("Комментарий удалён");
+            
             if (postDto.Text != "")
             {
                 comment.Text = postDto.Text;
-                comment.Edited = true;
+                comment.IsEdited = true;
+                comment.Updated = DateTime.UtcNow;
 
                 await _unitOfWork.SaveChangesAsync();
             }
@@ -66,24 +71,27 @@ namespace OurTube.Application.Services
             var comment =await _unitOfWork.Comments
                 .GetAsync(commentId);
 
+            var video =await _unitOfWork.Videos.GetAsync(comment.VideoId);
+
+            if (video == null)
+                throw new InvalidOperationException("Видео не найдено");
+            
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
 
             if (comment.ApplicationUserId != userId)
                 throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного комментария");
 
-            var video =await _unitOfWork.Videos.GetAsync(comment.VideoId);
+            if (comment.IsDeleted == true)
+                throw new InvalidOperationException("Комментарий удалён");
 
-            if (video == null)
-                throw new InvalidOperationException("Видео не найдено");
-            
-            _unitOfWork.Comments.Remove(comment);
-            video.CommentsCount--;
+            comment.IsDeleted = true;
+            comment.Deleted = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<PagedCommentDto> GetChildsWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
+        public async Task<PagedCommentDto> GetChildrenWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
         {
             if (!await _unitOfWork.Videos.ContainsAsync(videoId))
                 throw new InvalidOperationException("Видео не найдено");
@@ -100,9 +108,9 @@ namespace OurTube.Application.Services
             return new PagedCommentDto{ Comments = commentsDto,NextAfter = limit+after, HasMore = hasMore};
         }
         
-        public async Task<PagedCommentDto> GetChildsWithLimitAsync(int videoId, int limit, int after, string userId, int? parentId = null)
+        public async Task<PagedCommentDto> GetChildrenWithLimitAsync(int videoId, int limit, int after, string userId, int? parentId = null)
         {
-            var result = await GetChildsWithLimitAsync(videoId, limit, after, parentId);
+            var result = await GetChildrenWithLimitAsync(videoId, limit, after, parentId);
 
             if(!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
                 return result;

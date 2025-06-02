@@ -20,6 +20,9 @@ namespace OurTube.Application.Services
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
 
+            if (comment.IsDeleted)
+                throw new InvalidOperationException("Комментарий удалён");
+            
             if (!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
@@ -75,6 +78,12 @@ namespace OurTube.Application.Services
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найдено");
+            
+            if (comment.IsDeleted)
+                throw new InvalidOperationException("Комментарий удалён");
+            
+            if (!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
+                throw new InvalidOperationException("Пользователь не найден");
 
             var vote =await _unitOfWork.CommentVoices.GetAsync(commentId, userId);
 
