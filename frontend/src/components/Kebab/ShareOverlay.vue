@@ -1,5 +1,6 @@
 <script setup>
     import { ref, onBeforeUnmount, watch, nextTick } from "vue";
+    import { scroll  } from '@/assets/utils/scroll.js';
     const props = defineProps({
         videoId: {
             type: [String, Number],
@@ -19,6 +20,7 @@
             }
             
             isOpen.value = true;
+            // scroll.lock();
             
             // Ждем рендера меню
             await nextTick();            
@@ -32,6 +34,7 @@
 
     const closeMenu = () => {
         isOpen.value = false;
+        // scroll.unlock();
         document.removeEventListener('click', handleClickOutside);
     };
 

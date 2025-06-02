@@ -12,7 +12,7 @@ namespace OurTube.Application.DTOs.Comment
         public bool Edited { get; set; } = false;
         public bool? Vote { get; set; }
         public int LikesCount { get; set; }
-        public int DisLikesCount { get; set; }
+        public int DislikesCount { get; set; }
         //Navigation
         public ApplicationUserDto User { get; set; }
         public ICollection<CommentGetDto> Childs { get; set; }

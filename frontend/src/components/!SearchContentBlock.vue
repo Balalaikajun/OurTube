@@ -2,7 +2,7 @@
     import { defineProps, ref } from 'vue';
     import { useRouter } from 'vue-router';
     import { API_BASE_URL } from '@/assets/config.js';
-    import KebabButton from './KebabButton.vue';
+    import KebabButton from './Kebab/KebabButton.vue';
 
     const router = useRouter();
     const props = defineProps({

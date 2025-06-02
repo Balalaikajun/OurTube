@@ -12,7 +12,7 @@
             },
             reactionStatus: {
                 type: [Boolean, null], // Accept both Boolean and null
-                // required: true,
+                required: true,
                 default: null
             },
             likesCount: {
@@ -23,7 +23,7 @@
             dislikesCount: {
                 type: Number,
                 required: true,
-                default: 0
+                default: 10000
             },
         }
     )
@@ -94,7 +94,7 @@ const handleReaction = async (isLike) => {
             {
                 localLikesCount.value--;
                 localReaction.value = null
-                console.log("Удаление лайка", localReaction.value)
+                console.log("Удаление лайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
                 const response = await api.delete(responseContext);
             }
@@ -106,7 +106,7 @@ const handleReaction = async (isLike) => {
                 }
                 localLikesCount.value++;
                 localReaction.value = true
-                console.log("Смена дизлайка на лайк или добавление лайка", localReaction.value)
+                console.log("Смена дизлайка на лайк или добавление лайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
                 const response = await api.post(responseContext, 
                     true
@@ -118,7 +118,7 @@ const handleReaction = async (isLike) => {
             {
                 localDislikesCount.value--;
                 localReaction.value = null;
-                console.log("Удаление дизлайка", localReaction.value)
+                console.log("Удаление дизлайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
                 const response = await api.delete(responseContext);
             }
@@ -131,7 +131,7 @@ const handleReaction = async (isLike) => {
                 
                 localDislikesCount.value++;
                 localReaction.value = false
-                console.log("Смена лайка на дизлайк или добавление дизлайка", localReaction.value)
+                console.log("Смена лайка на дизлайк или добавление дизлайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `/api/Video/Comment/${commentId}/vote` : `/api/Video/${videoId.value}/vote`;
                 const response = await api.post( responseContext, 
                     false

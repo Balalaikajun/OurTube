@@ -40,7 +40,7 @@ namespace OurTube.Application.Services
                 }
                 else
                 {
-                    comment.DisLikesCount++;
+                    comment.DislikesCount++;
                 }
             }
             else if (vote.Type != type)
@@ -49,12 +49,12 @@ namespace OurTube.Application.Services
 
                 if (type == true)
                 {
-                    comment.DisLikesCount--;
+                    comment.DislikesCount--;
                     comment.LikesCount++;
                 }
                 else
                 {
-                    comment.DisLikesCount++;
+                    comment.DislikesCount++;
                     comment.LikesCount--;
 
                 }
@@ -87,7 +87,7 @@ namespace OurTube.Application.Services
             }
             else
             {
-                comment.DisLikesCount--;
+                comment.DislikesCount--;
             }
 
             _unitOfWork.CommentVoices.Remove(vote);

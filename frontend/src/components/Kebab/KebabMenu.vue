@@ -8,11 +8,11 @@ const position = ref({ top: '0px', left: '0px' });
 const menuRef = ref(null);
 let cleanupListeners = null;
 
-const handleClick = (event) => {
-  emit('kebab-click', { 
-    buttonElement: event.currentTarget 
-  });
-};
+// const handleClick = (event) => {
+//   emit('kebab-click', { 
+//     buttonElement: event.currentTarget 
+//   });
+// };
 
 const handleAddToPlaylist = () => {
   console.log(`Добавить видео ${props.videoId} в плейлист`);
@@ -64,6 +64,7 @@ const openMenu = async (buttonElement) => {
     
     // Получаем позицию кнопки
     const rect = buttonElement.getBoundingClientRect();
+    const windowsScroll = window.scrollY;
     
     isOpen.value = true;
     
@@ -75,7 +76,7 @@ const openMenu = async (buttonElement) => {
       const menuRect = menuRef.value.getBoundingClientRect();
       position.value = {
         left: `${rect.left - menuRect.width}px`,
-        top: `${rect.top}px`
+        top: `${windowsScroll + rect.top}px`
       };
     }
     
@@ -115,8 +116,8 @@ defineExpose({ openMenu, closeMenu });
     ref="menuRef"
     class="kebab-menu"
     :style="position"
-    @click.stop="handleClick"
-  >
+    >
+    <!-- @click.stop="handleClick" -->
     <button @click="handleAddToPlaylist">Добавить в плейлист</button>
     <button @click="handleWatchLater">Смотреть позже</button>
     <span class="line"></span>

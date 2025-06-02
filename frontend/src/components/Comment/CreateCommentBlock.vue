@@ -1,9 +1,9 @@
 <script setup>
-    import { ref, onMounted, onUnmounted} from "vue";
+    import { ref, onMounted, onUnmounted, inject} from "vue";
     import axios from 'axios';
     import { useRouter } from 'vue-router';
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
-    import UserAvatar from "./UserAvatar.vue";
+    import UserAvatar from "../Solid/UserAvatar.vue";
     import { API_BASE_URL } from "@/assets/config.js";
 
     const props = defineProps({
@@ -11,10 +11,6 @@
             type: Number,
             required: true,
             default: 0
-        },
-        parentId: {
-            type: Number,
-            default: null
         }
     })
 
@@ -30,6 +26,8 @@
     const showButtons = ref(false);
     const errorMessage = ref("");
 
+    const rootParentId = inject('rootParentId', 100000000);
+
     const api = axios.create({
         baseURL: API_BASE_URL,
         withCredentials: true, // Важно для передачи кук
@@ -41,7 +39,7 @@
     function adjustHeight() {
         if (textareaRef.value) {
             textareaRef.value.style.height = 'auto';
-            textareaRef.value.style.height = `${textareaRef.value.scrollHeight}px`;
+            textareaRef.value.style.height = `${textareaRef.value.scrollHeight + 1}px`;
         }
     }
     const handleFocus = () => {
@@ -63,9 +61,10 @@
         textareaRef.value.blur();
         textareaRef.value.style.height = 'auto';
         showButtons.value = false;
-        console.log(props.parentId)
-        if (props.parentId != null)
+        console.log(rootParentId)
+        if (rootParentId != null)
         {
+            console.log('Закрытие', rootParentId);
             emit('close');
         }
     };
@@ -86,10 +85,11 @@
                 router.push(`/login`);
                 return;
             }   
+            console.log('Отправка коммента', rootParentId)
             const response = await api.post('/api/Video/Comment', {
                 videoId: props.videoId,
                 text: commentText.value,
-                parentId: props.parentId
+                parentId: rootParentId
             });
 
             // Успешная отправка
@@ -97,6 +97,8 @@
             showButtons.value = false;
             
             // emit('comment-created'); //правки
+
+            // console.log()
             
         } catch (error) {
             if (error.response) {
@@ -178,20 +180,17 @@
     }
     .component-input {
         width: 100%;
-        min-height: 15px;
+        min-height: 20px;
         color: #F3F0E9;
-        line-height: 15px; 
+        line-height: 20px; 
         font-size: 14px; /* Размер шрифта */
         overflow-wrap: break-word;
         outline: none;
         resize: none;
+        box-sizing: border-box;
         background: transparent;
         border: none;
         border-bottom: 1px solid #F3F0E9;
-    }
-    .component-input:focus {
-        min-height: 15px; /* Базовая высота */
-        height: 15px;
     }
     .component-input:focus::placeholder {
         opacity: 0;

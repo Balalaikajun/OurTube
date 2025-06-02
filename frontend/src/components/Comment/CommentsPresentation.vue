@@ -2,7 +2,8 @@
     import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
     import axios from 'axios';
     import CommentBlock from "./CommentBlock.vue";
-    import LoadingState from "./LoadingState.vue";
+    import LoadingState from "../Solid/LoadingState.vue";
+    import CommentMenu from "../Kebab/CommentMenu.vue";
     import { API_BASE_URL } from "@/assets/config.js";
     import formatter from "@/assets/utils/formatter.js";
 
@@ -17,6 +18,7 @@
             default: 20
         }
     });
+    const emit = defineEmits(['delete', 'edit']);
 
     const commentsData = ref([]);
     const isLoading = ref(false);
@@ -24,6 +26,10 @@
     const lastCommentId = ref(null);
     const hasMore = ref(true);
     const nextAfter = ref(0);
+
+    const currentCommentId = ref(0);
+
+    const commentRef = ref(null)
 
     const api = axios.create({
         baseURL: API_BASE_URL,
@@ -76,8 +82,58 @@
     const refreshComments = () => {
         fetchComments(true);
     };
+
+    const handleKebabClick = ({ commentId}) => {
+        console.log('Kebab clicked for comment:', commentId);
+        currentCommentId.value = commentId;
+    };
+
+    const handleKebabClose = () => {
+        if (!shareRef.value?.isOpen) {
+            currentCommentId.value = 0;
+        }
+    };
+
+    const deleteComment = async () =>
+    {
+        console.log(currentCommentId.value)
+        try {
+
+            const response = await api.delete(`/api/Video/Comment/${currentCommentId.value}`);        
+
+        } catch (err) {
+            error.value = err.response?.data?.message || 
+                        err.message || 
+                        'Ошибка при удалении комментария';
+            console.error("Ошибка при удалении комментария", err);
+        } finally {
+            currentCommentId.value == 0;
+        }
+    }
+
+    const handleEditComment = async (newText) => {
+        console.log(currentCommentId.value, newText)
+        try {
+            const response = await api.patch(`/api/Video/Comment`, {
+                "id": currentCommentId.value,
+                "text": newText.text
+            });
+            
+            // if (response.status === 200) {
+            // refreshComments(); // Обновляем список
+            // }
+        } catch (error) {
+            console.error("Ошибка редактирования:", error);
+        }
+    };
+
+    const handleDelete = () => {
+        emit("delete");
+    };
+
     defineExpose({
-        refreshComments
+        refreshComments,
+        deleteComment
     });
 </script>
 
@@ -94,10 +150,15 @@
                 :comment-text="comment.text"
                 :create-date="formatter.formatRussianDate(comment.created)"
                 :update-date="formatter.formatRussianDate(comment.updated)"
+                :reaction-status="comment.vote"
                 :likes-count="comment.likesCount"
                 :dislikes-count="comment.dislikesCount"
                 :user-info="comment.user"
                 :childs="comment.childs || []"
+                @kebab-click="handleKebabClick"
+                @edit="handleEditComment"
+                @delete="handleDelete"
+                @close="handleKebabClose"
             />
         </template>
     </div>

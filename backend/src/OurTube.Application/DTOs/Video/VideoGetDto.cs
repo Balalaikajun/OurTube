@@ -10,7 +10,7 @@ namespace OurTube.Application.DTOs.Video
         public string Title { get; set; }
         public string Description { get; set; }
         public int LikesCount { get; set; }
-        public int DislikeCount { get; set; }
+        public int DislikesCount { get; set; }
         public int CommentsCount { get; set; }
         public int ViewsCount { get; set; }
         public bool? Vote { get; set; }

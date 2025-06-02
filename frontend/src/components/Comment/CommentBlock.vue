@@ -1,11 +1,13 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide } from "vue";
-    import KebabButton from "./KebabButton.vue";
-    import UserAvatar from "./UserAvatar.vue";
-    import ReactionBlock from "@/components/ReactionBlock.vue";
+    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject } from "vue";
+    import CommentMenu from "../Kebab/CommentMenu.vue";
+    import KebabButton from "../Kebab/KebabButton.vue";
+    import UserAvatar from "../Solid/UserAvatar.vue";
+    import ReactionBlock from "@/components/Solid/ReactionBlock.vue";
     import CreateCommentBlock from "./CreateCommentBlock.vue";
     import useTextOverflow from "@/assets/utils/useTextOverflow";
     import formatter from "@/assets/utils/formatter.js";
+    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
 
     const props = defineProps(
         {
@@ -16,8 +18,7 @@
             },
             parentId: {
                 type: [Number, null],
-                required: true,
-                default: null
+                default: 1
             },
             id: {
                 type: [Number, null],
@@ -38,6 +39,11 @@
                 type: String,
                 required: true,
                 default: 0
+            },
+            reactionStatus: {
+                type: [Boolean, null],
+                required: true,
+                default: null
             },
             likesCount: {
                 type: Number,
@@ -68,6 +74,12 @@
         }
     )
 
+    const emit = defineEmits(['kebab-click', 'edit', 'delete', 'close']);
+
+    const { register, unregister } = injectFocusEngine();
+
+    const kebabMenuRef = ref(null);
+
     const showFullText = ref(false);
     const showChilds = ref(false);
     const { isClamped: isTextClamped, checkTextOverflow } = useTextOverflow();
@@ -75,19 +87,78 @@
     const commentText = toRef(props, 'commentText');
     const showCreateCommentBlock = ref(false);
     const addComment = ref(null);
+    
+    const textareaRef = ref(null);
+    const isEditing = ref(false);
+    const editedText = ref('');
 
     provide('commentId', props.id);
+
+    const isRootComment = props.parentId === null;
+    const rootParentId = isRootComment ? props.id : inject('rootParentId', null);
+    provide('rootParentId', rootParentId);
+
+
+    const handleEditClick = () => {
+        isEditing.value = true;
+        editedText.value = props.commentText;
+    };
+
+    const handleSave = () => {
+        emit('edit', { text: editedText.value }); // Отправляем обновленный текст
+        isEditing.value = false; // Закрываем режим редактирования
+    };
+
+    const handleDelete = () => {
+        emit("delete");
+    };
+
+
+    const handleKebabButtonClick = (event) => {
+        // event.stopPropagation();
+        emit('kebab-click', {
+            commentId: props.id
+        });
+        kebabMenuRef.value?.openMenu(event.currentTarget);
+    };
+    const handleChildKebabClick = (event) => {
+        // event.stopPropagation();
+        // emit('kebab-click', event);
+        kebabMenuRef.value?.openMenu(event.currentTarget);
+    };
+
+    function adjustHeight() {
+        if (textareaRef.value) {
+            textareaRef.value.style.height = 'auto';
+            textareaRef.value.style.height = `${textareaRef.value.scrollHeight + 1}px`;
+        }
+    }
+
+    const handleFocus = () => {
+        register('commentBlock');
+    };
+
+    const handleBlur = () => {
+        setTimeout(() => {
+            if (!document.activeElement?.closest('.comment-create')) {
+            unregister('commentBlock');
+            }
+        }, 100);        
+    };
 
     watch(() => commentText, () => {
         nextTick(() => {
             if (commentTextRef.value) {
-            checkTextOverflow(commentTextRef.value, "CommentBlock text update")
+                checkTextOverflow(commentTextRef.value, "CommentBlock text update")
             }
         })
     })
+
+
     
     onMounted(() => {
-        console.log(props.commentText, props.id, props.childs)
+        // console.log(props.commentText, props.id, props.childs)
+        console.log(props.commentText + '|','parentID:', props.parentId, 'ID:', props.id, 'isRoot:', isRootComment, rootParentId, 'commentRoot')
         nextTick(() => {
             if (commentTextRef.value) {
                 checkTextOverflow(commentTextRef.value, "CommentBlock");
@@ -95,13 +166,22 @@
         });
     });
 
+    defineExpose({
+        handleEditClick
+    });
+
 </script>
 
 <template>
-    <div class="comment-wrapper" :class="{'inner-class': parentId != null}">
+    <CommentMenu
+        ref="kebabMenuRef"
+        @edit-click="handleEditClick"
+        @delete="handleDelete"
+    />
+    <div class="comment-wrapper" :class="{'inner-class': !isRootComment}">
         <div class="comment-container">
             <UserAvatar/>
-            <div class="comment-center">
+            <div v-if="!isEditing" class="comment-center">
                 <div class="comment-header">
                     <p class="user-name">
                         {{ props.userInfo.userName }}
@@ -117,6 +197,7 @@
                 >
                     {{ commentText }}
                 </p>
+
                 <button 
                     v-if="isTextClamped" 
                     @click="showFullText = !showFullText"
@@ -125,9 +206,8 @@
                     {{ showFullText ? 'Скрыть' : 'Показать больше' }}
                 </button>
                 <div class="functional-buttons-block">
-                <!-- реакции -->
-                <!-- :reaction-status="vote" -->
                     <ReactionBlock 
+                        :reaction-status="props.reactionStatus"
                         :likes-count="props.likesCount" 
                         :dislikes-count="props.dislikesCount"
                     />
@@ -154,15 +234,39 @@
                 <CreateCommentBlock
                     v-if="showCreateCommentBlock" 
                     :video-id="Number(videoId)" 
-                    :parent-id="Number(id)"
                     style="margin-top: 10px;" 
                     ref="addComment"
                     @close="showCreateCommentBlock = false"
                 />
 
             </div>
-            <KebabButton class="kebab-button"
-            
+            <div v-if="isEditing" class="comment-center">
+                <textarea
+                    ref="textareaRef"
+                    @focus="handleFocus"
+                    @blur="handleBlur"
+                    @input="adjustHeight"   
+                    v-model="editedText"
+                    class="component-input"    
+                    rows="1"
+                >
+
+                </textarea>
+                <div class="functional-buttons-block" style="justify-content: flex-end;">
+                    <button 
+                        @click="handleSave" 
+                        class="control-button comment-button"
+                        :class="{ 
+                            'disabled-button': commentText === editedText, 
+                            'comment-isFilled': commentText !== editedText
+                        }"
+                        :disabled="commentText === editedText"
+                    >Сохранить</button>
+                    <button @click="isEditing = false" class="control-button comment-button">Отмена</button>                    
+                </div>
+            </div>
+            <KebabButton
+                @kebab-click="handleKebabButtonClick"
             />  
         </div>
         <div class="childs-comments"
@@ -172,14 +276,15 @@
                 v-for="child in props.childs"
                 :key="child.id"
                 :video-id="props.videoId"
-                :parent-id="props.id"
-                :id="props.id"
+                :id="child.id"
                 :comment-text="child.text"
                 :create-date="formatter.formatRussianDate(child.created)"
                 :update-date="formatter.formatRussianDate(child.updated)"
+                :reaction-status="child.vote"
                 :likes-count="child.likesCount"
                 :dislikes-count="child.dislikesCount"
                 :user-info="child.user"
+                @kebab-click="handleChildKebabClick"
             />
         </div>
     </div>
@@ -187,6 +292,21 @@
 </template>
 
 <style scoped>
+    .component-input {
+        width: 100%;
+        min-height: 15px;
+        color: #F3F0E9;
+        line-height: 15px; 
+        font-size: 14px; /* Размер шрифта */
+        overflow-wrap: break-word;
+        outline: none;
+        resize: none;
+        box-sizing: border-box;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #F3F0E9;
+    }
+
     .comment-wrapper {
         display: flex;
         flex-direction: column;
@@ -213,7 +333,10 @@
 
 
     .childs-comments {
+        display: flex;
+        flex-direction: column;
         transition: all 0.3s ease;
+        gap: 10px;
         box-sizing: border-box;
         width: 100%;
     }
@@ -232,8 +355,8 @@
         display: flex;
         flex-direction: column;
         align-items: start;
-        width: calc(100% - 80px);
         min-width: 0;
+        flex: 1;        
     }
     .comment-header {
         display: inline-flex;
@@ -247,7 +370,7 @@
         opacity: 0.8;
         font-size: 0.8rem;
         align-self: flex-end;
-        line-height: 0.8;
+        line-height: 0.9;
     }
     .comment-text {
         width: 100%;
@@ -276,19 +399,25 @@
         margin-top: 5px;
         gap: 10px;
         flex-direction: row;
-        justify-content: start;
+        width: 100%;
+    }
+    .disabled-button {
+        cursor: default !important;
     }
     .comment-button {
         padding: 10px;
         font-size: 0.875rem;
     }
-    .comment-button:hover {
+    .comment-button:hover{
         background-color: #4A4947;
     }
-    .kebab-button {
-        position: absolute;
-        top: 0;
-        right: 0;
+    .disabled-button:hover {
+        background-color: #100E0E; /* Keep the same color on hover */
+    }
+    .comment-isFilled:hover {
+        cursor: pointer !important;
+        background-color: #F39E60 !important;
+        color: #100E0E;
     }
     .show-more-button {
         background: none;

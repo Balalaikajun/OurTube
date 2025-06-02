@@ -2,9 +2,9 @@
     import { ref, onMounted, onUnmounted, computed, nextTick, watch  } from "vue";
     import { useRoute, useRouter } from 'vue-router';
     import VideoCard from "./VideoCard.vue";
-    import KebabMenu from "./KebabMenu.vue";
-    import ShareOverlay from "./ShareOverlay.vue";
-    import LoadingState from "@/components/LoadingState.vue";
+    import KebabMenu from "../Kebab/KebabMenu.vue";
+    import ShareOverlay from "../Kebab/ShareOverlay.vue";
+    import LoadingState from "@/components/Solid/LoadingState.vue";
     import { API_BASE_URL } from "@/assets/config.js";
 
     const props = defineProps({
@@ -51,7 +51,9 @@
     const nextAfter = ref(0);
     const loading = ref(false);
     const errorMessage = ref("");
-    const currentVideoId = ref("");
+
+    const currentVideoId = ref(0);
+
     const parentWidth = ref(0);
     const parentHeight = ref(0);
     const kebabMenuRef = ref(null);
