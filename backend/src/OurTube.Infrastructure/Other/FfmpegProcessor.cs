@@ -6,7 +6,6 @@ namespace OurTube.Infrastructure.Other
     {
         public static async Task HandleVideo(string inputVideo, string outputDir, int videoHeight, string segmentsUri)
         {
-            Xabe.FFmpeg.FFmpeg.SetExecutablesPath(@"X:\tools\bin");
             if (!File.Exists(inputVideo))
                 throw new FileNotFoundException();
 
