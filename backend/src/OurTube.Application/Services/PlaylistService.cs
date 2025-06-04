@@ -162,6 +162,20 @@ namespace OurTube.Application.Services
                     .ProjectTo<PlaylistMinGetDto>(_mapper.ConfigurationProvider)
                     .ToListAsync();
         }
+        
+        public async Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(string userId, int videoId)
+        {
+            return await _dbContext.Playlists
+                .Where(p => p.ApplicationUserId == userId)
+                .Select(p => new PlaylistForVideoGetDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Count = p.Count,
+                    HasVideo = p.PlaylistElements.Any(pe => pe.VideoId == videoId)
+                })
+                .ToListAsync();
+        }
 
         public async Task<PlaylistMinGetDto> GetLikedPlaylistAsync(string userId)
         {

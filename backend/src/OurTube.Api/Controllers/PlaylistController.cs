@@ -16,13 +16,12 @@ namespace OurTube.Api.Controllers
         {
             _playlistService = playlistService;
         }
-        
+
         [Authorize]
         [HttpPost]
         public async Task<ActionResult> PostAsync(
             [FromBody] PlaylistPostDto postDto)
         {
-
             await _playlistService.CreateAsync(
                 postDto,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -37,8 +36,6 @@ namespace OurTube.Api.Controllers
         {
             try
             {
-
-
                 await _playlistService.UpdateAsync(
                     postDto,
                     id,
@@ -54,7 +51,6 @@ namespace OurTube.Api.Controllers
             {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [Authorize]
@@ -62,14 +58,12 @@ namespace OurTube.Api.Controllers
         public async Task<ActionResult> DeleteAsync(
             int id)
         {
-
             try
             {
                 await _playlistService.DeleteAsync(
-                id,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                    id,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Ok();
-
             }
             catch (KeyNotFoundException ex)
             {
@@ -90,11 +84,10 @@ namespace OurTube.Api.Controllers
             try
             {
                 await _playlistService.AddVideoAsync(
-                id,
-                videoId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                    id,
+                    videoId,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return Ok();
-
             }
             catch (KeyNotFoundException ex)
             {
@@ -144,10 +137,10 @@ namespace OurTube.Api.Controllers
             try
             {
                 var playlistGetDto = await _playlistService.GetWithLimitAsync(
-                id,
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                limit,
-                after);
+                    id,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier),
+                    limit,
+                    after);
                 var nextAfter = after + limit;
 
 
@@ -171,12 +164,19 @@ namespace OurTube.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetAsync()
         {
-            var result =await _playlistService.GetUserPlaylistsAsync(
+            var result = await _playlistService.GetUserPlaylistsAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             return Ok(result);
         }
 
-
+        [Authorize]
+        [HttpGet("video/{videoId:int}")]
+        public async Task<ActionResult<IEnumerable<PlaylistForVideoGetDto>>> GetForVideoAsync(int videoId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _playlistService.GetUserPlaylistsForVideoAsync(userId, videoId);
+            return Ok(result);
+        }
     }
 }
