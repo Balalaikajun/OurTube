@@ -42,6 +42,15 @@ services.AddIdentity<IdentityUser, IdentityRole>(options =>
     .AddUserManager<ApplicationUserManager>()
     .AddApiEndpoints();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Всегда ставить Secure
+    options.Cookie.SameSite = SameSiteMode.None; // Говорим: можно в кросс-домен
+    options.Cookie.Path = "/";
+    options.Cookie.Name = "MyAppAuthCookie";
+});
+
 // Email
 services.AddTransient<IEmailSender, EmailSender>();
 
@@ -71,8 +80,8 @@ services.AddScoped<SearchService>();
 services.AddScoped<TagService>();
 
 // Infrastructure
-services.AddScoped<IBlobService,MinioService>();
-services.AddScoped<IVideoProcessor,FfmpegProcessor>();
+services.AddScoped<IBlobService, MinioService>();
+services.AddScoped<IVideoProcessor, FfmpegProcessor>();
 
 // Other
 services.AddScoped<LocalFilesService>();
@@ -81,7 +90,7 @@ services.AddScoped<VideoValidator>();
 // CORS
 services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins("http://localhost:5173")
             .AllowAnyMethod()
@@ -91,26 +100,15 @@ services.AddCors(options =>
 });
 
 // Request size config
-services.Configure<IISServerOptions>(options =>
-{
-    options.MaxRequestBodySize = int.MaxValue;
-});
-services.Configure<KestrelServerOptions>(options =>
-{
-    options.Limits.MaxRequestBodySize = long.MaxValue;
-});
-services.Configure<FormOptions>(options =>
-{
-    options.MultipartBodyLengthLimit = long.MaxValue;
-});
+services.Configure<IISServerOptions>(options => { options.MaxRequestBodySize = int.MaxValue; });
+services.Configure<KestrelServerOptions>(options => { options.Limits.MaxRequestBodySize = long.MaxValue; });
+services.Configure<FormOptions>(options => { options.MultipartBodyLengthLimit = long.MaxValue; });
 
 // Controllers & Swagger
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
-
-    // Добавляем поддержку Bearer токена
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -118,27 +116,29 @@ services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Введите токен в формате: Bearer {токен}"
+        Description = "Введите: Bearer {токен}"
     });
-
-    // Обязательное указание схемы безопасности для всех контроллеров
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        new OpenApiSecurityScheme {
-            Reference = new OpenApiReference {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-            }
-        },
-        Array.Empty<string>()
-    }});
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 services.AddControllers();
 
 var app = builder.Build();
 
 // Middleware
-app.UseCors();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -154,6 +154,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

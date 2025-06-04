@@ -34,7 +34,7 @@ namespace OurTube.Application.Services
                 VideoId = postDto.VideoId,
                 Text = postDto.Text,
                 Parent = parent,
-                Created = DateTime.Now
+                Created = DateTime.UtcNow
             };
 
             _dbContext.Comments.Add(comment);
