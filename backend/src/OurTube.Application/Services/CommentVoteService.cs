@@ -1,33 +1,38 @@
-﻿using OurTube.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Interfaces;
+using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class CommentVoteService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IApplicationDbContext _dbContext;
 
-        public CommentVoteService(IUnitOfWork unitOfWork)
+        public CommentVoteService(IApplicationDbContext dbContext)
         {
-            _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
         }
 
         public async Task SetAsync(int commentId, string userId, bool type)
         {
-            var comment =await _unitOfWork.Comments
-                .GetAsync(commentId);
+            var comment =await _dbContext.Comments
+                .FindAsync(commentId);
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
 
-            if (!await _unitOfWork.ApplicationUsers.ContainsAsync(userId))
+            if (comment.IsDeleted)
+                throw new InvalidOperationException("Комментарий удалён");
+            
+            if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id==userId))
                 throw new InvalidOperationException("Пользователь не найден");
 
-            var vote =await _unitOfWork.CommentVoices.GetAsync(commentId, userId);
+            var vote =await _dbContext.CommentVotes.FindAsync(commentId, userId);
 
             if (vote == null)
             {
-                _unitOfWork.CommentVoices.Add(new CommentVote()
+                _dbContext.CommentVotes.Add(new CommentVote()
                 {
                     ApplicationUserId = userId,
                     CommentId = commentId,
@@ -64,19 +69,25 @@ namespace OurTube.Application.Services
                 return;
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int commentId, string userId)
         {
-            var comment =await _unitOfWork.Comments
-                .GetAsync(commentId);
+            var comment =await _dbContext.Comments
+                .FindAsync(commentId);
 
 
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найдено");
+            
+            if (comment.IsDeleted)
+                throw new InvalidOperationException("Комментарий удалён");
+            
+            if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id==userId))
+                throw new InvalidOperationException("Пользователь не найден");
 
-            var vote =await _unitOfWork.CommentVoices.GetAsync(commentId, userId);
+            var vote =await _dbContext.CommentVotes.FindAsync(commentId, userId);
 
             if (vote == null)
                 return;
@@ -90,9 +101,9 @@ namespace OurTube.Application.Services
                 comment.DislikesCount--;
             }
 
-            _unitOfWork.CommentVoices.Remove(vote);
+            _dbContext.CommentVotes.Remove(vote);
 
-            await _unitOfWork.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
 
         }
     }

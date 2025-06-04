@@ -5,36 +5,38 @@ using OurTube.Application.DTOs.Video;
 using OurTube.Application.Validators;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
-using OurTube.Infrastructure.Other;
 using System.Collections.ObjectModel;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Application.Services
 {
     public class VideoService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly FfmpegProcessor _videoProcessor;
-        private readonly MinioService _minioService;
+        private readonly IVideoProcessor _videoProcessor;
+        private readonly IBlobService _blobService;
         private readonly VideoValidator _validator;
         private readonly TagService _tagService;
 
         private readonly int[] _videoResolutions;
         private readonly string _bucket;
 
-        public VideoService(IUnitOfWork unitOfWork,
+        public VideoService(IApplicationDbContext dbContext,
             IMapper mapper,
-            FfmpegProcessor videoProcessor,
+            IVideoProcessor videoProcessor,
             IConfiguration configuration,
             VideoValidator validator,
             LocalFilesService localFilesService,
-            MinioService minioService,
+            IBlobService blobService,
             TagService tagService)
         {
-            _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
             _mapper = mapper;
             _videoProcessor = videoProcessor;
-            _minioService = minioService;
+            _blobService = blobService;
             _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
             _bucket = configuration.GetSection("Minio:VideoBucket").Get<string>();
             _validator = validator;
@@ -43,31 +45,32 @@ namespace OurTube.Application.Services
 
         public async Task<VideoGetDto> GetVideoByIdAsync(int videoId)
         {
-            var video =await _unitOfWork.Videos.GetFullVideoDataAsync(videoId);
+            var video = await _dbContext.Videos
+                .ProjectTo<VideoGetDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(v => v.Id == videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
 
-            var videoDto = _mapper.Map<VideoGetDto>(video);
-
-            return videoDto;
+            return video;
         }
 
         public async Task<VideoGetDto> GetVideoByIdAsync(int videoId, string userId)
         {
-            var videoDto =await GetVideoByIdAsync(videoId);
+            var videoDto = await GetVideoByIdAsync(videoId);
 
-            var vote = await _unitOfWork.VideoVotes.GetAsync(videoId, userId);
+            var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
 
             if (vote != null)
                 videoDto.Vote = vote.Type;
 
-            var view =await _unitOfWork.Views.GetAsync(videoId, userId);
+            var view = await _dbContext.Views.FindAsync(videoId, userId);
 
             if (view != null)
                 videoDto.EndTime = view.EndTime;
 
-            if (await _unitOfWork.Subscriptions.ContainsAsync( userId,videoDto.User.Id))
+            if (await _dbContext.Subscriptions.AnyAsync(s =>
+                    s.SubscriberId == userId && s.SubscribedToId == videoDto.User.Id))
                 videoDto.User.IsSubscribed = true;
 
             return videoDto;
@@ -75,7 +78,8 @@ namespace OurTube.Application.Services
 
         public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId)
         {
-            var video = await _unitOfWork.Videos.GetMinVideoDataAsync(videoId);
+            var video = await _dbContext.Videos.ProjectTo<VideoMinGetDto>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(v => v.Id == videoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
@@ -87,23 +91,24 @@ namespace OurTube.Application.Services
 
         public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId, string userId)
         {
-            var videoDto =await GetMinVideoByIdAsync(videoId);
+            var videoDto = await GetMinVideoByIdAsync(videoId);
 
-            var vote =await _unitOfWork.VideoVotes.GetAsync(videoId, userId);
+            var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
 
             if (vote != null)
                 videoDto.Vote = vote.Type;
 
-            var view =await _unitOfWork.Views.GetAsync(videoId, userId);
+            var view = await _dbContext.Views.FindAsync(videoId, userId);
             if (view != null)
                 videoDto.EndTime = view.EndTime;
 
-            if (await _unitOfWork.Subscriptions.ContainsAsync(userId,videoDto.User.Id))
+            if (await _dbContext.Subscriptions.AnyAsync(s =>
+                    s.SubscriberId == userId && s.SubscribedToId == videoDto.User.Id))
                 videoDto.User.IsSubscribed = true;
 
             return videoDto;
         }
-        
+
         public async Task PostVideo(
             VideoUploadDto videoUploadDto,
             string userId)
@@ -124,7 +129,7 @@ namespace OurTube.Application.Services
                 {
                     Directory.CreateDirectory(tempVideoDir);
                 }
-                
+
                 var tempPreviewPath = await LocalFilesService.SaveFileAsync(
                     videoUploadDto.PreviewFile,
                     tempVideoDir,
@@ -135,8 +140,6 @@ namespace OurTube.Application.Services
                     tempVideoDir,
                     "source" + Path.GetExtension(videoUploadDto.VideoFile.FileName));
 
-
-                
 
                 // Данные для плейлистов
                 var filePref = guid;
@@ -156,7 +159,7 @@ namespace OurTube.Application.Services
 
 
                     //Обработка видео
-                    await FfmpegProcessor.HandleVideo(
+                    await _videoProcessor.HandleVideo(
                         tempSourcePath,
                         Path.Combine(tempVideoDir, resolution.ToString()),
                         resolution,
@@ -164,16 +167,16 @@ namespace OurTube.Application.Services
 
 
                     //Отправка
-                    await _minioService.UploadFile(
+                    await _blobService.UploadFile(
                         Path.Combine(tempVideoDir, resolution.ToString(), Path.GetFileName(playlist.FileName)),
                         playlist.FileName,
-                         playlist.Bucket);
+                        playlist.Bucket);
 
-                    await _minioService.UploadFiles(
+                    await _blobService.UploadFiles(
                         Directory.GetFiles(Path.Combine(tempVideoDir, resolution.ToString(), "segments")),
                         playlist.Bucket,
                         Path.Combine(filePref, resolution.ToString(), "segments").Replace(@"\", @"/")
-                        );
+                    );
 
                     playlists.Add(playlist);
                 }).ToArray();
@@ -186,7 +189,7 @@ namespace OurTube.Application.Services
                     Bucket = _bucket
                 };
 
-                await _minioService.UploadFile(
+                await _blobService.UploadFile(
                     tempPreviewPath,
                     preview.FileName,
                     preview.Bucket);
@@ -197,24 +200,24 @@ namespace OurTube.Application.Services
                     FileName = Path.Combine(filePref, Path.GetFileName(tempSourcePath)).Replace(@"\", @"/"),
                     Bucket = _bucket
                 };
-                await _minioService.UploadFile(
+                await _blobService.UploadFile(
                     tempSourcePath,
                     source.FileName,
                     source.Bucket);
 
                 var files = playlists.ToList();
 
-                var tags  = new List<VideoTags>();
+                var tags = new List<VideoTags>();
 
                 foreach (var tagName in videoDto.Tags)
                 {
                     var tag = await _tagService.GetOrCreate(tagName);
-                    
+
                     tags.Add(new VideoTags(tag.Id));
                 }
 
-                var duration = await FfmpegProcessor.GetVideoDuration(tempSourcePath);
-                
+                var duration = await _videoProcessor.GetVideoDuration(tempSourcePath);
+
                 // Создаём сущность
                 var video = new Video(
                     videoDto.Title,
@@ -226,10 +229,10 @@ namespace OurTube.Application.Services
                     tags,
                     duration
                 );
-                
-                _unitOfWork.Videos.Add(video);
 
-                await _unitOfWork.SaveChangesAsync();
+                _dbContext.Videos.Add(video);
+
+                await _dbContext.SaveChangesAsync();
             }
             finally
             {

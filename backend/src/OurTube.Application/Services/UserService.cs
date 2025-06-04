@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using OurTube.Application.DTOs.ApplicationUser;
+using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
@@ -7,21 +8,21 @@ namespace OurTube.Application.Services
 {
     public class UserService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IApplicationDbContext _dbContext;
 
-        public UserService(IUnitOfWork unitOfWork)
+        public UserService(IApplicationDbContext dbContext)
         {
-            _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
         }
 
         public async Task UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
         {
-            var aUser =await _unitOfWork.ApplicationUsers.GetAsync(userId);
+            var aUser =await _dbContext.ApplicationUsers.FindAsync(userId);
 
             if (aUser == null)
                 throw new KeyNotFoundException("Пользователь не найден");
 
-            var iUser = await _unitOfWork.IdentityUsers.GetAsync(userId);
+            var iUser = await _dbContext.IdentityUsers.FindAsync(userId);
 
             if (iUser == null)
                 throw new KeyNotFoundException("Пользователь не найден");
@@ -32,7 +33,7 @@ namespace OurTube.Application.Services
                 iUser.UserName = patchDto.UserName;
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

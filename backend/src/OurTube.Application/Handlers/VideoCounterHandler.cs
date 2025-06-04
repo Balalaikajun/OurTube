@@ -1,7 +1,7 @@
 using MediatR;
+using OurTube.Application.Interfaces;
 using OurTube.Domain.Events.VideoVote;
 using OurTube.Domain.Interfaces;
-using OurTube.Infrastructure.Persistence;
 
 namespace OurTube.Application.Handlers;
 
@@ -10,16 +10,16 @@ public class VideoCounterHandler:
     INotificationHandler<VideoVoteUpdateEvent>,
     INotificationHandler<VideoVoteDeleteEvent>
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IApplicationDbContext _dbContext;
 
-    public VideoCounterHandler(IUnitOfWork unitOfWork)
+    public VideoCounterHandler(IApplicationDbContext dbContext)
     {
-        _unitOfWork = unitOfWork;
+        _dbContext = dbContext;
     }
 
     public async Task Handle(VideoVoteCreateEvent notification, CancellationToken cancellationToken)
     {
-        var video =await _unitOfWork.Videos.GetAsync(notification.VideoId);
+        var video =await _dbContext.Videos.FindAsync(notification.VideoId, cancellationToken);
         
         if(video == null)
             throw new InvalidOperationException("Видео не найдено");
@@ -33,7 +33,7 @@ public class VideoCounterHandler:
             video.UpdateDislikesCount(1);
         }
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
     
     public async Task Handle(VideoVoteUpdateEvent notification, CancellationToken cancellationToken)
@@ -41,7 +41,7 @@ public class VideoCounterHandler:
         if(notification.OldValue == notification.NewValue)
             return;
         
-        var video =await _unitOfWork.Videos.GetAsync(notification.VideoId);
+        var video =await _dbContext.Videos.FindAsync(notification.VideoId, cancellationToken);
         
         if(video == null)
             throw new InvalidOperationException("Видео не найдено");
@@ -56,12 +56,12 @@ public class VideoCounterHandler:
             video.UpdateDislikesCount(1);
             video.UpdateLikesCount(-1);
         }
-        await _unitOfWork.SaveChangesAsync(cancellationToken);  
+        await _dbContext.SaveChangesAsync(cancellationToken);  
     }
     
     public async Task Handle(VideoVoteDeleteEvent notification, CancellationToken cancellationToken)
     {
-        var video =await _unitOfWork.Videos.GetAsync(notification.VideoId);
+        var video =await _dbContext.Videos.FindAsync(notification.VideoId, cancellationToken);
         
         if(video == null)
             throw new InvalidOperationException("Видео не найдено");
@@ -74,6 +74,6 @@ public class VideoCounterHandler:
         {
             video.UpdateDislikesCount(-1);
         }
-        await _unitOfWork.SaveChangesAsync(cancellationToken);  
+        await _dbContext.SaveChangesAsync(cancellationToken);  
     }
 }

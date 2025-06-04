@@ -23,7 +23,7 @@
     loading.value = true;
 
     try {
-        const response = await api.post("/identity/login", {
+        const response = await api.post("/identity/login?useCookies=true&useSessionCookies=true", {
             email: email.value,
             password: password.value,
         });
