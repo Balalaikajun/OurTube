@@ -5,17 +5,17 @@ const activeMenu = ref(null);
 
 export function useMenuManager() {
   const registerMenu = (menuInstance) => {
-    console.log(activeMenu.value, menuInstance, 'регистрация меню')
     if (activeMenu.value && activeMenu.value !== menuInstance) {
       console.log(activeMenu.value, menuInstance, 'регистрация меню', 1)
       activeMenu.value.closeMenu();
     }
     activeMenu.value = menuInstance;
+    console.log(activeMenu.value, menuInstance, 'регистрация меню')
   };
 
   const unregisterMenu = (menuInstance) => {
-    console.log(activeMenu.value, menuInstance, 'РАЗрегистрация меню')
     activeMenu.value = null;
+    console.log(activeMenu.value, menuInstance, 'РАЗрегистрация меню')
   };
 
   return { registerMenu, unregisterMenu };

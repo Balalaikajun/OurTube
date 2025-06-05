@@ -4,7 +4,7 @@
     onMounted(
         () =>
         {
-            console.log(token)
+            console.log("Token ",token)
         }
     )
 </script>

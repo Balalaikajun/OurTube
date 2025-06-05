@@ -25,6 +25,11 @@
                 required: true,
                 default: null
             },
+            isDeleted: {
+                type: [Boolean, null],
+                required: true,
+                default: false
+            },
             commentText: {
                 type: String,
                 required: true,
@@ -116,15 +121,24 @@
 
     const handleKebabButtonClick = (event) => {
         event.stopPropagation();
+        console.log("Нажатие в handleKebabButtonClick")
+
         emit('kebab-click', {
             commentId: props.id
         });
+        
         kebabMenuRef.value?.openMenu(event.currentTarget);
     };
+
     const handleChildKebabClick = (event) => {
-        event.stopPropagation();
-        // emit('kebab-click', event);
-        kebabMenuRef.value?.openMenu(event.currentTarget);
+        console.log("Нажатие в handleChildKebabClick")
+        // if (payload?.event) {
+        //     payload.event.stopPropagation();
+        // }
+        emit('kebab-click', {
+            commentId: event.commentId
+        });
+        // kebabMenuRef.value?.openMenu(payload.buttonElement);
     };
 
     function adjustHeight() {
@@ -158,7 +172,7 @@
     
     onMounted(() => {
         // console.log(props.commentText, props.id, props.childs)
-        console.log(props.commentText + '|','parentID:', props.parentId, 'ID:', props.id, 'isRoot:', isRootComment, rootParentId, 'commentRoot')
+        // console.log(props.commentText + '|','parentID:', props.parentId, 'ID:', props.id, 'isRoot:', isRootComment, rootParentId, 'commentRoot')
         nextTick(() => {
             if (commentTextRef.value) {
                 checkTextOverflow(commentTextRef.value, "CommentBlock");
@@ -190,12 +204,19 @@
                         {{ props.createDate }}
                     </p>
                 </div>
-                <p
+                <p v-if="isDeleted === false"
                     class="comment-text" 
                     :class="{ 'clamped': !showFullText}"
                     ref="commentTextRef"
                 >
                     {{ commentText }}
+                </p>
+                <p v-if="isDeleted"
+                    class="comment-text" 
+                    :class="{ 'clamped': !showFullText}"
+                    ref="commentTextRef"
+                >
+                    Комментарий удалён.
                 </p>
 
                 <button 
@@ -205,7 +226,7 @@
                 >
                     {{ showFullText ? 'Скрыть' : 'Показать больше' }}
                 </button>
-                <div class="functional-buttons-block">
+                <div v-if="(!isDeleted && isRootComment === false) || (!isDeleted && isRootComment === true)" class="functional-buttons-block">
                     <ReactionBlock 
                         :reaction-status="props.reactionStatus"
                         :likes-count="props.likesCount" 
@@ -277,6 +298,7 @@
                 :key="child.id"
                 :video-id="props.videoId"
                 :id="child.id"
+                :is-deleted="child.isDeleted"
                 :comment-text="child.text"
                 :create-date="formatter.formatRussianDate(child.created)"
                 :update-date="formatter.formatRussianDate(child.updated)"
@@ -284,7 +306,11 @@
                 :likes-count="child.likesCount"
                 :dislikes-count="child.dislikesCount"
                 :user-info="child.user"
-                @kebab-click="handleChildKebabClick"
+                @kebab-click="() => handleChildKebabClick({
+                    event: $event,
+                    commentId: child.id,
+                    buttonElement: $event?.currentTarget
+                })"
             />
         </div>
     </div>

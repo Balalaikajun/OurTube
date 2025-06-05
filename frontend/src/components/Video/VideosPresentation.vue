@@ -167,7 +167,7 @@
             }
             
             const limit = blocksInRow.value * 8;
-            console.log('Запрос рекомендаций с параметрами:', { limit, after: nextAfter.value });
+            // console.log('Запрос рекомендаций с параметрами:', { limit, after: nextAfter.value });
             
             try {
             const response = await fetch(`${API_BASE_URL}/api/Recommendation?limit=${limit}&after=${nextAfter.value}`);
@@ -177,7 +177,7 @@
             }
             
             const data = await response.json();
-            console.log('Получены данные:', data);
+            // console.log('Получены данные:', data);
             return data;
             } catch (error) {
             console.error('Ошибка получения рекомендаций:', error);
@@ -255,14 +255,14 @@
             }
             
             const data = await fetchMethods[props.context]();
-            console.log(data)
+            // console.log(data)
 
             if (!Array.isArray(data) && !Array.isArray(data.videos)) {
                 throw new Error('API вернул не массив видео');
             }
             if(props.context === "search") videos.value = [...videos.value, ...data];   //костыль
             else videos.value = [...videos.value, ...data.videos];                      
-            console.log(videos.value)
+            // console.log(videos.value)
             nextAfter.value = data.nextAfter || 0;
             hasMore.value = data.length > 0;
         } 

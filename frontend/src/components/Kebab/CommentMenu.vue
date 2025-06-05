@@ -1,6 +1,7 @@
 <script setup>
     import { ref, onBeforeUnmount, watch, nextTick } from "vue";
     import { useMenuManager } from '@/assets/utils/useMenuManager.js';
+    import { onClickOutside } from '@vueuse/core';
 
     const emit = defineEmits(['delete', 'edit-click', 'share']);
     const isOpen = ref(false);
@@ -27,43 +28,60 @@
     };  
 
     const openMenu = async (buttonElement) => {
-        // console.log(buttonElement)
         try {
             if (!buttonElement?.getBoundingClientRect) {
                 console.error('Invalid button element');
                 return;
             }
 
-            
-            // Если меню уже открыто - сначала закрываем
+            // Закрываем текущее меню перед открытием нового
             if (isOpen.value) {
-                console.log(position.value, 'меню уже открыто')
                 await closeMenu();
                 return;
             }
-            
+
             registerMenu({ closeMenu });
-            // Получаем позицию кнопки
+            
             const rect = buttonElement.getBoundingClientRect();
             const windowsScroll = window.scrollY;
             
             isOpen.value = true;
             
-            // Ждем рендера меню
             await nextTick();
             
-            // Корректируем позицию после рендера
             if (menuRef.value) {
                 const menuRect = menuRef.value.getBoundingClientRect();
+                
+                // Проверяем, чтобы меню не выходило за пределы экрана
+                let left = rect.left - menuRect.width;
+                if (left < 0) left = rect.left + rect.width;
+                
+                let top = windowsScroll + rect.top;
+                if (top + menuRect.height > window.innerHeight + window.scrollY) {
+                    top = windowsScroll + rect.top - menuRect.height;
+                }
+                
                 position.value = {
-                    left: `${rect.left - menuRect.width}px`,
-                    top: `${windowsScroll + rect.top}px`
+                    left: `${left}px`,
+                    top: `${top}px`
                 };
-                console.log(menuRef.value, position.value, 'изменение позиции меню')
             }
             
-            // Устанавливаем обработчики
-            cleanupListeners = setupEventListeners();
+            // Настраиваем обработчик кликов снаружи
+            onClickOutside(menuRef, (event) => {
+                // Игнорируем клики по кнопке меню
+                if (event.target.closest('.kebab-button')) return;
+                
+                closeMenu();
+            }, { capture: true });
+            
+            // Обработчик закрытия по Esc
+            const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
+            document.addEventListener('keydown', handleKeyDown);
+            
+            return () => {
+                document.removeEventListener('keydown', handleKeyDown);
+            };
         } 
         catch (error) {
             console.error('Error opening menu:', error);
@@ -71,17 +89,10 @@
     };
 
     const closeMenu = async () => {
-        
         if (!isOpen.value) return;
         
         isOpen.value = false;
         unregisterMenu({ closeMenu });
-        
-        // Очищаем обработчики
-        if (cleanupListeners) {
-            cleanupListeners();
-            cleanupListeners = null;
-        }
         
         // Даем время на анимацию закрытия
         await nextTick();
@@ -89,21 +100,28 @@
 
     const setupEventListeners = () => {
         const handleClickOutside = (event) => {
-            console.log('closeMenuClickOutside')
+            // Игнорируем клики по самой кнопке меню
+            if (event.target.closest('.kebab-button')) {
+                return;
+            }
+            
+            console.log('closeMenuClickOutside');
             if (menuRef.value && !menuRef.value.contains(event.target)) {
                 closeMenu();
             }
         };
 
+        // Остальные обработчики без изменений
         const handleScroll = () => closeMenu();
         const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
 
-        document.addEventListener('click', handleClickOutside);
+        // Используем capture phase для более надежного обнаружения кликов
+        document.addEventListener('click', handleClickOutside, true);
         window.addEventListener('scroll', handleScroll, { passive: true });
         document.addEventListener('keydown', handleKeyDown);
 
         return () => {
-            document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('click', handleClickOutside, true);
             window.removeEventListener('scroll', handleScroll);
             document.removeEventListener('keydown', handleKeyDown);
         };

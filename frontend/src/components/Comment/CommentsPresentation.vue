@@ -58,7 +58,7 @@
             if (newComments.length > 0) {
                 commentsData.value = reset ? newComments : [...commentsData.value, ...newComments];
                 lastCommentId.value = newComments[newComments.length - 1].id;
-                console.log(commentsData.value)
+                // console.log(commentsData.value)
             }
 
             hasMore.value = newComments.length >= props.initialLimit;
@@ -83,9 +83,9 @@
         fetchComments(true);
     };
 
-    const handleKebabClick = ({ commentId}) => {
-        console.log('Kebab clicked for comment:', commentId);
-        currentCommentId.value = commentId;
+    const handleKebabClick = (event) => {
+        console.log('Kebab clicked for comment:', event.commentId);
+        currentCommentId.value = event.commentId;
     };
 
     const handleKebabClose = () => {
@@ -147,6 +147,7 @@
                 :video-id="props.videoId"
                 :parent-id="comment.parentId || null"
                 :id="comment.id"
+                :isDeleted="comment.isDeleted"
                 :comment-text="comment.text"
                 :create-date="formatter.formatRussianDate(comment.created)"
                 :update-date="formatter.formatRussianDate(comment.updated)"
