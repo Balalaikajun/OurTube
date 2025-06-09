@@ -115,14 +115,14 @@
 
 
     const handleKebabButtonClick = (event) => {
-        // event.stopPropagation();
+        event.stopPropagation();
         emit('kebab-click', {
             commentId: props.id
         });
         kebabMenuRef.value?.openMenu(event.currentTarget);
     };
     const handleChildKebabClick = (event) => {
-        // event.stopPropagation();
+        event.stopPropagation();
         // emit('kebab-click', event);
         kebabMenuRef.value?.openMenu(event.currentTarget);
     };
@@ -266,7 +266,7 @@
                 </div>
             </div>
             <KebabButton
-                @kebab-click="handleKebabButtonClick"
+                @kebab-click.stop="handleKebabButtonClick"
             />  
         </div>
         <div class="childs-comments"

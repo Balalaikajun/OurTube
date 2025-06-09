@@ -4,17 +4,18 @@ import { ref } from 'vue';
 const activeMenu = ref(null);
 
 export function useMenuManager() {
-  const registerMenu = (menu) => {
-    if (activeMenu.value && activeMenu.value !== menu) {
+  const registerMenu = (menuInstance) => {
+    console.log(activeMenu.value, menuInstance, 'регистрация меню')
+    if (activeMenu.value && activeMenu.value !== menuInstance) {
+      console.log(activeMenu.value, menuInstance, 'регистрация меню', 1)
       activeMenu.value.closeMenu();
     }
-    activeMenu.value = menu;
+    activeMenu.value = menuInstance;
   };
 
-  const unregisterMenu = (menu) => {
-    if (activeMenu.value === menu) {
-      activeMenu.value = null;
-    }
+  const unregisterMenu = (menuInstance) => {
+    console.log(activeMenu.value, menuInstance, 'РАЗрегистрация меню')
+    activeMenu.value = null;
   };
 
   return { registerMenu, unregisterMenu };

@@ -3,7 +3,7 @@
     import axios from 'axios';
     import CommentBlock from "./CommentBlock.vue";
     import LoadingState from "../Solid/LoadingState.vue";
-    import CommentMenu from "../Kebab/CommentMenu.vue";
+    // import CommentMenu from "../Kebab/CommentMenu.vue";
     import { API_BASE_URL } from "@/assets/config.js";
     import formatter from "@/assets/utils/formatter.js";
 

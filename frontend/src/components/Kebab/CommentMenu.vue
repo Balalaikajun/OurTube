@@ -33,13 +33,16 @@
                 console.error('Invalid button element');
                 return;
             }
+
             
             // Если меню уже открыто - сначала закрываем
             if (isOpen.value) {
-                console.log(position.value)
+                console.log(position.value, 'меню уже открыто')
                 await closeMenu();
+                return;
             }
             
+            registerMenu({ closeMenu });
             // Получаем позицию кнопки
             const rect = buttonElement.getBoundingClientRect();
             const windowsScroll = window.scrollY;
@@ -51,20 +54,37 @@
             
             // Корректируем позицию после рендера
             if (menuRef.value) {
-            const menuRect = menuRef.value.getBoundingClientRect();
-            position.value = {
-                left: `${rect.left - menuRect.width}px`,
-                top: `${windowsScroll + rect.top}px`
-            };
+                const menuRect = menuRef.value.getBoundingClientRect();
+                position.value = {
+                    left: `${rect.left - menuRect.width}px`,
+                    top: `${windowsScroll + rect.top}px`
+                };
+                console.log(menuRef.value, position.value, 'изменение позиции меню')
             }
             
             // Устанавливаем обработчики
             cleanupListeners = setupEventListeners();
-            registerMenu({ closeMenu });
         } 
         catch (error) {
             console.error('Error opening menu:', error);
         }
+    };
+
+    const closeMenu = async () => {
+        
+        if (!isOpen.value) return;
+        
+        isOpen.value = false;
+        unregisterMenu({ closeMenu });
+        
+        // Очищаем обработчики
+        if (cleanupListeners) {
+            cleanupListeners();
+            cleanupListeners = null;
+        }
+        
+        // Даем время на анимацию закрытия
+        await nextTick();
     };
 
     const setupEventListeners = () => {
@@ -87,23 +107,6 @@
             window.removeEventListener('scroll', handleScroll);
             document.removeEventListener('keydown', handleKeyDown);
         };
-    };
-
-    const closeMenu = async () => {
-        
-        if (!isOpen.value) return;
-        
-        isOpen.value = false;
-        
-        // Очищаем обработчики
-        if (cleanupListeners) {
-            cleanupListeners();
-            cleanupListeners = null;
-        }
-        
-        // Даем время на анимацию закрытия
-        unregisterMenu({ closeMenu });
-        await nextTick();
     };
 
     onBeforeUnmount(() => {
