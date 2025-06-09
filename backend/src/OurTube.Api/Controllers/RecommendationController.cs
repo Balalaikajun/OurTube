@@ -2,6 +2,7 @@
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Services;
 using System.Security.Claims;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers
 {
@@ -9,9 +10,9 @@ namespace OurTube.Api.Controllers
     [ApiController]
     public class RecommendationController : ControllerBase
     {
-        private readonly BaseRecomendationService _recommendationService;
+        private readonly IRecomendationService _recommendationService;
 
-        public RecommendationController(BaseRecomendationService recommendationService)
+        public RecommendationController(IRecomendationService recommendationService)
         {
              _recommendationService = recommendationService;
         }
@@ -19,12 +20,16 @@ namespace OurTube.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<PagedVideoDto>> GetAsync(
             [FromQuery] int limit = 10,
-            [FromQuery] int after = 0)
+            [FromQuery] int after = 0,
+            [FromQuery] bool reload = false)
         {
-            var videos = await _recommendationService.GetRecomendationsAsync(
+            var videos = await _recommendationService.GetRecommendationsAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Request.Cookies["SessionId"],
                 limit,
                 after,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                reload
+                );
             var nextAfter = after + limit;
             
             return Ok(new PagedVideoDto()

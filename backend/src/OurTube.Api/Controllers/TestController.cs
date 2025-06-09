@@ -9,10 +9,10 @@ namespace OurTube.Api.Controllers;
 public class TestController: ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult> Get([FromServices]MinioService minioService)
+    public async Task<ActionResult> Get()
     {
-        await minioService.UploadFile( @"C:\Users\user\Pictures\Фоновые изображения рабочего стола\1. Черный кот с рыбкой.jpg", "sdsdf.jpg", "videos");
-        
+        Console.WriteLine(User.Identity.IsAuthenticated.ToString());
+        Console.WriteLine(Request.Cookies["SessionId"]);
         return Ok();
     }
 }

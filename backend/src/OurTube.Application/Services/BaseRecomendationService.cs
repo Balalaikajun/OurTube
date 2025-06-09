@@ -16,7 +16,9 @@ namespace OurTube.Application.Services
             _videoService = videoService;
         }
 
-        public async Task<IEnumerable<VideoMinGetDto>> GetRecomendationsAsync(int limit, int after, string? userId = null)
+        public async Task<IEnumerable<VideoMinGetDto>> GetRecommendationsAsync(string? userId, string sessionId,
+            int limit, int after,
+            bool reload = false)
         {
             var videos =await _dbContext.Videos
                 .OrderByDescending(v => v.LikesCount)

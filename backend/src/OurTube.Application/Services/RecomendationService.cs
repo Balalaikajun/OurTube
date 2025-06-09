@@ -1,0 +1,369 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using OurTube.Application.DTOs.Video;
+using OurTube.Application.Interfaces;
+using OurTube.Domain.Entities;
+
+namespace OurTube.Application.Services;
+
+public class RecommendationService : IRecomendationService
+{
+    private readonly IApplicationDbContext _dbContext;
+    private readonly IMemoryCache _cache;
+    private readonly VideoService _videoService;
+
+    private const int RecommendationPullCount = 50;
+
+    private const double WeeksViewsRate = 0.7;
+    private const double WeeksLikesRate = 0.3;
+
+    private const double TrendRecRatio = 0.4;
+    private const double PopRecRatio = 0.2;
+    private const double TagsRecRatio = 0.2;
+    private const double SubsRecRatio = 0.2;
+
+    public RecommendationService(IApplicationDbContext dbContext, IMemoryCache cache, VideoService videoService)
+    {
+        _dbContext = dbContext;
+        _cache = cache;
+        _videoService = videoService;
+    }
+
+    public async Task<IEnumerable<VideoMinGetDto>> GetRecommendationsAsync(string? userId, string sessionId,
+        int limit, int after,
+        bool reload = false)
+    {
+        if (!string.IsNullOrEmpty(userId) && ! await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
+            throw new InvalidOperationException("Пользователь не найдет");
+
+        var cacheKey = GetRecommendationsCacheKey(sessionId);
+
+        if (reload)
+            _cache.Remove(cacheKey);
+
+        if (!_cache.TryGetValue(cacheKey, out List<int> cachedRecommendations))
+        {
+            cachedRecommendations = [];
+
+            _cache.Set(cacheKey, cachedRecommendations, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(30)
+            });
+        }
+        
+        
+
+        if (cachedRecommendations.Count <= after + limit)
+        {
+            if (!string.IsNullOrEmpty(userId))
+            {
+                cachedRecommendations.AddRange(
+                    await LoadAuthorizedRecommendationsAsync(userId, sessionId, RecommendationPullCount));
+            }
+            else
+            {
+                cachedRecommendations.AddRange(
+                    await LoadAnAuthorizedRecommendationsAsync(sessionId, RecommendationPullCount));
+            }
+        }
+
+        var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
+
+        var result = new List<VideoMinGetDto>();
+        foreach (var videoId in resultIds)
+        {
+            var videoDto = string.IsNullOrEmpty(userId)
+                ? await _videoService.GetMinVideoByIdAsync(videoId)
+                : await _videoService.GetMinVideoByIdAsync(videoId, userId);
+            result.Add(videoDto);
+        }
+
+        return result;
+    }
+
+
+    private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)
+    {
+        var trendRec = (await GetTrendsRecommendationsAsync(sessionId, limit)).ToList();
+        var popRec = (await GetPopularityRecommendationsAsync(sessionId, limit)).ToList();
+        var tagsRec = (await GetTagsRecommendationsAsync(userId, sessionId, limit)).ToList();
+        var subsRec = (await GetSubscriptionRecommendationsAsync(userId, sessionId, limit)).ToList();
+
+        var result = new List<int>(limit);
+        var used = new HashSet<int>();
+
+        var trendIndex = 0;
+        var popIndex = 0;
+        var tagIndex = 0;
+        var subsIndex = 0;
+
+        var trendCount = (int)Math.Round(limit * PopRecRatio);
+        var popCount = (int)Math.Round(limit * PopRecRatio);
+        var tagCount = (int)Math.Round(limit * TagsRecRatio);
+        var subsCount = (int)Math.Round(limit * SubsRecRatio);
+
+        while (result.Count < limit &&
+               (popIndex < popRec.Count || tagIndex < tagsRec.Count || subsIndex < subsRec.Count))
+        {
+            for (var i = 0; i < trendCount && trendIndex < trendRec.Count; i++)
+            {
+                var id = trendRec[popIndex++];
+                if (used.Add(id))
+                {
+                    result.Add(id);
+                    if (result.Count >= limit) break;
+                }
+            }
+
+            if (result.Count >= limit) break;
+            
+            for (var i = 0; i < popCount && popIndex < popRec.Count; i++)
+            {
+                var id = popRec[popIndex++];
+                if (used.Add(id))
+                {
+                    result.Add(id);
+                    if (result.Count >= limit) break;
+                }
+            }
+
+            if (result.Count >= limit) break;
+
+            for (var i = 0; i < tagCount && tagIndex < tagsRec.Count; i++)
+            {
+                var id = tagsRec[tagIndex++];
+                if (used.Add(id))
+                {
+                    result.Add(id);
+                    if (result.Count >= limit) break;
+                }
+            }
+
+            if (result.Count >= limit) break;
+
+            for (var i = 0; i < subsCount && subsIndex < subsRec.Count; i++)
+            {
+                var id = subsRec[subsIndex++];
+                if (used.Add(id))
+                {
+                    result.Add(id);
+                    if (result.Count >= limit) break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private async Task<IEnumerable<int>> LoadAnAuthorizedRecommendationsAsync(string sessionId, int limit)
+    {
+        return await GetTrendsRecommendationsAsync(sessionId, limit);
+    }
+
+    private async Task<IEnumerable<int>> GetTrendsRecommendationsAsync(string sessionId, int limit)
+    {
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        usedIds ??= [];
+
+        var targetDate = DateTime.UtcNow.AddDays(-7);
+
+        var candidates = await _dbContext.Videos
+            .Where(v => v.Created >= targetDate)
+            .Where(v => !usedIds.Contains(v.Id))
+            .Select(v => new
+            {
+                v.Id,
+                ViewsCount = v.Views.Count(vi => vi.DateTime >= targetDate),
+                LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
+            })
+            .ToListAsync();
+
+        if (candidates.Count == 0)
+            return [];
+
+        var minV = candidates.Min(x => x.ViewsCount);
+        var maxV = candidates.Max(x => x.ViewsCount);
+        var minL = candidates.Min(x => x.LikesCount);
+        var maxL = candidates.Max(x => x.LikesCount);
+
+        if (maxV == minV) maxV = minV + 1;
+        if (maxL == minL) maxL = minL + 1;
+
+        var result = candidates
+            .Select(c =>
+            {
+                var normV = (c.ViewsCount - minV) / (double)(maxV - minV);
+                var normL = (c.LikesCount - minL) / (double)(maxL - minL);
+                var score = WeeksViewsRate * normV + WeeksLikesRate * normL;
+
+                return new { c.Id, Score = score };
+            })
+            .OrderByDescending(r => r.Score)
+            .Take(limit)
+            .Select(r => r.Id)
+            .ToList();
+
+        return result;
+    }
+    
+    private async Task<IEnumerable<int>> GetPopularityRecommendationsAsync(string sessionId, int limit)
+    {
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        usedIds ??= [];
+        
+        var sortTargetDate = DateTime.UtcNow.AddDays(-7);
+
+        var candidates = await _dbContext.Videos
+            .Where(v => !usedIds.Contains(v.Id))
+            .Select(v => new
+            {
+                v.Id,
+                ViewsCount = v.Views.Count(vi => vi.DateTime >= sortTargetDate),
+                LikesCount = v.Votes.Count(vi => vi.Created >= sortTargetDate && vi.Type == true)
+            })
+            .ToListAsync();
+
+        if (candidates.Count == 0)
+            return [];
+
+        var minV = candidates.Min(x => x.ViewsCount);
+        var maxV = candidates.Max(x => x.ViewsCount);
+        var minL = candidates.Min(x => x.LikesCount);
+        var maxL = candidates.Max(x => x.LikesCount);
+
+        if (maxV == minV) maxV = minV + 1;
+        if (maxL == minL) maxL = minL + 1;
+
+        var result = candidates
+            .Select(c =>
+            {
+                var normV = (c.ViewsCount - minV) / (double)(maxV - minV);
+                var normL = (c.LikesCount - minL) / (double)(maxL - minL);
+                var score = WeeksViewsRate * normV + WeeksLikesRate * normL;
+
+                return new { c.Id, Score = score };
+            })
+            .OrderByDescending(r => r.Score)
+            .Take(limit)
+            .Select(r => r.Id)
+            .ToList();
+
+        return result;
+    }
+
+    private async Task<IEnumerable<int>> GetTagsRecommendationsAsync(string userId, string sessionId, int limit)
+    {
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        usedIds ??= [];
+
+        var targetDate = DateTime.UtcNow.AddDays(-7);
+
+        var userTags = await (
+            from vi in _dbContext.Views
+            join vt in _dbContext.VideoTags on vi.VideoId equals vt.VideoId
+            where vi.ApplicationUserId == userId && vi.DateTime >= targetDate
+            select vt.TagId
+        ).Distinct().ToListAsync();
+
+        if (userTags.Count == 0)
+            return [];
+
+        var candidates = await (
+            from v in _dbContext.Videos
+            where !usedIds.Contains(v.Id)
+            let tagMatchCount = v.Tags.Count(t => userTags.Contains(t.TagId))
+            where tagMatchCount > 0
+            select new
+            {
+                v.Id,
+                TagMatch = tagMatchCount,
+                ViewsCount = v.Views.Count(vi => vi.DateTime >= targetDate),
+                LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
+            }
+        ).ToListAsync();
+        
+        if (candidates.Count == 0)
+            return [];
+
+        var minV = candidates.Min(x => x.ViewsCount);
+        var maxV = candidates.Max(x => x.ViewsCount);
+        var minL = candidates.Min(x => x.LikesCount);
+        var maxL = candidates.Max(x => x.LikesCount);
+
+        if (maxV == minV) maxV = minV + 1;
+        if (maxL == minL) maxL = minL + 1;
+
+        var result = candidates
+            .Select(c =>
+            {
+                var normV = (c.ViewsCount - minV) / (double)(maxV - minV);
+                var normL = (c.LikesCount - minL) / (double)(maxL - minL);
+                var score = WeeksViewsRate * normV + WeeksLikesRate * normL;
+
+                return new { c.Id, c.TagMatch, Score = score };
+            })
+            .OrderByDescending(r => r.TagMatch)
+            .ThenByDescending(r => r.Score)
+            .Take(limit)
+            .Select(c => c.Id)
+            .ToList();
+
+        return result;
+    }
+
+    private async Task<IEnumerable<int>> GetSubscriptionRecommendationsAsync(string userId, string sessionId, int limit)
+    {
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        usedIds ??= [];
+
+        var targetDate = DateTime.UtcNow.AddDays(-7);
+
+        var subs = await _dbContext.Subscriptions
+            .Where(s => s.SubscriberId == userId)
+            .Select(s => s.SubscribedToId)
+            .ToListAsync();
+
+        if (subs.Count == 0)
+            return new List<int>();
+
+        var candidates = await _dbContext.Videos
+            .Where(v => !usedIds.Contains(v.Id) && subs.Contains(v.ApplicationUserId))
+            .Select(v => new
+            {
+                v.Id,
+                ViewsCount = v.Views.Count(vi => vi.DateTime >= targetDate),
+                LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
+            })
+            .ToListAsync();
+        
+        if (candidates.Count == 0)
+            return [];
+
+        var minV = candidates.Min(x => x.ViewsCount);
+        var maxV = candidates.Max(x => x.ViewsCount);
+        var minL = candidates.Min(x => x.LikesCount);
+        var maxL = candidates.Max(x => x.LikesCount);
+
+        if (maxV == minV) maxV = minV + 1;
+        if (maxL == minL) maxL = minL + 1;
+
+        var result = candidates
+            .Select(c =>
+            {
+                var normV = (c.ViewsCount - minV) / (double)(maxV - minV);
+                var normL = (c.LikesCount - minL) / (double)(maxL - minL);
+                var score = WeeksViewsRate * normV + WeeksLikesRate * normL;
+
+                return new { c.Id, Score = score };
+            })
+            .OrderByDescending(r => r.Score)
+            .Take(limit)
+            .Select(c => c.Id)
+            .ToList();
+
+        return result;
+    }
+
+    private static string GetRecommendationsCacheKey(string sessionId)
+        => $"Recommendations_{sessionId}";
+}
