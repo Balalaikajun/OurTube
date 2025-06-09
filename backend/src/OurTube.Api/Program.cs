@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
+using OurTube.Api.Middlewares;
 using OurTube.Application.Handlers;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping;
@@ -24,6 +25,8 @@ var connectionString = configuration.GetConnectionString("DefaultConnection");
 services.AddDbContext<DbContext, ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+
+services.AddMemoryCache();
 
 // Auth
 services.AddAuthorization();
@@ -74,7 +77,7 @@ services.AddScoped<UserService>();
 services.AddScoped<CommentService>();
 services.AddScoped<CommentVoteService>();
 services.AddScoped<ViewService>();
-services.AddScoped<BaseRecomendationService>();
+services.AddScoped<IRecomendationService, RecommendationService>();
 services.AddScoped<SubscriptionService>();
 services.AddScoped<SearchService>();
 services.AddScoped<TagService>();
@@ -158,6 +161,8 @@ app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<UniqueVisitorId>();
 
 app.MapControllers();
 
