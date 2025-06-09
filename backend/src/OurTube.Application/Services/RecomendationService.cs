@@ -17,11 +17,6 @@ public class RecommendationService : IRecomendationService
     private const double WeeksViewsRate = 0.7;
     private const double WeeksLikesRate = 0.3;
 
-    private const double TrendRecRatio = 0.4;
-    private const double PopRecRatio = 0.2;
-    private const double TagsRecRatio = 0.2;
-    private const double SubsRecRatio = 0.2;
-
     public RecommendationService(IApplicationDbContext dbContext, IMemoryCache cache, VideoService videoService)
     {
         _dbContext = dbContext;
@@ -33,7 +28,7 @@ public class RecommendationService : IRecomendationService
         int limit, int after,
         bool reload = false)
     {
-        if (!string.IsNullOrEmpty(userId) && ! await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
+        if (!string.IsNullOrEmpty(userId) && !await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
             throw new InvalidOperationException("Пользователь не найдет");
 
         var cacheKey = GetRecommendationsCacheKey(sessionId);
@@ -50,8 +45,7 @@ public class RecommendationService : IRecomendationService
                 SlidingExpiration = TimeSpan.FromMinutes(30)
             });
         }
-        
-        
+
 
         if (cachedRecommendations.Count <= after + limit)
         {
@@ -84,6 +78,11 @@ public class RecommendationService : IRecomendationService
 
     private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)
     {
+        const double trendRecRatio = 0.4;
+        const double popRecRatio = 0.2;
+        const double tagsRecRatio = 0.2;
+        const double subsRecRatio = 0.2;
+
         var trendRec = (await GetTrendsRecommendationsAsync(sessionId, limit)).ToList();
         var popRec = (await GetPopularityRecommendationsAsync(sessionId, limit)).ToList();
         var tagsRec = (await GetTagsRecommendationsAsync(userId, sessionId, limit)).ToList();
@@ -97,17 +96,18 @@ public class RecommendationService : IRecomendationService
         var tagIndex = 0;
         var subsIndex = 0;
 
-        var trendCount = (int)Math.Round(limit * PopRecRatio);
-        var popCount = (int)Math.Round(limit * PopRecRatio);
-        var tagCount = (int)Math.Round(limit * TagsRecRatio);
-        var subsCount = (int)Math.Round(limit * SubsRecRatio);
+        var trendCount = (int)Math.Round(limit * trendRecRatio);
+        var popCount = (int)Math.Round(limit * popRecRatio);
+        var tagCount = (int)Math.Round(limit * tagsRecRatio);
+        var subsCount = (int)Math.Round(limit * subsRecRatio);
 
         while (result.Count < limit &&
-               (popIndex < popRec.Count || tagIndex < tagsRec.Count || subsIndex < subsRec.Count))
+               (trendIndex < trendRec.Count || popIndex < popRec.Count || tagIndex < tagsRec.Count ||
+                subsIndex < subsRec.Count))
         {
             for (var i = 0; i < trendCount && trendIndex < trendRec.Count; i++)
             {
-                var id = trendRec[popIndex++];
+                var id = trendRec[trendIndex++];
                 if (used.Add(id))
                 {
                     result.Add(id);
@@ -116,7 +116,7 @@ public class RecommendationService : IRecomendationService
             }
 
             if (result.Count >= limit) break;
-            
+
             for (var i = 0; i < popCount && popIndex < popRec.Count; i++)
             {
                 var id = popRec[popIndex++];
@@ -155,9 +155,51 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private async Task<IEnumerable<int>> LoadAnAuthorizedRecommendationsAsync(string sessionId, int limit)
+    private async Task<IEnumerable<int>> LoadAnAuthorizedRecommendationsAsync(string sessionId,
+        int limit)
     {
-        return await GetTrendsRecommendationsAsync(sessionId, limit);
+        const double trendRecRatio = 0.6;
+        const double popRecRatio = 0.4;
+
+        var trendRec = (await GetTrendsRecommendationsAsync(sessionId, limit)).ToList();
+        var popRec = (await GetPopularityRecommendationsAsync(sessionId, limit)).ToList();
+
+        var result = new List<int>(limit);
+        var used = new HashSet<int>();
+
+        var trendIndex = 0;
+        var popIndex = 0;
+
+        var trendCount = (int)Math.Round(limit * trendRecRatio);
+        var popCount = (int)Math.Round(limit * popRecRatio);
+
+        while (result.Count < limit &&
+               (trendIndex < trendRec.Count || popIndex < popRec.Count))
+        {
+            for (var i = 0; i < trendCount && trendIndex < trendRec.Count; i++)
+            {
+                var id = trendRec[trendIndex++];
+                if (used.Add(id))
+                {
+                    result.Add(id);
+                    if (result.Count >= limit) break;
+                }
+            }
+
+            if (result.Count >= limit) break;
+
+            for (var i = 0; i < popCount && popIndex < popRec.Count; i++)
+            {
+                var id = popRec[popIndex++];
+                if (used.Add(id))
+                {
+                    result.Add(id);
+                    if (result.Count >= limit) break;
+                }
+            }
+        }
+
+        return result;
     }
 
     private async Task<IEnumerable<int>> GetTrendsRecommendationsAsync(string sessionId, int limit)
@@ -205,12 +247,12 @@ public class RecommendationService : IRecomendationService
 
         return result;
     }
-    
+
     private async Task<IEnumerable<int>> GetPopularityRecommendationsAsync(string sessionId, int limit)
     {
         _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
         usedIds ??= [];
-        
+
         var sortTargetDate = DateTime.UtcNow.AddDays(-7);
 
         var candidates = await _dbContext.Videos
@@ -281,7 +323,7 @@ public class RecommendationService : IRecomendationService
                 LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
             }
         ).ToListAsync();
-        
+
         if (candidates.Count == 0)
             return [];
 
@@ -335,7 +377,7 @@ public class RecommendationService : IRecomendationService
                 LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
             })
             .ToListAsync();
-        
+
         if (candidates.Count == 0)
             return [];
 
