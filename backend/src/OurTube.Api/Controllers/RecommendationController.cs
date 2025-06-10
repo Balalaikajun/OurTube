@@ -18,7 +18,7 @@ namespace OurTube.Api.Controllers
         }
         
         [HttpGet]
-        public async Task<ActionResult<PagedVideoDto>> GetAsync(
+        public async Task<ActionResult<PagedVideoDto>> Get(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0,
             [FromQuery] bool reload = false)

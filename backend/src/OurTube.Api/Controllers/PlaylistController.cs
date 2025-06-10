@@ -19,18 +19,21 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> PostAsync(
+        public async Task<ActionResult<PlaylistMinGetDto>> Post(
             [FromBody] PlaylistPostDto postDto)
         {
-            await _playlistService.CreateAsync(
+            var result = await _playlistService.CreateAsync(
                 postDto,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
-            return Created();
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = result.Id },
+                result);
         }
 
         [Authorize]
         [HttpPatch("{id:int}")]
-        public async Task<ActionResult> PatchAsync(
+        public async Task<ActionResult> Patch(
             int id,
             [FromBody] PlaylistPatchDto postDto)
         {
@@ -55,7 +58,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> DeleteAsync(
+        public async Task<ActionResult> Delete(
             int id)
         {
             try
@@ -77,7 +80,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPost("{id:int}/{videoId:int}")]
-        public async Task<ActionResult> AddVideoAsync(
+        public async Task<ActionResult> AddVideo(
             int id,
             int videoId)
         {
@@ -105,7 +108,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{id:int}/{videoId:int}")]
-        public async Task<ActionResult> RemoveVideoAsync(
+        public async Task<ActionResult> RemoveVideo(
             int id,
             int videoId)
         {
@@ -129,7 +132,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<PagedPlaylistDto>> GetAsync(
+        public async Task<ActionResult<PagedPlaylistDto>> GetById(
             int id,
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
@@ -162,7 +165,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetAsync()
+        public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetUserPlaylists()
         {
             var result = await _playlistService.GetUserPlaylistsAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -172,7 +175,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet("video/{videoId:int}")]
-        public async Task<ActionResult<IEnumerable<PlaylistForVideoGetDto>>> GetForVideoAsync(int videoId)
+        public async Task<ActionResult<IEnumerable<PlaylistForVideoGetDto>>> GetForVideo(int videoId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _playlistService.GetUserPlaylistsForVideoAsync(userId, videoId);

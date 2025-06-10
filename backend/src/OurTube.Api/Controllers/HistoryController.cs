@@ -21,7 +21,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> AddVideoAsync(
+        public async Task<ActionResult> AddVideo(
             [FromBody] ViewPostDto postDto)
         {
             try
@@ -31,7 +31,7 @@ namespace OurTube.Api.Controllers
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     postDto.EndTime);
 
-                return Ok();
+                return Created();
             }
             catch (InvalidOperationException ex)
             {
@@ -41,7 +41,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{videoId:int}")]
-        public async Task<ActionResult> RemoveVideoAsync(
+        public async Task<ActionResult> RemoveVideo(
             int videoId)
         {
             try
@@ -60,7 +60,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete]
-        public async Task<ActionResult> ClearHistoryAsync()
+        public async Task<ActionResult> ClearHistory()
         {
             try
             {
@@ -77,7 +77,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<PagedHistoryDto>> GetAsync(
+        public async Task<ActionResult<PagedHistoryDto>> Get(
             [FromQuery] int limit = 10,
             [FromQuery] int after = 0)
         {

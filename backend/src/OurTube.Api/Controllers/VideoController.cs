@@ -14,46 +14,47 @@ namespace OurTube.Api.Controllers
 
         public VideoController(VideoService videoService)
         {
-             _videoService = videoService;
+            _videoService = videoService;
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<VideoMinGetDto>> Post(
+            [FromForm] VideoUploadDto videoUploadDto,
+            [FromServices] IConfiguration configuration)
+        {
+            try
+            {
+                var result = await _videoService.PostVideo(
+                    videoUploadDto,
+                    User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return CreatedAtAction(
+                    nameof(Get),
+                    new { id = result.Id },
+                    result);
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("{videoId:int}")]
-        public async Task<ActionResult<VideoGetDto>> GetAsync(int videoId, VideoService videoService)
+        public async Task<ActionResult<VideoGetDto>> Get(int videoId, VideoService videoService)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             try
             {
-                return Ok(userId != null ? await videoService.GetVideoByIdAsync(videoId, userId) : await videoService.GetVideoByIdAsync(videoId));
+                return Ok(userId != null
+                    ? await videoService.GetVideoByIdAsync(videoId, userId)
+                    : await videoService.GetVideoByIdAsync(videoId));
             }
             catch (InvalidOperationException ex)
             {
                 return NotFound(ex.Message);
             }
         }
-
-        [Authorize]
-        [HttpPost]
-        [Consumes("multipart/form-data")]
-        public async Task<ActionResult> Post(
-            [FromForm] VideoUploadDto videoUploadDto,
-            [FromServices] IConfiguration configuration)
-        {
-            try
-            {
-                await _videoService.PostVideo(
-                    videoUploadDto,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return Created();
-            }
-            catch (FormatException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-        }
-
-
-
     }
 }

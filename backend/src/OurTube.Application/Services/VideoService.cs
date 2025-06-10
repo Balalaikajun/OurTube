@@ -109,7 +109,7 @@ namespace OurTube.Application.Services
             return videoDto;
         }
 
-        public async Task PostVideo(
+        public async Task<VideoMinGetDto> PostVideo(
             VideoUploadDto videoUploadDto,
             string userId)
         {
@@ -233,6 +233,8 @@ namespace OurTube.Application.Services
                 _dbContext.Videos.Add(video);
 
                 await _dbContext.SaveChangesAsync();
+                
+                return _mapper.Map<VideoMinGetDto>(video);
             }
             finally
             {
