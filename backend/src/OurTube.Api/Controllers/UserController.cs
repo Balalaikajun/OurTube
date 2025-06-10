@@ -19,7 +19,7 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> PatchAsync(
+        public async Task<ActionResult> Patch(
             [FromBody] ApplicationUserPatchDto patchDto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

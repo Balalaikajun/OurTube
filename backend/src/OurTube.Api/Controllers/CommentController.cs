@@ -16,19 +16,22 @@ namespace OurTube.Api.Controllers
         {
             _commentService = commentService;
         }
-        
-        
+
+
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> PostAsync(
+        public async Task<ActionResult<CommentGetDto>> Post(
             [FromBody] CommentPostDto postDto)
         {
             try
             {
-                await _commentService.CreateAsync(
+                var result = await _commentService.CreateAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     postDto);
-                return Created();
+                return CreatedAtAction(
+                    nameof(GetWithLimit),
+                    new { id = result.Id, limit = 0, after = 0 },
+                    result);
             }
             catch (InvalidOperationException ex)
             {
@@ -38,7 +41,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPatch]
-        public async Task<ActionResult> PatchAsync(
+        public async Task<ActionResult> Patch(
             [FromBody] CommentPatchDto postDto)
         {
             try
@@ -60,7 +63,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("{commentId:int}")]
-        public async Task<ActionResult> DeleteAsync(
+        public async Task<ActionResult> Delete(
             int commentId)
         {
             try
@@ -81,15 +84,14 @@ namespace OurTube.Api.Controllers
         }
 
         [HttpGet("{videoId:int}")]
-        public async Task<ActionResult<PagedCommentDto>> GetWithLimitAsync(
-             int videoId,
-             [FromQuery] int limit = 10,
-             [FromQuery] int after = 0,
-             [FromQuery] int? parentId = null)
+        public async Task<ActionResult<PagedCommentDto>> GetWithLimit(
+            int videoId,
+            [FromQuery] int limit = 10,
+            [FromQuery] int after = 0,
+            [FromQuery] int? parentId = null)
         {
-            
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
+
             try
             {
                 PagedCommentDto result;
@@ -110,7 +112,6 @@ namespace OurTube.Api.Controllers
                         after,
                         parentId);
                 }
-                
 
 
                 return Ok(result);

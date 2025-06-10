@@ -19,7 +19,7 @@ namespace OurTube.Application.Services
             _mapper = mapper;
         }
 
-        public async Task CreateAsync(string userId, CommentPostDto postDto)
+        public async Task<CommentGetDto> CreateAsync(string userId, CommentPostDto postDto)
         {
             var video = await _dbContext.Videos.FindAsync(postDto.VideoId);
 
@@ -42,6 +42,8 @@ namespace OurTube.Application.Services
 
 
             await _dbContext.SaveChangesAsync();
+            
+            return _mapper.Map<CommentGetDto>(comment);
         }
 
         public async Task UpdateAsync(string userId, CommentPatchDto postDto)

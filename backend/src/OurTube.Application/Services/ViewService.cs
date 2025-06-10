@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.DTOs.Views;
 using OurTube.Application.Interfaces;
@@ -41,13 +42,15 @@ namespace OurTube.Application.Services
             }
             else
             {
-                _dbContext.Views.Add(new VideoView()
+                view = new VideoView
                 {
                     ApplicationUserId = userId,
                     VideoId = videoId,
                     EndTime = endTime,
                     DateTime = DateTime.UtcNow
-                });
+                };
+                
+                _dbContext.Views.Add(view);
                 video.ViewsCount++;
             }
 

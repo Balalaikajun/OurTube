@@ -18,7 +18,7 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPost("")]
-        public async Task<ActionResult> PostVoteAsync(
+        public async Task<ActionResult> PostVote(
             int commentId, 
             [FromBody] bool type)
         {
@@ -40,7 +40,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete("")]
-        public async Task<ActionResult> DeleteVoteAsync(
+        public async Task<ActionResult> DeleteVote(
             int commentId)
         {
             try

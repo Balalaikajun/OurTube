@@ -19,7 +19,7 @@ namespace OurTube.Api.Controllers
         
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> SubscribeAsync(
+        public async Task<ActionResult> Subscribe(
             string userToId)
         {
             try
@@ -38,7 +38,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete]
-        public async Task<ActionResult> UnSubscribeAsync(
+        public async Task<ActionResult> UnSubscribe(
             string userToId)
         {
             try

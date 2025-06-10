@@ -22,7 +22,7 @@ namespace OurTube.Application.Services
             _mapper = mapper;
         }
 
-        public async Task CreateAsync(PlaylistPostDto playlistDto, string userId)
+        public async Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, string userId)
         {
             var playlist = new Playlist()
             {
@@ -34,6 +34,8 @@ namespace OurTube.Application.Services
             _dbContext.Playlists.Add(playlist);
 
             await _dbContext.SaveChangesAsync();
+            
+            return _mapper.Map<PlaylistMinGetDto>(playlist);
         }
 
         public async Task UpdateAsync(PlaylistPatchDto patchDto, int playlistId, string userId)

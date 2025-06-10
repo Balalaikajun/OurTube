@@ -17,7 +17,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult> PostVoteAsync(int videoId,
+        public async Task<ActionResult> PostVote(int videoId,
             [FromBody] bool type)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -36,7 +36,7 @@ namespace OurTube.Api.Controllers
 
         [Authorize]
         [HttpDelete]
-        public async Task<ActionResult> DeleteDislikeAsync(int videoId)
+        public async Task<ActionResult> DeleteDislike(int videoId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
