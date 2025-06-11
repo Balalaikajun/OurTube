@@ -2,10 +2,9 @@ namespace OurTube.Api.Middlewares;
 
 public class UniqueVisitorId
 {
+    private const string SessionIdCookieField = "SessionId";
     private readonly RequestDelegate _next;
 
-    private const string SessionIdCookieField = "SessionId";
-    
     public UniqueVisitorId(RequestDelegate next)
     {
         _next = next;

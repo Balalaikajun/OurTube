@@ -1,8 +1,8 @@
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using OurTube.Api.Middlewares;
 using OurTube.Application.Handlers;
@@ -12,13 +12,14 @@ using OurTube.Application.Services;
 using OurTube.Application.Validators;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
+using Xabe.FFmpeg;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
 // Infrastructure
-Xabe.FFmpeg.FFmpeg.SetExecutablesPath(configuration["FFmpeg:ExecutablesPath"]);
+FFmpeg.SetExecutablesPath(configuration["FFmpeg:ExecutablesPath"]);
 
 // DB
 var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -98,7 +99,7 @@ services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173",  "http://localhost:5174")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

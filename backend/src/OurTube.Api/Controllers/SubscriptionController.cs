@@ -1,58 +1,57 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Services;
-using System.Security.Claims;
 
-namespace OurTube.Api.Controllers
+namespace OurTube.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class SubscriptionController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SubscriptionController : ControllerBase
+    private readonly SubscriptionService _subscriptionService;
+
+    public SubscriptionController(SubscriptionService subscriptionService)
     {
-        private readonly SubscriptionService _subscriptionService;
+        _subscriptionService = subscriptionService;
+    }
 
-        public SubscriptionController(SubscriptionService subscriptionService)
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult> Subscribe(
+        string userToId)
+    {
+        try
         {
-            _subscriptionService = subscriptionService;
+            await _subscriptionService.SubscribeAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userToId);
+
+            return Created();
         }
-        
-        
-        [Authorize]
-        [HttpPost]
-        public async Task<ActionResult> Subscribe(
-            string userToId)
+        catch (InvalidOperationException ex)
         {
-            try
-            {
-                await _subscriptionService.SubscribeAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    userToId);
-
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest(ex.Message);
         }
+    }
 
-        [Authorize]
-        [HttpDelete]
-        public async Task<ActionResult> UnSubscribe(
-            string userToId)
+    [Authorize]
+    [HttpDelete]
+    public async Task<ActionResult> UnSubscribe(
+        string userToId)
+    {
+        try
         {
-            try
-            {
-                await _subscriptionService.UnSubscribeAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    userToId);
+            await _subscriptionService.UnSubscribeAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userToId);
 
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Created();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

@@ -1,10 +1,6 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using OurTube.Domain.Entities;
-using OurTube.Domain.Interfaces;
-using OurTube.Application.DTOs;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
 
@@ -12,12 +8,11 @@ namespace OurTube.Application.Services;
 
 public class SearchService
 {
-    private readonly IApplicationDbContext _dbContext;
+    private const int SearchPull = 25;
     private readonly IMemoryCache _cache;
+    private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly VideoService _videoService;
-
-    private const int SearchPull = 25;
 
     public SearchService(IApplicationDbContext dbContext, IMemoryCache cache, IMapper mapper, VideoService videoService)
     {
@@ -48,9 +43,7 @@ public class SearchService
             cachePull = [];
 
         if (cachePull.Count < limit + after)
-        {
             cachePull.AddRange(await SearchMoreVideos(searchQuery, sessionId, SearchPull));
-        }
 
         var resultIds = cachePull.Skip(after).Take(limit).ToList();
 
@@ -76,5 +69,7 @@ public class SearchService
     }
 
     private static string GetCacheKey(string sessionId)
-        => $"SearchService:{sessionId}";
+    {
+        return $"SearchService:{sessionId}";
+    }
 }

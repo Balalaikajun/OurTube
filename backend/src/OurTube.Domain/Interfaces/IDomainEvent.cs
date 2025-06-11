@@ -2,7 +2,7 @@ using MediatR;
 
 namespace OurTube.Domain.Interfaces;
 
-public interface IDomainEvent:INotification
+public interface IDomainEvent : INotification
 {
-    DateTime OccurredOn { get; } 
+    DateTime OccurredOn { get; }
 }

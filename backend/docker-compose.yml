@@ -15,7 +15,7 @@ services:
     command: server /data --console-address ":9090"
     volumes:
       - minio_data:/data
-        
+  
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -27,8 +27,8 @@ services:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: OurTube
     volumes:
-      - postgres_data:/var/lib/postgresql/data 
-        
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
   minio_data:
   postgres_data:

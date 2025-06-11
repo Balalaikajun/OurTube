@@ -1,39 +1,35 @@
-﻿using Microsoft.AspNetCore.Identity;
-using OurTube.Application.DTOs.ApplicationUser;
+﻿using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.Interfaces;
-using OurTube.Domain.Entities;
-using OurTube.Domain.Interfaces;
 
-namespace OurTube.Application.Services
+namespace OurTube.Application.Services;
+
+public class UserService
 {
-    public class UserService
+    private readonly IApplicationDbContext _dbContext;
+
+    public UserService(IApplicationDbContext dbContext)
     {
-        private readonly IApplicationDbContext _dbContext;
+        _dbContext = dbContext;
+    }
 
-        public UserService(IApplicationDbContext dbContext)
+    public async Task UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
+    {
+        var aUser = await _dbContext.ApplicationUsers.FindAsync(userId);
+
+        if (aUser == null)
+            throw new KeyNotFoundException("Пользователь не найден");
+
+        var iUser = await _dbContext.IdentityUsers.FindAsync(userId);
+
+        if (iUser == null)
+            throw new KeyNotFoundException("Пользователь не найден");
+
+        if (patchDto.UserName != null)
         {
-            _dbContext = dbContext;
+            aUser.UserName = patchDto.UserName;
+            iUser.UserName = patchDto.UserName;
         }
 
-        public async Task UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
-        {
-            var aUser =await _dbContext.ApplicationUsers.FindAsync(userId);
-
-            if (aUser == null)
-                throw new KeyNotFoundException("Пользователь не найден");
-
-            var iUser = await _dbContext.IdentityUsers.FindAsync(userId);
-
-            if (iUser == null)
-                throw new KeyNotFoundException("Пользователь не найден");
-
-            if (patchDto.UserName != null)
-            {
-                aUser.UserName = patchDto.UserName;
-                iUser.UserName = patchDto.UserName;
-            }
-
-            await _dbContext.SaveChangesAsync();
-        }
+        await _dbContext.SaveChangesAsync();
     }
 }

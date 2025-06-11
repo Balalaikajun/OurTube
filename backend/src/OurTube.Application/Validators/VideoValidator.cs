@@ -1,26 +1,19 @@
 ﻿using OurTube.Application.DTOs.Video;
 
-namespace OurTube.Application.Validators
+namespace OurTube.Application.Validators;
+
+public class VideoValidator
 {
-    public class VideoValidator
+    public void ValidateVideo(VideoUploadDto video)
     {
-        public void ValidateVideo(VideoUploadDto video)
-        {
-            // Валидация данных
-            if (!video.VideoFile.ContentType.StartsWith("video/"))
-            {
-                throw new FormatException($"Формат файла: {video.VideoFile.ContentType} - не поддерживается");
-            }
+        // Валидация данных
+        if (!video.VideoFile.ContentType.StartsWith("video/"))
+            throw new FormatException($"Формат файла: {video.VideoFile.ContentType} - не поддерживается");
 
-            if (!video.PreviewFile.ContentType.StartsWith("image/"))
-            {
-                throw new FormatException($"Формат файла: {video.PreviewFile.ContentType} - не поддерживается");
-            }
+        if (!video.PreviewFile.ContentType.StartsWith("image/"))
+            throw new FormatException($"Формат файла: {video.PreviewFile.ContentType} - не поддерживается");
 
-            if (video.VideoPostDto.Title == "con")
-            {
-                throw new FormatException("Данное название не соответствует политике компании");
-            }
-        }
+        if (video.VideoPostDto.Title == "con")
+            throw new FormatException("Данное название не соответствует политике компании");
     }
 }

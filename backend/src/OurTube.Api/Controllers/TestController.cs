@@ -1,12 +1,10 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Infrastructure.Other;
 
 namespace OurTube.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TestController: ControllerBase
+public class TestController : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult> Get()
@@ -16,4 +14,3 @@ public class TestController: ControllerBase
         return Ok();
     }
 }
-    

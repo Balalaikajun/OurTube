@@ -1,9 +1,8 @@
-﻿namespace OurTube.Application.DTOs.Comment
+﻿namespace OurTube.Application.DTOs.Comment;
+
+public class CommentPostDto
 {
-    public class CommentPostDto
-    {
-        public int VideoId { get; set; }
-        public string Text { get; set; }
-        public int? ParentId { get; set; }
-    }
+    public int VideoId { get; set; }
+    public string Text { get; set; }
+    public int? ParentId { get; set; }
 }

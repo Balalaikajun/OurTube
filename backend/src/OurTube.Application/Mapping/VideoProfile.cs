@@ -4,20 +4,18 @@ using OurTube.Application.DTOs.VideoPlaylist;
 using OurTube.Application.DTOs.VideoPreview;
 using OurTube.Domain.Entities;
 
-namespace OurTube.Application.Mapping
+namespace OurTube.Application.Mapping;
+
+public class VideoProfile : Profile
 {
-    public class VideoProfile : Profile
+    public VideoProfile()
     {
-        public VideoProfile()
-        {
-            CreateMap<Video, VideoGetDto>();
+        CreateMap<Video, VideoGetDto>();
 
-            CreateMap<Video, VideoMinGetDto>();
+        CreateMap<Video, VideoMinGetDto>();
 
-            CreateMap<VideoPlaylist, VideoPlaylistDto>();
+        CreateMap<VideoPlaylist, VideoPlaylistDto>();
 
-            CreateMap<VideoPreview, VideoPreviewDto>();
-        }
-
+        CreateMap<VideoPreview, VideoPreviewDto>();
     }
 }
