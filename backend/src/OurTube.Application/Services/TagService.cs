@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
-using OurTube.Domain.Interfaces;
 
 namespace OurTube.Application.Services;
 
@@ -23,13 +22,12 @@ public class TagService
         if (tag == null)
         {
             tag = newTag;
-            
+
             _dbContext.Tags.Add(tag);
-            
+
             await _dbContext.SaveChangesAsync();
-            
         }
-        
+
         return tag;
     }
 }

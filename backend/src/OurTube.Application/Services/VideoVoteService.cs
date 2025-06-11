@@ -1,70 +1,62 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
-using OurTube.Domain.Interfaces;
 
-namespace OurTube.Application.Services
+namespace OurTube.Application.Services;
+
+public class VideoVoteService
 {
-    public class VideoVoteService
+    private readonly IApplicationDbContext _dbContext;
+    private readonly PlaylistService _playlistService;
+
+    public VideoVoteService(IApplicationDbContext dbContext, PlaylistService playlistService)
     {
-        private readonly IApplicationDbContext _dbContext;
-        private readonly PlaylistService _playlistService;
+        _dbContext = dbContext;
+        _playlistService = playlistService;
+    }
 
-        public VideoVoteService(IApplicationDbContext dbContext, PlaylistService playlistService)
-        {
-            _dbContext = dbContext;
-            _playlistService = playlistService;
-        }
+    public async Task SetAsync(int videoId, string userId, bool type)
+    {
+        var video = await _dbContext.Videos.FindAsync(videoId);
+        if (video == null)
+            throw new InvalidOperationException("Видео не найдено");
 
-        public async Task SetAsync(int videoId, string userId, bool type)
-        {
-            var video = await _dbContext.Videos.FindAsync(videoId);
-            if (video == null)
-                throw new InvalidOperationException("Видео не найдено");
+        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
+            throw new InvalidOperationException("Пользователь не найден");
 
-            if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-                throw new InvalidOperationException("Пользователь не найден");
+        var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
 
-            var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
-
-            if (vote == null)
-            {
-                _dbContext.VideoVotes.Add(new VideoVote(videoId, userId, type));
-            }
-            else if (vote.Type != type)
-            {
-                vote.Update(type);
-            }
-            else
-            {
-                return;
-            }
+        if (vote == null)
+            _dbContext.VideoVotes.Add(new VideoVote(videoId, userId, type));
+        else if (vote.Type != type)
+            vote.Update(type);
+        else
+            return;
 
 
-            await _dbContext.SaveChangesAsync();
-        }
+        await _dbContext.SaveChangesAsync();
+    }
 
-        public async Task DeleteAsync(int videoId, string userId)
-        {
-            var video = await _dbContext.Videos.FindAsync(videoId);
+    public async Task DeleteAsync(int videoId, string userId)
+    {
+        var video = await _dbContext.Videos.FindAsync(videoId);
 
-            if (video == null)
-                throw new InvalidOperationException("Видео не найдено");
+        if (video == null)
+            throw new InvalidOperationException("Видео не найдено");
 
-            if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-                throw new InvalidOperationException("Пользователь не найден");
+        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
+            throw new InvalidOperationException("Пользователь не найден");
 
-            var vote = await _dbContext.VideoVotes
-                .FindAsync(videoId, userId);
+        var vote = await _dbContext.VideoVotes
+            .FindAsync(videoId, userId);
 
-            if (vote == null)
-                return;
+        if (vote == null)
+            return;
 
-            vote.RemoveEvent();
+        vote.RemoveEvent();
 
-            _dbContext.VideoVotes.Remove(vote);
+        _dbContext.VideoVotes.Remove(vote);
 
-            await _dbContext.SaveChangesAsync();
-        }
+        await _dbContext.SaveChangesAsync();
     }
 }

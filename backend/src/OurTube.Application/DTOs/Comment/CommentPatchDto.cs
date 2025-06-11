@@ -1,8 +1,7 @@
-﻿namespace OurTube.Application.DTOs.Comment
+﻿namespace OurTube.Application.DTOs.Comment;
+
+public class CommentPatchDto
 {
-    public class CommentPatchDto
-    {
-        public int Id { get; set; }
-        public string Text { get; set; }
-    }
+    public int Id { get; set; }
+    public string Text { get; set; }
 }

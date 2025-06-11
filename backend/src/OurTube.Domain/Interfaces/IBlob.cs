@@ -1,8 +1,7 @@
-﻿namespace OurTube.Domain.Interfaces
+﻿namespace OurTube.Domain.Interfaces;
+
+public interface IBlob
 {
-    public interface IBlob
-    {
-        string FileName { get; set; }
-        string Bucket { get; set; }
-    }
+    string FileName { get; set; }
+    string Bucket { get; set; }
 }

@@ -1,60 +1,57 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Services;
-using System.Security.Claims;
 
-namespace OurTube.Api.Controllers
+namespace OurTube.Api.Controllers;
+
+[Route("api/Video/Comment/{commentId:int}/vote")]
+[ApiController]
+public class CommentVoteController : ControllerBase
 {
-    [Route("api/Video/Comment/{commentId:int}/vote")]
-    [ApiController]
-    public class CommentVoteController : ControllerBase
+    private readonly CommentVoteService _commentVoteService;
+
+    public CommentVoteController(CommentVoteService commentVoteService)
     {
-        private readonly CommentVoteService _commentVoteService;
+        _commentVoteService = commentVoteService;
+    }
 
-        public CommentVoteController(CommentVoteService commentVoteService)
+    [Authorize]
+    [HttpPost("")]
+    public async Task<ActionResult> PostVote(
+        int commentId,
+        [FromBody] bool type)
+    {
+        try
         {
-            _commentVoteService = commentVoteService;
+            await _commentVoteService.SetAsync(
+                commentId,
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                type);
+            return Created();
         }
-        
-        [Authorize]
-        [HttpPost("")]
-        public async Task<ActionResult> PostVote(
-            int commentId, 
-            [FromBody] bool type)
+        catch (InvalidOperationException ex)
         {
-            try
-            {
-                await _commentVoteService.SetAsync(
-                    commentId,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    type);
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
+            return BadRequest(ex.Message);
         }
+    }
 
 
-        [Authorize]
-        [HttpDelete("")]
-        public async Task<ActionResult> DeleteVote(
-            int commentId)
+    [Authorize]
+    [HttpDelete("")]
+    public async Task<ActionResult> DeleteVote(
+        int commentId)
+    {
+        try
         {
-            try
-            {
-                await _commentVoteService.DeleteAsync(
-                    commentId,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
+            await _commentVoteService.DeleteAsync(
+                commentId,
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
+            return Created();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

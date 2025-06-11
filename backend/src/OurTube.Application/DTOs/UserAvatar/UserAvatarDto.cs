@@ -1,9 +1,8 @@
-﻿namespace OurTube.Application.DTOs.UserAvatar
+﻿namespace OurTube.Application.DTOs.UserAvatar;
+
+public class UserAvatarDto
 {
-    public class UserAvatarDto
-    {
-        public string FileName { get; set; }
-        public string FileDirInStorage { get; set; }
-        public string Bucket { get; set; }
-    }
+    public string FileName { get; set; }
+    public string FileDirInStorage { get; set; }
+    public string Bucket { get; set; }
 }

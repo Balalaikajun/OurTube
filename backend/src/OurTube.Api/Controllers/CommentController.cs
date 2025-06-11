@@ -1,112 +1,111 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Comment;
 using OurTube.Application.Services;
-using System.Security.Claims;
 
-namespace OurTube.Api.Controllers
+namespace OurTube.Api.Controllers;
+
+[Route("api/Video/[Controller]")]
+[ApiController]
+public class CommentController : ControllerBase
 {
-    [Route("api/Video/[Controller]")]
-    [ApiController]
-    public class CommentController : ControllerBase
+    private readonly CommentService _commentService;
+
+    public CommentController(CommentService commentService)
     {
-        private readonly CommentService _commentService;
+        _commentService = commentService;
+    }
 
-        public CommentController(CommentService commentService)
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<CommentGetDto>> Post(
+        [FromBody] CommentPostDto postDto)
+    {
+        try
         {
-            _commentService = commentService;
+            var result = await _commentService.CreateAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                postDto);
+            return Created(
+                string.Empty,
+                result);
         }
-
-
-        [Authorize]
-        [HttpPost]
-        public async Task<ActionResult<CommentGetDto>> Post(
-            [FromBody] CommentPostDto postDto)
+        catch (InvalidOperationException ex)
         {
-            try
-            {
-                var result = await _commentService.CreateAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDto);
-                return Created(
-                    string.Empty,
-                    result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest(ex.Message);
         }
+    }
 
-        [Authorize]
-        [HttpPatch]
-        public async Task<ActionResult> Patch(
-            [FromBody] CommentPatchDto postDto)
+    [Authorize]
+    [HttpPatch]
+    public async Task<ActionResult> Patch(
+        [FromBody] CommentPatchDto postDto)
+    {
+        try
         {
-            try
-            {
-                await _commentService.UpdateAsync(
-                    User.FindFirstValue(ClaimTypes.NameIdentifier),
-                    postDto);
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            await _commentService.UpdateAsync(
+                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                postDto);
+            return Created();
         }
-
-        [Authorize]
-        [HttpDelete("{commentId:int}")]
-        public async Task<ActionResult> Delete(
-            int commentId)
+        catch (InvalidOperationException ex)
         {
-            try
-            {
-                await _commentService.DeleteAsync(
-                    commentId,
-                    User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return Created();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest(ex.Message);
         }
-
-        [HttpGet("{videoId:int}")]
-        public async Task<ActionResult<PagedCommentDto>> GetWithLimit(
-            int videoId,
-            [FromQuery] int limit = 10,
-            [FromQuery] int after = 0,
-            [FromQuery] int? parentId = null)
+        catch (UnauthorizedAccessException ex)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return BadRequest(ex.Message);
+        }
+    }
 
-            try
-            {
-                var result = await _commentService.GetChildrenWithLimitAsync(
-                    videoId,
-                    limit,
-                    after,
-                    userId,
-                    parentId);
+    [Authorize]
+    [HttpDelete("{commentId:int}")]
+    public async Task<ActionResult> Delete(
+        int commentId)
+    {
+        try
+        {
+            await _commentService.DeleteAsync(
+                commentId,
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
+            return Created();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("{videoId:int}")]
+    public async Task<ActionResult<PagedCommentDto>> GetWithLimit(
+        int videoId,
+        [FromQuery] int limit = 10,
+        [FromQuery] int after = 0,
+        [FromQuery] int? parentId = null)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        try
+        {
+            var result = await _commentService.GetChildrenWithLimitAsync(
+                videoId,
+                limit,
+                after,
+                userId,
+                parentId);
 
 
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

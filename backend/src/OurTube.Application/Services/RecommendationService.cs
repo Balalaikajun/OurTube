@@ -2,20 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
-using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
 public class RecommendationService : IRecomendationService
 {
-    private readonly IApplicationDbContext _dbContext;
-    private readonly IMemoryCache _cache;
-    private readonly VideoService _videoService;
-
     private const int RecommendationPullCount = 50;
 
     private const double WeeksViewsRate = 0.7;
     private const double WeeksLikesRate = 0.3;
+    private readonly IMemoryCache _cache;
+    private readonly IApplicationDbContext _dbContext;
+    private readonly VideoService _videoService;
 
     public RecommendationService(IApplicationDbContext dbContext, IMemoryCache cache, VideoService videoService)
     {
@@ -50,15 +48,11 @@ public class RecommendationService : IRecomendationService
         if (cachedRecommendations.Count <= after + limit)
         {
             if (!string.IsNullOrEmpty(userId))
-            {
                 cachedRecommendations.AddRange(
                     await LoadAuthorizedRecommendationsAsync(userId, sessionId, RecommendationPullCount));
-            }
             else
-            {
                 cachedRecommendations.AddRange(
                     await LoadAnAuthorizedRecommendationsAsync(sessionId, RecommendationPullCount));
-            }
         }
 
         var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
@@ -67,7 +61,7 @@ public class RecommendationService : IRecomendationService
 
         return result;
     }
-    
+
     private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)
     {
         const double trendRecRatio = 0.4;
@@ -399,5 +393,7 @@ public class RecommendationService : IRecomendationService
     }
 
     private static string GetRecommendationsCacheKey(string sessionId)
-        => $"Recommendations_{sessionId}";
+    {
+        return $"Recommendations_{sessionId}";
+    }
 }

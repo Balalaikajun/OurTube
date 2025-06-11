@@ -1,37 +1,36 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.Services;
-using System.Security.Claims;
 
-namespace OurTube.Api.Controllers
+namespace OurTube.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UserController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
-    {
-        private readonly UserService _userService;
+    private readonly UserService _userService;
 
-        public UserController(UserService userService)
+    public UserController(UserService userService)
+    {
+        _userService = userService;
+    }
+
+    [Authorize]
+    [HttpPatch]
+    public async Task<ActionResult> Patch(
+        [FromBody] ApplicationUserPatchDto patchDto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        try
         {
-             _userService = userService;
+            await _userService.UpdateUserAsync(patchDto, userId);
+            return Ok();
         }
-        
-        [Authorize]
-        [HttpPatch]
-        public async Task<ActionResult> Patch(
-            [FromBody] ApplicationUserPatchDto patchDto)
+        catch (InvalidOperationException ex)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            try
-            {
-                await _userService.UpdateUserAsync(patchDto, userId);
-                return Ok();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            return NotFound(ex.Message);
         }
     }
 }
