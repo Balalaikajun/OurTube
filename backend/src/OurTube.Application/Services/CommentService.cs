@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.DTOs.Comment;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
@@ -42,13 +44,13 @@ namespace OurTube.Application.Services
 
 
             await _dbContext.SaveChangesAsync();
-            
+
             return _mapper.Map<CommentGetDto>(comment);
         }
 
         public async Task UpdateAsync(string userId, CommentPatchDto postDto)
         {
-            var comment =await _dbContext.Comments
+            var comment = await _dbContext.Comments
                 .FindAsync(postDto.Id);
 
             if (comment == null)
@@ -59,7 +61,7 @@ namespace OurTube.Application.Services
 
             if (comment.IsDeleted == true)
                 throw new InvalidOperationException("Комментарий удалён");
-            
+
             if (postDto.Text != "")
             {
                 comment.Text = postDto.Text;
@@ -72,14 +74,14 @@ namespace OurTube.Application.Services
 
         public async Task DeleteAsync(int commentId, string userId)
         {
-            var comment =await _dbContext.Comments
+            var comment = await _dbContext.Comments
                 .FindAsync(commentId);
 
-            var video =await _dbContext.Videos.FindAsync(comment.VideoId);
+            var video = await _dbContext.Videos.FindAsync(comment.VideoId);
 
             if (video == null)
                 throw new InvalidOperationException("Видео не найдено");
-            
+
             if (comment == null)
                 throw new InvalidOperationException("Комментарий не найден");
 
@@ -92,7 +94,8 @@ namespace OurTube.Application.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<PagedCommentDto> GetChildrenWithLimitAsync(int videoId, int limit, int after, int? parentId = null)
+        public async Task<PagedCommentDto> GetChildrenWithLimitAsync(int videoId, int limit, int after, string userId = "sadfghjkj",
+            int? parentId = null)
         {
             if (!await _dbContext.Videos.AnyAsync(v => v.Id == videoId))
                 throw new InvalidOperationException("Видео не найдено");
@@ -100,42 +103,21 @@ namespace OurTube.Application.Services
             if (parentId != null && !await _dbContext.Comments.AnyAsync(p => p.Id == parentId))
                 throw new InvalidOperationException("Комментарий не найден");
 
+            var hasUserId = !string.IsNullOrEmpty(userId);
+            
             var comments = await _dbContext.Comments
-                .Include(c => c.User)
-                .Include(c => c.Childs)
-                .ThenInclude(c => c.User)
                 .Where(c => c.VideoId == videoId && c.ParentId == parentId)
                 .OrderByDescending(c => c.LikesCount)
                 .Skip(after)
-                .Take(limit+1)
-                .ProjectTo<CommentGetDto>(_mapper.ConfigurationProvider)
+                .Take(limit + 1)
+                .ProjectToCommentDto(_mapper, userId)
                 .ToListAsync();
-
             var hasMore = comments.Count > after;
-            
-            return new PagedCommentDto{ Comments = comments.Take(limit),NextAfter = limit+after, HasMore = hasMore};
-        }
-        
-        public async Task<PagedCommentDto> GetChildrenWithLimitAsync(int videoId, int limit, int after, string userId, int? parentId = null)
-        {
-            var result = await GetChildrenWithLimitAsync(videoId, limit, after, parentId);
-
-            if(!await _dbContext.ApplicationUsers.AnyAsync(u =>u.Id == userId))
-                return result;
-
-            var commnetsIds = result.Comments.Select(c => c.Id).ToList();
-            var commentVotes = await _dbContext.CommentVotes
-                .Where(c => c.ApplicationUserId == userId && commnetsIds.Contains(c.CommentId))
-                .ToListAsync();
-
-            foreach (var vote in commentVotes)
+            return new PagedCommentDto
             {
-                result.Comments.First(c => c.Id == vote.CommentId).Vote = vote.Type;
-            }
-            
-            return result;
+                Comments = comments.Take(limit), NextAfter = limit + after,
+                HasMore = hasMore
+            };
         }
-
-
     }
 }

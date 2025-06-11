@@ -1,74 +1,67 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using OurTube.Domain.Events.VideoVote;
+﻿using OurTube.Domain.Events.VideoVote;
 
-namespace OurTube.Domain.Entities
+namespace OurTube.Domain.Entities;
+
+public class VideoVote : BaseEntity
 {
-    [PrimaryKey(nameof(VideoId), nameof(ApplicationUserId))]
-    public class VideoVote:BaseEntity
+    public VideoVote()
     {
-        public int VideoId { get; private set; }
-        public string ApplicationUserId { get; private set; }
+    }
 
-        [Required]
-        public bool Type { get; private set; }
-        [Required]
-        public DateTime Created { get; private set; } = DateTime.UtcNow;
+    public VideoVote(int videoId, string applicationUserId, bool type)
+    {
+        VideoId = videoId;
+        ApplicationUserId = applicationUserId;
+        Type = type;
 
-        //Navigation
-        public Video Video { get; }
-        public ApplicationUser ApplicationUser { get;}
+        CreateEvent();
+    }
 
-        public VideoVote()
-        {
-        }
+    public int VideoId { get; }
+    public string ApplicationUserId { get; }
+    public bool Type { get; private set; }
+    public DateTime Created { get; private set; } = DateTime.UtcNow;
 
-        public VideoVote(int videoId, string applicationUserId, bool type)
-        {
-            VideoId = videoId;
-            ApplicationUserId = applicationUserId;
-            Type = type;
-            
-            CreateEvent();
-        }
-        
-        public void Update(bool type)
-        {
-            if(Type == type)
-                return;
+    //Navigation
+    public Video Video { get; }
+    public ApplicationUser ApplicationUser { get; }
 
-            var oldType = Type;
-            Type = type;
-            Created = DateTime.UtcNow;
-                
-            UpdateEvent(oldType);
-        }
-        
-        private void CreateEvent( )
-        {
-            AddDomainEvent( new VideoVoteCreateEvent(
-                VideoId,
-                ApplicationUserId,
-                Type,
-                Created));
-        }
-        
-        private void UpdateEvent(bool oldValue)
-        {
-            AddDomainEvent( new VideoVoteUpdateEvent(
-                VideoId,
-                ApplicationUserId,
-                oldValue,
-                Type,
-                Created));
-        }
-        
-        public void RemoveEvent()
-        {
-            AddDomainEvent( new VideoVoteDeleteEvent(
-                VideoId,
-                ApplicationUserId,
-                Type));
-        }
+    public void Update(bool type)
+    {
+        if (Type == type)
+            return;
+
+        var oldType = Type;
+        Type = type;
+        Created = DateTime.UtcNow;
+
+        UpdateEvent(oldType);
+    }
+
+    private void CreateEvent()
+    {
+        AddDomainEvent(new VideoVoteCreateEvent(
+            VideoId,
+            ApplicationUserId,
+            Type,
+            Created));
+    }
+
+    private void UpdateEvent(bool oldValue)
+    {
+        AddDomainEvent(new VideoVoteUpdateEvent(
+            VideoId,
+            ApplicationUserId,
+            oldValue,
+            Type,
+            Created));
+    }
+
+    public void RemoveEvent()
+    {
+        AddDomainEvent(new VideoVoteDeleteEvent(
+            VideoId,
+            ApplicationUserId,
+            Type));
     }
 }

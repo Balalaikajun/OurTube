@@ -1,42 +1,23 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿namespace OurTube.Domain.Entities;
 
-namespace OurTube.Domain.Entities
+public class Comment
 {
-    public class Comment
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        [Required]
-        public int VideoId { get; set; }
-        [Required]
-        public string ApplicationUserId { get; set; }
-        [MaxLength(1500)]
-        [Required]
-        public string Text { get; set; }
-        [Required]
-        public DateTime Created { get; set; } = DateTime.UtcNow;
-        public DateTime? Updated { get; set; } = null;
-        public DateTime? Deleted { get; set; } = null;
+    public int Id { get; set; }
+    public int VideoId { get; set; }
+    public string ApplicationUserId { get; set; }
+    public string Text { get; set; }
+    public DateTime Created { get; set; } = DateTime.UtcNow;
+    public DateTime? Updated { get; set; } = null;
+    public DateTime? Deleted { get; set; } = null;
+    public int? ParentId { get; set; }
+    public bool IsEdited { get; set; } = false;
+    public bool IsDeleted { get; set; } = false;
+    public int LikesCount { get; set; } = 0;
+    public int DislikesCount { get; set; } = 0;
 
-        public int? ParentId { get; set; }
-        [Required]
-        public bool IsEdited { get; set; } = false;
-        public bool IsDeleted { get; set; } = false;
-
-        [Required]
-        public int LikesCount { get; set; } = 0;
-        [Required]
-        public int DislikesCount { get; set; } = 0;
-
-
-
-        //Navigation
-        public ApplicationUser User { get; set; }
-        public Comment? Parent { get; set; }
-        public ICollection<Comment> Childs { get; set; }
-        public ICollection<CommentVote> Votes { get; set; }
-
-    }
+    //Navigation
+    public ApplicationUser User { get; set; }
+    public Comment? Parent { get; set; }
+    public ICollection<Comment> Childs { get; set; }
+    public ICollection<CommentVote> Votes { get; set; }
 }

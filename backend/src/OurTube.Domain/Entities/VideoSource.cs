@@ -1,22 +1,13 @@
 ﻿using OurTube.Domain.Interfaces;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OurTube.Domain.Entities
+namespace OurTube.Domain.Entities;
+
+public class VideoSource : IBlob
 {
-    public class VideoSource : IBlob
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int VideoId { get; set; }
-        [Required]
-        [MaxLength(125)]
-        public string FileName { get; set; }
-        [MaxLength(25)]
-        [Required]
-        public string Bucket { get; set; }
+    public int VideoId { get; set; }
 
-        // Navigation
-        public Video Video { get; set; }
-    }
+    // Navigation
+    public Video Video { get; set; }
+    public string FileName { get; set; }
+    public string Bucket { get; set; }
 }
