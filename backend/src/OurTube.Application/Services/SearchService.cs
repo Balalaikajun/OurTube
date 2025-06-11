@@ -52,16 +52,9 @@ public class SearchService
             cachePull.AddRange(await SearchMoreVideos(searchQuery, sessionId, SearchPull));
         }
 
-        var resultIds = cachePull.Skip(after).Take(limit);
+        var resultIds = cachePull.Skip(after).Take(limit).ToList();
 
-        var result = new List<VideoMinGetDto>();
-        foreach (var videoId in resultIds)
-        {
-            var videoDto = string.IsNullOrEmpty(userId)
-                ? await _videoService.GetMinVideoByIdAsync(videoId)
-                : await _videoService.GetMinVideoByIdAsync(videoId, userId);
-            result.Add(videoDto);
-        }
+        var result = await _videoService.GetVideosByIdAsync(resultIds);
 
         return result;
     }

@@ -28,9 +28,8 @@ namespace OurTube.Api.Controllers
                 var result = await _commentService.CreateAsync(
                     User.FindFirstValue(ClaimTypes.NameIdentifier),
                     postDto);
-                return CreatedAtAction(
-                    nameof(GetWithLimit),
-                    new { id = result.Id, limit = 0, after = 0 },
+                return Created(
+                    string.Empty,
                     result);
             }
             catch (InvalidOperationException ex)
@@ -94,24 +93,12 @@ namespace OurTube.Api.Controllers
 
             try
             {
-                PagedCommentDto result;
-                if (!string.IsNullOrWhiteSpace(userId))
-                {
-                    result = await _commentService.GetChildrenWithLimitAsync(
-                        videoId,
-                        limit,
-                        after,
-                        userId,
-                        parentId);
-                }
-                else
-                {
-                    result = await _commentService.GetChildrenWithLimitAsync(
-                        videoId,
-                        limit,
-                        after,
-                        parentId);
-                }
+                var result = await _commentService.GetChildrenWithLimitAsync(
+                    videoId,
+                    limit,
+                    after,
+                    userId,
+                    parentId);
 
 
                 return Ok(result);
