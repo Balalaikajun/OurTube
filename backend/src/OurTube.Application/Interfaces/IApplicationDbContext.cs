@@ -8,6 +8,7 @@ public interface IApplicationDbContext
 {
     DbSet<ApplicationUser> ApplicationUsers { get; set; }
     DbSet<IdentityUser> IdentityUsers { get; set; }
+    DbSet<UserAvatar> UserAvatars { get; set; }
     DbSet<Video> Videos { get; set; }
     DbSet<VideoVote> VideoVotes { get; set; }
 

@@ -14,10 +14,6 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
             .HasMaxLength(125)
             .IsRequired();
 
-        builder.Property(ua => ua.FileDirInStorage)
-            .HasMaxLength(125)
-            .IsRequired();
-
         builder.Property(ua => ua.Bucket)
             .HasMaxLength(25)
             .IsRequired();

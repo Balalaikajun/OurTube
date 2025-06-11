@@ -85,6 +85,7 @@ services.AddScoped<IRecomendationService, RecommendationService>();
 services.AddScoped<SubscriptionService>();
 services.AddScoped<SearchService>();
 services.AddScoped<TagService>();
+services.AddScoped<UserAvatarService>();
 
 // Infrastructure
 services.AddScoped<IBlobService, MinioService>();
