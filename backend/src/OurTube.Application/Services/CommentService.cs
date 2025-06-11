@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.DTOs.Comment;
 using OurTube.Application.Interfaces;
-using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Interfaces;
 
@@ -110,7 +109,26 @@ namespace OurTube.Application.Services
                 .OrderByDescending(c => c.LikesCount)
                 .Skip(after)
                 .Take(limit + 1)
-                .ProjectToCommentDto(_mapper, userId)
+                .Select(c => new CommentGetDto
+                {
+                    Id = c.Id,
+                    Text = c.IsDeleted ? "" : c.Text,
+                    Created = c.Created,
+                    Updated = c.Updated,
+                    Deleted = c.Deleted,
+                    ParentId = c.ParentId,
+                    IsEdited = c.IsEdited,
+                    IsDeleted = c.IsDeleted,
+                    Vote = userId != null
+                        ? c.Votes
+                            .Where(cv => cv.ApplicationUserId == userId)
+                            .Select(cv => (bool?)cv.Type)
+                            .FirstOrDefault()
+                        : null,
+                    LikesCount = c.LikesCount,
+                    DislikesCount = c.DislikesCount,
+                    User = _mapper.Map<ApplicationUserDto>(c.User)
+                })
                 .ToListAsync();
             var hasMore = comments.Count > after;
             return new PagedCommentDto

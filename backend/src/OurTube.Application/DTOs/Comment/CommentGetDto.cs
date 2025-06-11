@@ -17,6 +17,5 @@ namespace OurTube.Application.DTOs.Comment
         public int DislikesCount { get; set; }
         //Navigation
         public ApplicationUserDto User { get; set; }
-        public ICollection<CommentGetDto> Childs { get; set; }
     }
 }

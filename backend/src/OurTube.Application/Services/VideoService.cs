@@ -109,6 +109,49 @@ namespace OurTube.Application.Services
             return videoDto;
         }
 
+        public async Task<IEnumerable<VideoMinGetDto>> GetVideosByIdAsync(IReadOnlyList<int> videoIds, string? userId = null)
+        {
+            var videos = await _dbContext.Videos
+                .Where(v => videoIds.Contains(v.Id))
+                .ProjectTo<VideoMinGetDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            if (string.IsNullOrEmpty(userId))
+                return videos;
+
+            var votes = await _dbContext.VideoVotes
+                .Where(v => videoIds.Contains(v.VideoId) && v.ApplicationUserId == userId)
+                .ToListAsync();
+            
+            var views = await _dbContext.Views
+                .Where(v => videoIds.Contains(v.VideoId) && v.ApplicationUserId == userId)
+                .ToListAsync();
+            
+            var authorIds = videos.Select(v => v.User.Id).Distinct().ToList();
+            var subs = await _dbContext.Subscriptions
+                .Where(s => s.SubscriberId == userId
+                            && authorIds.Contains(s.SubscribedToId))
+                .Select(s => s.SubscribedToId)
+                .ToListAsync(); 
+            
+            var votesByVideo = votes.ToDictionary(v => v.VideoId, v => v.Type);
+            var viewsByVideo = views.ToDictionary(v => v.VideoId, v => v.EndTime);
+
+            foreach (var dto in videos)
+            {
+                if (votesByVideo.TryGetValue(dto.Id, out var vote))
+                    dto.Vote = vote;
+
+                if (viewsByVideo.TryGetValue(dto.Id, out var endTime))
+                    dto.EndTime = endTime;
+
+                if (subs.Contains(dto.User.Id))
+                    dto.User.IsSubscribed = true;
+            }
+
+            return videos;
+        }
+
         public async Task<VideoMinGetDto> PostVideo(
             VideoUploadDto videoUploadDto,
             string userId)

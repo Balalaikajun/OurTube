@@ -63,19 +63,11 @@ public class RecommendationService : IRecomendationService
 
         var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
 
-        var result = new List<VideoMinGetDto>();
-        foreach (var videoId in resultIds)
-        {
-            var videoDto = string.IsNullOrEmpty(userId)
-                ? await _videoService.GetMinVideoByIdAsync(videoId)
-                : await _videoService.GetMinVideoByIdAsync(videoId, userId);
-            result.Add(videoDto);
-        }
+        var result = await _videoService.GetVideosByIdAsync(resultIds);
 
         return result;
     }
-
-
+    
     private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)
     {
         const double trendRecRatio = 0.4;

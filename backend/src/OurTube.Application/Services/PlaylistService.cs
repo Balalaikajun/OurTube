@@ -143,14 +143,17 @@ namespace OurTube.Application.Services
 
             var playlistGetDto = _mapper.Map<PlaylistGetDto>(playlist);
 
+            var videos = (await _videoService.GetVideosByIdAsync(
+                    playlist.PlaylistElements.Select(x => x.VideoId).ToList()))
+                .ToDictionary(v => v.Id);
+            
             playlistGetDto.PlaylistElements = [];
             foreach (var pe in playlist.PlaylistElements)
             {
                 playlistGetDto.PlaylistElements.Add(new PlaylistElementGetDto()
                 {
                     AddedAt = pe.AddedAt,
-                    Video = await _videoService.GetMinVideoByIdAsync(pe.VideoId, userId)
-
+                    Video = videos[pe.VideoId]
                 });
             }
 
