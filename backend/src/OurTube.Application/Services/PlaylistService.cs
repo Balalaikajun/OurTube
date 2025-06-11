@@ -182,7 +182,7 @@ namespace OurTube.Application.Services
         public async Task<PlaylistMinGetDto> GetLikedPlaylistAsync(string userId)
         {
             var playlist = await _dbContext.Playlists
-                .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся")
+                .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся" && p.IsSystem == true)
                 .ProjectTo<PlaylistMinGetDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync();
 
@@ -190,7 +190,7 @@ namespace OurTube.Application.Services
             {
                 await CreateAsync(new PlaylistPostDto { Title = "Понравившееся" }, userId);
                 playlist = await _dbContext.Playlists
-                    .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся")
+                    .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся" && p.IsSystem == true)
                     .ProjectTo<PlaylistMinGetDto>(_mapper.ConfigurationProvider)
                     .FirstAsync();
             }

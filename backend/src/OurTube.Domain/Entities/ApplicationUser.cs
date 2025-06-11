@@ -1,31 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace OurTube.Domain.Entities;
 
-namespace OurTube.Domain.Entities
+public class ApplicationUser
 {
-    public class ApplicationUser
-    {
-        [Key]
-        public string Id { get; set; }
-        [MaxLength(256)]
-        [Required]
-        public string UserName { get; set; }
-        [Required]
-        public int SubscribersCount { get; set; } = 0;
-        [Required]
-        public int SubscribedToCount { get; set; } = 0;
-        [Required]
-        public DateTime Created { get; set; } = DateTime.UtcNow;
+    public string Id { get; set; }
+    public string UserName { get; set; }
+    public int SubscribersCount { get; set; } = 0;
+    public int SubscribedToCount { get; set; } = 0;
+    public DateTime Created { get; set; } = DateTime.UtcNow;
 
-        //Navigation
-        public ICollection<Subscription> Subscribers { get; set; }
-        public ICollection<Subscription> SubscribedTo { get; set; }
-        public ICollection<Video> Videos { get; set; }
-        public ICollection<VideoView> Views { get; set; }
-        public ICollection<VideoVote> VideoVotes { get; set; }
-        public ICollection<CommentVote> CommentVotes { get; set; }
-        public ICollection<Playlist> Playlists { get; set; }
-        public UserAvatar? UserAvatar { get; set; }
-
-
-    }
+    //Navigation
+    public ICollection<Subscription> Subscribers { get; set; }
+    public ICollection<Subscription> SubscribedTo { get; set; }
+    public ICollection<Playlist> Playlists { get; set; }
+    public UserAvatar? UserAvatar { get; set; }
 }
