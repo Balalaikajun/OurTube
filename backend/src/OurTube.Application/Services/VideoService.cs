@@ -206,12 +206,12 @@ public class VideoService
 
 
                 //Отправка
-                await _blobService.UploadFile(
+                await _blobService.UploadFileAsync(
                     Path.Combine(tempVideoDir, resolution.ToString(), Path.GetFileName(playlist.FileName)),
                     playlist.FileName,
                     playlist.Bucket);
 
-                await _blobService.UploadFiles(
+                await _blobService.UploadFilesAsync(
                     Directory.GetFiles(Path.Combine(tempVideoDir, resolution.ToString(), "segments")),
                     playlist.Bucket,
                     Path.Combine(filePref, resolution.ToString(), "segments").Replace(@"\", @"/")
@@ -228,7 +228,7 @@ public class VideoService
                 Bucket = _bucket
             };
 
-            await _blobService.UploadFile(
+            await _blobService.UploadFileAsync(
                 tempPreviewPath,
                 preview.FileName,
                 preview.Bucket);
@@ -239,7 +239,7 @@ public class VideoService
                 FileName = Path.Combine(filePref, Path.GetFileName(tempSourcePath)).Replace(@"\", @"/"),
                 Bucket = _bucket
             };
-            await _blobService.UploadFile(
+            await _blobService.UploadFileAsync(
                 tempSourcePath,
                 source.FileName,
                 source.Bucket);

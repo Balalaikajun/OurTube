@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IApplicatio
     }
 
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+    public DbSet<UserAvatar> UserAvatars { get; set; }
 
     public DbSet<IdentityUser> IdentityUsers
     {

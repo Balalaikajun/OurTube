@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Minio;
 using Minio.DataModel.Args;
 using OurTube.Application.Interfaces;
@@ -27,12 +28,11 @@ public class MinioService : IBlobService
             .Build();
     }
 
-    public async Task UploadFiles(string[] inputFiles, string bucket, string prefix)
+    public async Task UploadFilesAsync(string[] inputFiles, string bucket, string prefix)
     {
-        //Загрузка сегментов, аж асинхронно
         Task[] tasks = inputFiles.Select(async f =>
         {
-            await UploadFile(
+            await UploadFileAsync(
                 f,
                 Path.Combine(prefix, Path.GetFileName(f)).Replace(@"\", @"/"),
                 bucket);
@@ -40,28 +40,60 @@ public class MinioService : IBlobService
         await Task.WhenAll(tasks);
     }
 
-    public async Task UploadFile(string input, string objectName, string bucket)
+    public async Task UploadFileAsync(string input, string objectName, string bucketName)
     {
+        if (string.IsNullOrEmpty(bucketName))
+            throw new ArgumentException("Имя бакета не задано", nameof(bucketName));
+        if (string.IsNullOrEmpty(objectName))
+            throw new ArgumentException("Имя объекта не задано", nameof(objectName));
+
         if (!File.Exists(input))
             throw new FileNotFoundException("Файл не найден", input);
 
-        try
-        {
-            var fileInfo = new FileInfo(input);
-            await using var fileStream = fileInfo.OpenRead();
 
-            var args = new PutObjectArgs()
-                .WithBucket(bucket)
-                .WithObject(objectName)
-                .WithStreamData(fileStream)
-                .WithObjectSize(fileInfo.Length);
+        var fileInfo = new FileInfo(input);
+        await using var fileStream = fileInfo.OpenRead();
 
-            await _minioClient.PutObjectAsync(args);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"MinIO Error: {ex.Message}");
-            throw;
-        }
+        var args = new PutObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName)
+            .WithStreamData(fileStream)
+            .WithObjectSize(fileInfo.Length);
+
+        await _minioClient.PutObjectAsync(args);
+    }
+
+    public async Task UploadFileAsync(IFormFile input, string objectName, string bucketName)
+    {
+        if (string.IsNullOrEmpty(bucketName))
+            throw new ArgumentException("Имя бакета не задано", nameof(bucketName));
+        if (string.IsNullOrEmpty(objectName))
+            throw new ArgumentException("Имя объекта не задано", nameof(objectName));
+
+        if (input.Length == 0)
+            throw new ArgumentException("Файл не задан или пустой.", nameof(input));
+
+        await using var fileStream = input.OpenReadStream();
+
+        var args = new PutObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName)
+            .WithStreamData(fileStream)
+            .WithObjectSize(input.Length)
+            .WithContentType(input.ContentType);
+
+        await _minioClient.PutObjectAsync(args);
+    }
+
+    public async Task DeleteFileAsync(string bucketName, string objectName)
+    {
+        if (string.IsNullOrEmpty(bucketName))
+            throw new ArgumentException("Имя бакета не задано", nameof(bucketName));
+        if (string.IsNullOrEmpty(objectName))
+            throw new ArgumentException("Имя объекта не задано", nameof(objectName));
+        
+        await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(objectName));
     }
 }
