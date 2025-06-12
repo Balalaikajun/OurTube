@@ -1,4 +1,5 @@
-﻿using OurTube.Application.DTOs.ApplicationUser;
+﻿using AutoMapper;
+using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.Interfaces;
 
 namespace OurTube.Application.Services;
@@ -6,13 +7,15 @@ namespace OurTube.Application.Services;
 public class UserService
 {
     private readonly IApplicationDbContext _dbContext;
+    private readonly IMapper _mapper;
 
-    public UserService(IApplicationDbContext dbContext)
+    public UserService(IApplicationDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
 
-    public async Task UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
+    public async Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
     {
         var aUser = await _dbContext.ApplicationUsers.FindAsync(userId);
 
@@ -31,5 +34,10 @@ public class UserService
         }
 
         await _dbContext.SaveChangesAsync();
+        
+        return _mapper.Map<ApplicationUserDto>(aUser);
     }
+
+    public async Task<ApplicationUserDto> GetUserAsync(string userId)
+        => _mapper.Map<ApplicationUserDto>( await _dbContext.ApplicationUsers.FindAsync(userId));
 }
