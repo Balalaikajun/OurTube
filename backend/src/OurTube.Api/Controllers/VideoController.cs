@@ -31,7 +31,7 @@ public class VideoController : ControllerBase
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
             return CreatedAtAction(
                 nameof(Get),
-                new { id = result.Id },
+                new { videoId = result.Id },
                 result);
         }
         catch (FormatException ex)

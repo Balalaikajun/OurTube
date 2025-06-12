@@ -8,13 +8,20 @@ public class PlaylistElement : BaseEntity
     {
     }
 
-    public PlaylistElement(int playlistId, int videoId, string userId)
+    public PlaylistElement(int playlistId, string playlistTitle, bool isSystem, int videoId, string userId)
     {
         PlaylistId = playlistId;
         VideoId = videoId;
 
-        AddDomainEvent(new PlaylistElementCreateEvent(PlaylistId, VideoId, userId, AddedAt));
+        AddDomainEvent(new PlaylistElementCreateEvent(
+            playlistId,
+            playlistTitle,
+            videoId,
+            isSystem,
+            userId,
+            AddedAt));
     }
+
 
     public int PlaylistId { get; }
     public int VideoId { get; }
@@ -24,8 +31,17 @@ public class PlaylistElement : BaseEntity
     public Playlist Playlist { get; }
     public Video Video { get; }
 
-    public void DeleteEvent(string userId)
+    public void InitializeCreateEvent(string userId)
     {
-        AddDomainEvent(new PlaylistElementDeleteEvent(PlaylistId, VideoId, userId, AddedAt));
+        if (Playlist == null)
+            throw new InvalidOperationException("Playlist must be loaded before initializing the event.");
+
+        AddDomainEvent(new PlaylistElementCreateEvent(
+            PlaylistId,
+            Playlist.Title,
+            VideoId,
+            Playlist.IsSystem,
+            userId,
+            AddedAt));
     }
 }

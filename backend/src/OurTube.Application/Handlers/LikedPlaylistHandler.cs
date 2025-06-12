@@ -18,11 +18,13 @@ public class LikedPlaylistHandler :
 
     public async Task Handle(PlaylistElementCreateEvent notification, CancellationToken cancellationToken)
     {
-        await _videoVoteService.SetAsync(notification.VideoId, notification.UserId, true);
+        if(notification.IsSystem && notification.PlaylistTitle == "Понравившееся")
+            await _videoVoteService.SetAsync(notification.VideoId, notification.UserId, true);
     }
 
     public async Task Handle(PlaylistElementDeleteEvent notification, CancellationToken cancellationToken)
     {
-        await _videoVoteService.DeleteAsync(notification.VideoId, notification.UserId);
+        if(notification.IsSystem && notification.PlaylistTitle == "Понравившееся")
+            await _videoVoteService.DeleteAsync(notification.VideoId, notification.UserId);
     }
 }
