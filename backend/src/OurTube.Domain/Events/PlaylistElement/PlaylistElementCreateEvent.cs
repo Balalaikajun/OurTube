@@ -1,12 +1,14 @@
 using OurTube.Domain.Interfaces;
 
 namespace OurTube.Domain.Events.PlaylistElement;
-
-public record PlaylistElementCreateEvent(int PlaylistId, int VideoId, string UserId, DateTime Created) : IDomainEvent
+public record PlaylistElementCreateEvent(
+    int PlaylistId,
+    string PlaylistTitle,
+    int VideoId,
+    bool IsSystem,
+    string UserId,
+    DateTime Created
+) : IDomainEvent
 {
-    public int PlaylistId { get; } = PlaylistId;
-    public int VideoId { get; } = VideoId;
-    public string UserId { get; } = UserId;
-    public DateTime Created { get; } = Created;
     public DateTime OccurredOn { get; } = DateTime.UtcNow;
 }

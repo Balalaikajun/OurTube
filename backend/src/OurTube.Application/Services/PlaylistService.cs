@@ -87,7 +87,7 @@ public class PlaylistService
         if (element != null)
             return;
 
-        element = new PlaylistElement(playlistId, videoId, userId);
+        element = new PlaylistElement(playlistId, playlist.Title, playlist.IsSystem, videoId, userId);
 
         _dbContext.PlaylistElements.Add(element);
 
@@ -115,7 +115,7 @@ public class PlaylistService
         if (playlistElement == null)
             return;
 
-        if (!suppressDomainEvent) playlistElement.DeleteEvent(userId);
+        if (!suppressDomainEvent) playlistElement.InitializeCreateEvent(userId);
 
         _dbContext.PlaylistElements.Remove(playlistElement);
         playlist.Count--;
