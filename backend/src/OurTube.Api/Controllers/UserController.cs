@@ -29,13 +29,22 @@ public class UserController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         try
         {
-            await _userService.UpdateUserAsync(patchDto, userId);
-            return Ok();
+            var result = await _userService.UpdateUserAsync(patchDto, userId);
+            return Created(
+                string.Empty,
+                result);
         }
         catch (InvalidOperationException ex)
         {
             return NotFound(ex.Message);
         }
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<ApplicationUserDto>> Get()
+    {
+        return await _userService.GetUserAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
     }
 
     [Authorize]
