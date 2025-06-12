@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onBeforeUnmount, watch, nextTick } from "vue";
+    import { ref, onBeforeUnmount, watch, nextTick} from "vue";
     import { useMenuManager } from '@/assets/utils/useMenuManager.js';
     import { onClickOutside } from '@vueuse/core';
 
@@ -10,13 +10,6 @@
 
     const { registerMenu, unregisterMenu } = useMenuManager();
 
-    let cleanupListeners = null;
-
-    // const handleClick = (event) => {
-    //     emit('kebab-click', { 
-    //         buttonElement: event.currentTarget 
-    //     });
-    // };
     const handleEdit = () => {
         console.log("menu")
         emit('edit-click');
@@ -34,7 +27,6 @@
                 return;
             }
 
-            // Закрываем текущее меню перед открытием нового
             if (isOpen.value) {
                 await closeMenu();
                 return;
@@ -52,7 +44,6 @@
             if (menuRef.value) {
                 const menuRect = menuRef.value.getBoundingClientRect();
                 
-                // Проверяем, чтобы меню не выходило за пределы экрана
                 let left = rect.left - menuRect.width;
                 if (left < 0) left = rect.left + rect.width;
                 
@@ -67,15 +58,12 @@
                 };
             }
             
-            // Настраиваем обработчик кликов снаружи
             onClickOutside(menuRef, (event) => {
-                // Игнорируем клики по кнопке меню
                 if (event.target.closest('.kebab-button')) return;
                 
                 closeMenu();
             }, { capture: true });
             
-            // Обработчик закрытия по Esc
             const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
             document.addEventListener('keydown', handleKeyDown);
             
@@ -94,37 +82,7 @@
         isOpen.value = false;
         unregisterMenu({ closeMenu });
         
-        // Даем время на анимацию закрытия
         await nextTick();
-    };
-
-    const setupEventListeners = () => {
-        const handleClickOutside = (event) => {
-            // Игнорируем клики по самой кнопке меню
-            if (event.target.closest('.kebab-button')) {
-                return;
-            }
-            
-            console.log('closeMenuClickOutside');
-            if (menuRef.value && !menuRef.value.contains(event.target)) {
-                closeMenu();
-            }
-        };
-
-        // Остальные обработчики без изменений
-        const handleScroll = () => closeMenu();
-        const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
-
-        // Используем capture phase для более надежного обнаружения кликов
-        document.addEventListener('click', handleClickOutside, true);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside, true);
-            window.removeEventListener('scroll', handleScroll);
-            document.removeEventListener('keydown', handleKeyDown);
-        };
     };
 
     onBeforeUnmount(() => {

@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject } from "vue";
+    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject, watchEffect  } from "vue";
     import CommentMenu from "../Kebab/CommentMenu.vue";
     import KebabButton from "../Kebab/KebabButton.vue";
     import UserAvatar from "../Solid/UserAvatar.vue";
@@ -84,12 +84,12 @@
     const { register, unregister } = injectFocusEngine();
 
     const kebabMenuRef = ref(null);
+    const localCommentText = ref(props.commentText);
 
     const showFullText = ref(false);
     const showChilds = ref(false);
     const { isClamped: isTextClamped, checkTextOverflow } = useTextOverflow();
     const commentTextRef = ref(null)
-    const commentText = toRef(props, 'commentText');
     const showCreateCommentBlock = ref(false);
     const addComment = ref(null);
     
@@ -112,12 +112,12 @@
     const handleSave = () => {
         emit('edit', { text: editedText.value }); // Отправляем обновленный текст
         isEditing.value = false; // Закрываем режим редактирования
+        localCommentText.value = editedText.value;
     };
 
     const handleDelete = () => {
         emit("delete");
     };
-
 
     const handleKebabButtonClick = (event) => {
         event.stopPropagation();
@@ -160,13 +160,20 @@
         }, 100);        
     };
 
-    watch(() => commentText, () => {
+
+    watchEffect(() => {
+        localCommentText.value = props.commentText;
+    });
+
+    watch(() => localCommentText, () => {
         nextTick(() => {
             if (commentTextRef.value) {
                 checkTextOverflow(commentTextRef.value, "CommentBlock text update")
             }
         })
     })
+
+
 
 
     
@@ -209,7 +216,7 @@
                     :class="{ 'clamped': !showFullText}"
                     ref="commentTextRef"
                 >
-                    {{ commentText }}
+                    {{ localCommentText }}
                 </p>
                 <p v-if="isDeleted"
                     class="comment-text" 
@@ -311,6 +318,8 @@
                     commentId: child.id,
                     buttonElement: $event?.currentTarget
                 })"
+                @edit="(payload) => emit('edit', payload)"
+                @delete="() => emit('delete')"
             />
         </div>
     </div>

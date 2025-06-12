@@ -42,6 +42,7 @@ onUnmounted(() => {
   <MasterHead/>
 
   <VideoContentPresentation
+    request="recomend"
     context="recomend"
     :is-infinite-scroll="true"
     @load-more="loadMoreVideos"

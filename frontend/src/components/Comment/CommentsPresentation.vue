@@ -29,8 +29,6 @@
 
     const currentCommentId = ref(0);
 
-    const commentRef = ref(null)
-
     const api = axios.create({
         baseURL: API_BASE_URL,
         withCredentials: true, // Важно для передачи кук
@@ -86,12 +84,6 @@
     const handleKebabClick = (event) => {
         console.log('Kebab clicked for comment:', event.commentId);
         currentCommentId.value = event.commentId;
-    };
-
-    const handleKebabClose = () => {
-        if (!shareRef.value?.isOpen) {
-            currentCommentId.value = 0;
-        }
     };
 
     const deleteComment = async () =>
@@ -159,7 +151,6 @@
                 @kebab-click="handleKebabClick"
                 @edit="handleEditComment"
                 @delete="handleDelete"
-                @close="handleKebabClose"
             />
         </template>
     </div>

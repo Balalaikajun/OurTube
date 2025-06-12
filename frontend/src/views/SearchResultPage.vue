@@ -22,6 +22,7 @@
 <template>
     <MasterHead />
     <VideoPresentation
+        request="search"
         context="search"
         :search-query="searchQuery"
         :is-infinite-scroll="true"

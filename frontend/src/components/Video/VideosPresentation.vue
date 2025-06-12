@@ -12,6 +12,14 @@
             type: String,
             default: ""
         },
+        request: {
+            type: String,
+            required: true,
+            validator: (value) => [
+                'recomend', 
+                'search'
+            ].includes(value)
+        },
         context: {
             type: String,
             required: true,
@@ -59,8 +67,7 @@
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
     const isInitialized = ref(false);
-    const resizeObserver = ref(null);
-    const testWidth = ref(1089);
+    // const resizeObserver = ref(null);
 
     const emit = defineEmits(['load-more']);
 
@@ -87,17 +94,17 @@
         return document.querySelector(props.scrollElement);
     };
 
-    const initResizeObserver = () => {
-        if (resizeObserver.value) return;
+    // const initResizeObserver = () => {
+    //     if (resizeObserver.value) return;
         
-        resizeObserver.value = new ResizeObserver(() => {
-            adaptiveView();
-        });
+    //     resizeObserver.value = new ResizeObserver(() => {
+    //         adaptiveView();
+    //     });
         
-        if (container.value) {
-            resizeObserver.value.observe(container.value);
-        }
-    };
+    //     if (container.value) {
+    //         resizeObserver.value.observe(container.value);
+    //     }
+    // };
 
     const handleKebabClick = ({ videoId, buttonElement }) => {
         currentVideoId.value = videoId;
@@ -139,19 +146,19 @@
         
             container.value.style.gap = `30px ${Math.floor(gap)}px`;
             console.log('Обновлены отступы:', container.value.style.gap);
-        };
+    };
 
-        const blocksInRow = computed(() => {
-            const widthParent = parentWidth.value;
-            if (widthParent < 600 || props.rowLayout) return 1;
-            if (widthParent < 800) return 2;
-            if (widthParent < 1200) return 3;
-            if (widthParent < 1920) return 4;
-            return 5;
+    const blocksInRow = computed(() => {
+        const widthParent = parentWidth.value;
+        if (widthParent < 600 || props.rowLayout || props.context == "aside-recomend") return 1;
+        if (widthParent < 800) return 2;
+        if (widthParent < 1200) return 3;
+        if (widthParent < 1920) return 4;
+        return 5;
     });
 
     const blockWidth = computed(() => {
-        if (!parentWidth.value || parentWidth.value <= 0 || props.rowLayout) return "100%";
+        if (!parentWidth.value || parentWidth.value <= 0 || props.rowLayout || props.context == "aside-recomend") return "100%";
 
         if (parentWidth.value < 600) return `${parentWidth.value}px`;
         if (parentWidth.value < 800) return `${Math.floor(parentWidth.value * 0.49)}px`;
@@ -186,34 +193,22 @@
         },
   
         async search() {
-    // Если компонент ещё не инициализирован, ждём
             if (!isInitialized.value) {
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
 
-            // Проверка пустого запроса
             if (!props.searchQuery.trim()) {
                 console.log('Пустой поисковый запрос');
                 return [];
             }
 
             try {
-                // Формируем URL с кодированием параметров
-                // const url = new URL(`${API_BASE_URL}/api/Search`);
-                // url.searchParams.append('query', encodeURIComponent(props.searchQuery));
-                // url.searchParams.append('after', nextAfter.value.toString());
-
                 console.log('Выполняем поиск с параметрами:', {
                     query: props.searchQuery,
                     after: nextAfter.value
                 });
 
                 const response = await fetch(`${API_BASE_URL}/api/Search?query=${encodeURIComponent(props.searchQuery,)}`);
-                // const response = await fetch(url.toString(), {
-                //     headers: {
-                //         'Accept': 'application/json'
-                //     }
-                // });
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => null);
@@ -254,13 +249,13 @@
                 hasMore.value = true;
             }
             
-            const data = await fetchMethods[props.context]();
-            // console.log(data)
+            const data = await fetchMethods[props.request]();
+            console.log(data)
 
             if (!Array.isArray(data) && !Array.isArray(data.videos)) {
                 throw new Error('API вернул не массив видео');
             }
-            if(props.context === "search") videos.value = [...videos.value, ...data];   //костыль
+            if(props.request === "search") videos.value = [...videos.value, ...data];   //костыль
             else videos.value = [...videos.value, ...data.videos];                      
             // console.log(videos.value)
             nextAfter.value = data.nextAfter || 0;
@@ -275,26 +270,20 @@
         }
     };
 
-    // 1. Первая загрузка
     onMounted(async () => {
         try {
-            // 1. Инициализация DOM элементов
             scrollElement.value = getScrollElement();
             if (scrollElement.value) {
                 scrollElement.value.addEventListener('scroll', handleScroll);
             }
             window.addEventListener('resize', adaptiveView);
             
-            // 2. Ожидаем полный рендеринг
             await nextTick();
             
-            // 3. Настройка адаптивного вида
             await adaptiveView();
             
-            // 4. Загрузка данных
             await fetchVideos(true);
             
-            // 5. Финальная настройка после загрузки
             await adaptiveView();
             
             isInitialized.value = true;
@@ -312,12 +301,12 @@
         
         window.removeEventListener('resize', adaptiveView);
         
-        if (resizeObserver.value && container.value) {
-            resizeObserver.value.unobserve(container.value);
-        }
+        // if (resizeObserver.value && container.value) {
+        //     resizeObserver.value.unobserve(container.value);
+        // }
     });
 
-    watch(() => props.context, () => fetchVideos(true));
+    watch(() => props.request, () => fetchVideos(true));
 
     watch(() => props.searchQuery, (newVal, oldVal) => {
         if (newVal !== oldVal) {
@@ -336,7 +325,8 @@
         ref="shareRef" 
         :videoId="currentVideoId"
     />
-    <div class="container-wrapper" :class="[rowLayout && context == 'recomend' ? 'aside-recomend' : `context-${context}`, { 'row-layout': rowLayout }]">
+    <!-- //правки -->
+    <div class="container-wrapper" :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, { 'row-layout': rowLayout || context == 'aside-recomend' }]">
         <div v-if="!loading && errorMessage.length > 0" class="results-grid">
             <div v-if="videos.length === 0" class="empty-results">
                 Ничего не найдено
@@ -369,19 +359,14 @@
         container-type: inline-size;
         container-name: recommendations-container;
     }
-    .container-wrapper.context-recomend {
+    .container-wrapper.standart-recomend {
         width: 100%;
         padding: 20px 100px;
         margin-top: 70px;
     }
     .container-wrapper.aside-recomend {
         width: 100%;
-        padding: 0p;
-    }
-    .container-wrapper.context-search {
-        width: 100%;
-        padding: 20px 100px;
-        margin-top: 70px;
+        padding: 0px;
     }
     .container {
         display: flex;
