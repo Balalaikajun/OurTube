@@ -22,19 +22,14 @@ public class RecommendationController : ControllerBase
         [FromQuery] int after = 0,
         [FromQuery] bool reload = false)
     {
-        var videos = await _recommendationService.GetRecommendationsAsync(
+        var result = await _recommendationService.GetRecommendationsAsync(
             User.FindFirstValue(ClaimTypes.NameIdentifier),
             Request.Cookies["SessionId"],
             limit,
             after,
             reload
         );
-        var nextAfter = after + limit;
 
-        return Ok(new PagedVideoDto
-        {
-            Videos = videos,
-            NextAfter = nextAfter
-        });
+        return Ok(result);
     }
 }

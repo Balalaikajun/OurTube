@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Mapping.Custom;
 using OurTube.Application.Validators;
 using OurTube.Domain.Entities;
 
@@ -74,37 +75,17 @@ public class VideoService
         return videoDto;
     }
 
-    public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId)
+    public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId, string? userId)
     {
-        var video = await _dbContext.Videos.ProjectTo<VideoMinGetDto>(_mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync(v => v.Id == videoId);
+        var dto = await _dbContext.Videos
+            .Where(v => v.Id == videoId)
+            .ProjectToMinDto(_mapper, userId)
+            .FirstOrDefaultAsync();
 
-        if (video == null)
+        if (dto == null)
             throw new InvalidOperationException("Видео не найдено");
 
-        var videoDto = _mapper.Map<VideoMinGetDto>(video);
-
-        return videoDto;
-    }
-
-    public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId, string userId)
-    {
-        var videoDto = await GetMinVideoByIdAsync(videoId);
-
-        var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
-
-        if (vote != null)
-            videoDto.Vote = vote.Type;
-
-        var view = await _dbContext.Views.FindAsync(videoId, userId);
-        if (view != null)
-            videoDto.EndTime = view.EndTime;
-
-        if (await _dbContext.Subscriptions.AnyAsync(s =>
-                s.SubscriberId == userId && s.SubscribedToId == videoDto.User.Id))
-            videoDto.User.IsSubscribed = true;
-
-        return videoDto;
+        return dto;
     }
 
     public async Task<IEnumerable<VideoMinGetDto>> GetVideosByIdAsync(IReadOnlyList<int> videoIds,
@@ -112,43 +93,12 @@ public class VideoService
     {
         var videos = await _dbContext.Videos
             .Where(v => videoIds.Contains(v.Id))
-            .ProjectTo<VideoMinGetDto>(_mapper.ConfigurationProvider)
-            .ToListAsync();
+            .ProjectToMinDto(_mapper, userId)
+            .ToDictionaryAsync(x => x.Id);
 
-        if (string.IsNullOrEmpty(userId))
-            return videos;
-
-        var votes = await _dbContext.VideoVotes
-            .Where(v => videoIds.Contains(v.VideoId) && v.ApplicationUserId == userId)
-            .ToListAsync();
-
-        var views = await _dbContext.Views
-            .Where(v => videoIds.Contains(v.VideoId) && v.ApplicationUserId == userId)
-            .ToListAsync();
-
-        var authorIds = videos.Select(v => v.User.Id).Distinct().ToList();
-        var subs = await _dbContext.Subscriptions
-            .Where(s => s.SubscriberId == userId
-                        && authorIds.Contains(s.SubscribedToId))
-            .Select(s => s.SubscribedToId)
-            .ToListAsync();
-
-        var votesByVideo = votes.ToDictionary(v => v.VideoId, v => v.Type);
-        var viewsByVideo = views.ToDictionary(v => v.VideoId, v => v.EndTime);
-
-        foreach (var dto in videos)
-        {
-            if (votesByVideo.TryGetValue(dto.Id, out var vote))
-                dto.Vote = vote;
-
-            if (viewsByVideo.TryGetValue(dto.Id, out var endTime))
-                dto.EndTime = endTime;
-
-            if (subs.Contains(dto.User.Id))
-                dto.User.IsSubscribed = true;
-        }
-
-        return videos;
+       var result = videoIds.Select(id => videos[id]).ToList();
+        
+        return result;
     }
 
     public async Task<VideoMinGetDto> PostVideo(

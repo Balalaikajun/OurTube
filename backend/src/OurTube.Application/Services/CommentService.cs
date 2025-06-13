@@ -130,17 +130,20 @@ public class CommentService
             });
         }
         
-        if (cachedRecommendations.Count < after + limit)
+        if (cachedRecommendations.Count <= after + limit)
         {
             cachedRecommendations.AddRange(await GetMoreIds(videoId, CommentPull, sessionId, userId, parentId));
         }
         
         var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
 
-        var comments = await _dbContext.Comments
+        var commentsDict = await _dbContext.Comments
             .Where(c => resultIds.Contains(c.Id))
             .ProjectToDto(_mapper, userId)
-            .ToListAsync();
+            .ToDictionaryAsync(c => c.Id);
+
+        var comments = resultIds
+            .Select(id => commentsDict[id]);
         
         var hasMore = cachedRecommendations.Count > after + limit;
 
