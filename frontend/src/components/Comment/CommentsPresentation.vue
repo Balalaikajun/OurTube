@@ -16,6 +16,10 @@
         initialLimit: {
             type: Number,
             default: 20
+        },
+        isInfiniteScroll: {
+            type: Boolean,
+            default: true
         }
     });
 
@@ -33,7 +37,8 @@
     // Используем композицию бесконечной прокрутки
     const { 
         data: commentsData, 
-        observerTarget, 
+        observerTarget,
+        hasMore,
         isLoading, 
         error, 
         loadMore,
@@ -99,28 +104,27 @@
 
 <template>
     <div class="comments-wrapper">
-        <LoadingState v-if="isLoading" />
-        <template v-if="!isLoading">
-            <CommentBlock
-                v-for="comment in commentsData"
-                :key="comment.id"
-                :video-id="props.videoId"
-                :parent-id="comment.parentId || null"
-                :id="comment.id"
-                :isDeleted="comment.isDeleted"
-                :comment-text="comment.text"
-                :create-date="formatter.formatRussianDate(comment.created)"
-                :update-date="formatter.formatRussianDate(comment.updated)"
-                :reaction-status="comment.vote"
-                :likes-count="comment.likesCount"
-                :dislikes-count="comment.dislikesCount"
-                :user-info="comment.user"
-                :childs="comment.childs || []"
-                @kebab-click="handleKebabClick"
-                @edit="handleEditComment"
-                @delete="handleDelete"
-            />
-        </template>
+        <CommentBlock
+            v-for="comment in commentsData"
+            :key="comment.id"
+            :video-id="props.videoId"
+            :parent-id="comment.parentId || null"
+            :id="comment.id"
+            :isDeleted="comment.isDeleted"
+            :comment-text="comment.text"
+            :create-date="formatter.formatRussianDate(comment.created)"
+            :update-date="formatter.formatRussianDate(comment.updated)"
+            :reaction-status="comment.vote"
+            :likes-count="comment.likesCount"
+            :dislikes-count="comment.dislikesCount"
+            :user-info="comment.user"
+            :childs="comment.childs || []"
+            @kebab-click="handleKebabClick"
+            @edit="handleEditComment"
+            @delete="handleDelete"
+        />
+        <LoadingState v-if="isLoading"/>
+        <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
     </div>
 </template>
 
@@ -130,5 +134,12 @@
         flex-direction: column;
         margin-top: 40px;
         gap: 10px;
+    }
+    .observer-target {
+        width: 100%;
+        height: 1px;
+        margin: 0;
+        padding: 0;
+        background: #f39e60;
     }
 </style>

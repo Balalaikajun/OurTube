@@ -56,7 +56,7 @@ export default function useInfiniteScroll(options) {
             
             if (reset) {
                 data.value = [];
-                nextAfter.value = null;
+                nextAfter.value = 0;
                 hasMore.value = true;
             }
 
