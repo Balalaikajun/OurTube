@@ -31,12 +31,12 @@ public class PlaylistElement : BaseEntity
     public Playlist Playlist { get; }
     public Video Video { get; }
 
-    public void InitializeCreateEvent(string userId)
+    public void InitializeDeleteEvent(string userId)
     {
         if (Playlist == null)
             throw new InvalidOperationException("Playlist must be loaded before initializing the event.");
 
-        AddDomainEvent(new PlaylistElementCreateEvent(
+        AddDomainEvent(new PlaylistElementDeleteEvent(
             PlaylistId,
             Playlist.Title,
             VideoId,
