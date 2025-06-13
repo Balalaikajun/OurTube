@@ -115,7 +115,7 @@ public class PlaylistService
         if (playlistElement == null)
             return;
 
-        if (!suppressDomainEvent) playlistElement.InitializeCreateEvent(userId);
+        if (!suppressDomainEvent) playlistElement.InitializeDeleteEvent(userId);
 
         _dbContext.PlaylistElements.Remove(playlistElement);
         playlist.Count--;
