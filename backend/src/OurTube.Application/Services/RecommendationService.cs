@@ -40,12 +40,12 @@ public class RecommendationService : IRecomendationService
 
             _cache.Set(cacheKey, cachedRecommendations, new MemoryCacheEntryOptions
             {
-                SlidingExpiration = TimeSpan.FromMinutes(30)
+                SlidingExpiration = TimeSpan.FromMinutes(15)
             });
         }
 
 
-        if (cachedRecommendations.Count <= after + limit)
+        if (cachedRecommendations.Count < after + limit)
         {
             if (!string.IsNullOrEmpty(userId))
                 cachedRecommendations.AddRange(

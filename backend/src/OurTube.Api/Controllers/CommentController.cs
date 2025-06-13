@@ -90,13 +90,15 @@ public class CommentController : ControllerBase
         [FromQuery] int? parentId = null)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+        var sessionId = Request.Cookies["SessionId"];
+        
         try
         {
-            var result = await _commentService.GetChildrenWithLimitAsync(
+            var result = await _commentService.GetCommentsWithLimitAsync(
                 videoId,
                 limit,
                 after,
+                sessionId,
                 userId,
                 parentId);
 

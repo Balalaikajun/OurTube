@@ -13,6 +13,7 @@ public class Comment
     public bool IsEdited { get; set; } = false;
     public bool IsDeleted { get; set; } = false;
     public int LikesCount { get; set; } = 0;
+    public int ChildsCount { get; set; } = 0;
     public int DislikesCount { get; set; } = 0;
 
     //Navigation

@@ -14,7 +14,7 @@ public class CommentGetDto
     public bool IsDeleted { get; set; }
     public bool? Vote { get; set; }
     public int LikesCount { get; set; }
-
+    public int ChildsCount { get; set; }
     public int DislikesCount { get; set; }
 
     //Navigation
