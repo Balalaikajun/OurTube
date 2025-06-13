@@ -21,7 +21,7 @@
 
   const route = useRoute();
   const videoPage = ref(null);
-  const videoId = computed(() => route.params.id);
+  const videoId = computed(() => Number(route.params.id));
   const Player = ref(null);
   const addComment = ref(null);
   const videoData = ref(null);
@@ -163,8 +163,8 @@
       }
   };
 
-  const saveOpen = () => {
-      playlistRef.value.toggleMenu();
+  const saveOpen = (videoId) => {
+      playlistRef.value.toggleMenu(videoId);
   }
 
   const debounce = (fn, delay) => {
@@ -298,7 +298,9 @@
     :action="confirmContext"
     @confirm="handleConfirmDelete"
   />
-  <PlaylistOverlay ref="playlistRef" :video-id="Number(videoId)"/>
+  <PlaylistOverlay ref="playlistRef" 
+  />
+  <!-- :video-id="Number(videoId)" -->
   <ShareOverlay
     ref="shareRef" 
     :video-id="videoId"
@@ -353,7 +355,7 @@
                   <button class="control-button" @click.stop="handleShareClick">
                     Поделиться
                   </button>
-                  <button class="control-button" @click.stop="saveOpen">
+                  <button class="control-button" @click.stop="saveOpen(videoId)">
                     Сохранить
                   </button>
                 </div>
@@ -396,6 +398,7 @@
           <VideoPresentation
             request="recomend"
             context="aside-recomend"
+            @add-to-playlist="saveOpen"
             :row-layout=isRow
           />
         </aside>

@@ -51,7 +51,7 @@
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
 
-    const emit = defineEmits(['load-more']);
+    const emit = defineEmits(['load-more', 'add-to-playlist']);
 
     // Функции для работы с видео
     const handleKebabClick = ({ videoId, buttonElement }) => {
@@ -63,6 +63,10 @@
         if (!shareRef.value?.isOpen) {
             currentVideoId.value = '';
         }
+    };
+
+    const handleAddToPlaylist = () => {
+        emit('add-to-playlist', currentVideoId.value);
     };
 
     const handleShareClick = () => {
@@ -179,7 +183,8 @@
 
 <template>
     <KebabMenu 
-        ref="kebabMenuRef" 
+        ref="kebabMenuRef"
+        @add-to-playlist="handleAddToPlaylist"
         @share="handleShareClick"
         @close="handleKebabClose"
     />

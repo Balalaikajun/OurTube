@@ -16,6 +16,7 @@ let cleanupListeners = null;
 
 const handleAddToPlaylist = () => {
   console.log(`Добавить видео ${props.videoId} в плейлист`);
+  emit('add-to-playlist');
   closeMenu();
 };
 

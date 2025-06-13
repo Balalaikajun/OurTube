@@ -6,15 +6,15 @@
     import { API_BASE_URL } from "@/assets/config.js";
     import { scroll  } from '@/assets/utils/scroll.js';
 
-    const props = defineProps(
-        {
-            videoId: {
-                type: Number,
-                required: true,
-                default: 0
-            }
-        }
-    )
+    // const props = defineProps(
+    //     {
+    //         videoId: {
+    //             type: Number,
+    //             required: true,
+    //             default: 0
+    //         }
+    //     }
+    // )
 
     const api = axios.create({
         baseURL: API_BASE_URL,
@@ -26,6 +26,8 @@
 
     const { register, unregister } = injectFocusEngine();
 
+    const videoId = ref(0);
+
     const playlists = ref([]);
     const error = ref(null);
     const isOpen = ref(false);
@@ -33,10 +35,12 @@
     const newPlaylistName = ref('');
     const isMain = ref(true);
 
-    const toggleMenu = async ()  => {
+    const toggleMenu = async (id)  => {
         isOpen.value = !isOpen.value;
         isMain.value = true;
         newPlaylistName.value = '';
+        videoId.value = id;
+        console.log(videoId.value, "инициализация работы с видео через меню")
         await nextTick(); 
         if(isOpen.value)
         {
@@ -68,14 +72,14 @@
     };
 
     const addToPlaylist = async (playlistId, isContained) => {
-        if(isContained )
+        if(isContained)
         {
-            const response = await api.post(`/api/Playlist/${playlistId}/${props.videoId}`);
+            const response = await api.post(`/api/Playlist/${playlistId}/${videoId.value}`);
             console.log("Добавление в плейлист")
         }
         else
         {
-            const response = await api.delete(`/api/Playlist/${playlistId}/${props.videoId}`);
+            const response = await api.delete(`/api/Playlist/${playlistId}/${videoId.value}`);
             console.log("Удаление из плейлиста")
         }
 
@@ -116,7 +120,7 @@
         try {
             error.value = null;
 
-            const response = await api.get(`/api/Playlist/video/${props.videoId}`);
+            const response = await api.get(`/api/Playlist/video/${videoId.value}`);
             playlists.value = response.data;
             
 
