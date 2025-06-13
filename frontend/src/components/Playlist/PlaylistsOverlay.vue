@@ -86,9 +86,9 @@
             try {
                 const response = await api.post('/api/Playlist', {
                     title: newPlaylistName.value.trim(),
-                    discription: "плейлист"
+                    description: "плейлист"
                 });
-                
+                console.log(response.data.id)
                 if (response.data.id) {
                     await api.post(`/api/Playlist/${response.data.id}/${props.videoId}`);
                     await fetchPlaylists();

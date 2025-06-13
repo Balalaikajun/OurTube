@@ -1,11 +1,11 @@
 <script setup>
-    import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
+    import { ref, onMounted, computed, watch } from "vue";
     import axios from 'axios';
     import CommentBlock from "./CommentBlock.vue";
     import LoadingState from "../Solid/LoadingState.vue";
-    // import CommentMenu from "../Kebab/CommentMenu.vue";
     import { API_BASE_URL } from "@/assets/config.js";
     import formatter from "@/assets/utils/formatter.js";
+    import useInfiniteScroll from "@/assets/utils/useInfiniteScroll.js";
 
     const props = defineProps({
         videoId: {
@@ -18,102 +18,65 @@
             default: 20
         }
     });
+
     const emit = defineEmits(['delete', 'edit']);
-
-    const commentsData = ref([]);
-    const isLoading = ref(false);
-    const error = ref(null);
-    const lastCommentId = ref(null);
-    const hasMore = ref(true);
-    const nextAfter = ref(0);
-
     const currentCommentId = ref(0);
 
     const api = axios.create({
         baseURL: API_BASE_URL,
-        withCredentials: true, // Важно для передачи кук
+        withCredentials: true,
         headers: {
             'Content-Type': 'application/json'
         }
     });
-    
-    const fetchComments = async (reset = false) =>
-    {
-        if (isLoading.value || !hasMore.value) return;
-        try {
-            isLoading.value = true;
-            error.value = null;
 
-            if (reset) {
-                commentsData.value = [];
-                lastCommentId.value = null;
-                hasMore.value = true;
+    // Используем композицию бесконечной прокрутки
+    const { 
+        data: commentsData, 
+        observerTarget, 
+        isLoading, 
+        error, 
+        loadMore,
+        reset: resetComments
+    } = useInfiniteScroll({
+        fetchMethod: async (after) => {
+            try {
+                const response = await api.get(
+                    `/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
+                );
+                return {
+                    videos: response.data?.comments || [],
+                    nextAfter: response.data?.comments[response.data?.comments.length - 1]?.id || 0
+                };
+            } catch (err) {
+                throw err;
             }
-
-            const response = await api.get(`/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${nextAfter.value}`);
-            const newComments = response.data?.comments || [];
-            
-            if (newComments.length > 0) {
-                commentsData.value = reset ? newComments : [...commentsData.value, ...newComments];
-                lastCommentId.value = newComments[newComments.length - 1].id;
-                // console.log(commentsData.value)
-            }
-
-            hasMore.value = newComments.length >= props.initialLimit;
-
-        } catch (err) {
-            error.value = err.response?.data?.message || 
-                        err.message || 
-                        'Ошибка при загрузке комментариев';
-            console.error("Ошибка при загрузке комментариев:", err);
-        } finally {
-            isLoading.value = false;
-        }
-    };
-
-    onMounted(fetchComments);
-
-    watch(() => props.videoId, (newId) => {
-        if (newId) fetchComments(true);
+        },
+        initialLoad: true
     });
 
-    const refreshComments = () => {
-        fetchComments(true);
-    };
-
     const handleKebabClick = (event) => {
-        console.log('Kebab clicked for comment:', event.commentId);
         currentCommentId.value = event.commentId;
     };
 
-    const deleteComment = async () =>
-    {
-        console.log(currentCommentId.value)
+    const deleteComment = async () => {
         try {
-
-            const response = await api.delete(`/api/Video/Comment/${currentCommentId.value}`);        
-
+            await api.delete(`/api/Video/Comment/${currentCommentId.value}`);
+            resetComments();
         } catch (err) {
-            error.value = err.response?.data?.message || 
-                        err.message || 
-                        'Ошибка при удалении комментария';
-            console.error("Ошибка при удалении комментария", err);
+            error.value = err.response?.data?.message || err.message || 'Ошибка при удалении комментария';
         } finally {
-            currentCommentId.value == 0;
+            currentCommentId.value = 0;
         }
-    }
+    };
 
     const handleEditComment = async (newText) => {
-        console.log(currentCommentId.value, newText)
         try {
-            const response = await api.patch(`/api/Video/Comment`, {
+            await api.patch(`/api/Video/Comment`, {
                 "id": currentCommentId.value,
                 "text": newText.text
             });
-            
-            // if (response.status === 200) {
-            // refreshComments(); // Обновляем список
-            // }
+            resetComments();
         } catch (error) {
             console.error("Ошибка редактирования:", error);
         }
@@ -123,8 +86,13 @@
         emit("delete");
     };
 
+    // При изменении videoId сбрасываем и загружаем заново
+    watch(() => props.videoId, () => {
+        resetComments();
+    });
+
     defineExpose({
-        refreshComments,
+        refreshComments: resetComments,
         deleteComment
     });
 </script>

@@ -27,8 +27,8 @@
         :search-query="searchQuery"
         :is-infinite-scroll="true"
         :row-layout=true
-        @load-more="loadMoreVideos"
     />
+        <!-- @load-more="loadMoreVideos" -->
 </template>
   
 

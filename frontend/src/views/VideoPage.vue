@@ -219,6 +219,7 @@
   onMounted(async () => {
     console.log("VideoPage mounted");
     // console.log(localStorage.getItem('token'))
+    console.log("Текущие куки:", document.cookie);
     await fetchVideoData();
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', () => {

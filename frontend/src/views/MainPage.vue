@@ -45,8 +45,8 @@ onUnmounted(() => {
     request="recomend"
     context="recomend"
     :is-infinite-scroll="true"
-    @load-more="loadMoreVideos"
   />
+    <!-- @load-more="loadMoreVideos" -->
 </template>
 
 <style scoped>
