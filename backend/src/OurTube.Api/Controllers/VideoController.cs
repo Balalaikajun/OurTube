@@ -47,9 +47,7 @@ public class VideoController : ControllerBase
 
         try
         {
-            return Ok(userId != null
-                ? await videoService.GetVideoByIdAsync(videoId, userId)
-                : await videoService.GetVideoByIdAsync(videoId));
+            return Ok(await videoService.GetVideoByIdAsync(videoId, userId));
         }
         catch (InvalidOperationException ex)
         {

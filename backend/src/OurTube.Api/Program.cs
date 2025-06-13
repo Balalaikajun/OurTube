@@ -61,7 +61,6 @@ services.AddTransient<IEmailSender, EmailSender>();
 // AutoMapper
 services.AddAutoMapper(typeof(VideoProfile).Assembly);
 services.AddAutoMapper(typeof(UserProfile).Assembly);
-services.AddAutoMapper(typeof(ViewProfile).Assembly);
 services.AddAutoMapper(typeof(UserProfile).Assembly);
 
 

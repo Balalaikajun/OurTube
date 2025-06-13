@@ -7,7 +7,8 @@ namespace OurTube.Application.Services;
 
 public class RecommendationService : IRecomendationService
 {
-    private const int RecommendationPullCount = 50;
+    private const int RecommendationPullCount = 20;
+    private const string VideoCountCacheKey = "TotalVideoCount";
 
     private const double WeeksViewsRate = 0.7;
     private const double WeeksLikesRate = 0.3;
@@ -22,7 +23,7 @@ public class RecommendationService : IRecomendationService
         _videoService = videoService;
     }
 
-    public async Task<IEnumerable<VideoMinGetDto>> GetRecommendationsAsync(string? userId, string sessionId,
+    public async Task<PagedVideoDto> GetRecommendationsAsync(string? userId, string sessionId,
         int limit, int after,
         bool reload = false)
     {
@@ -43,9 +44,19 @@ public class RecommendationService : IRecomendationService
                 SlidingExpiration = TimeSpan.FromMinutes(15)
             });
         }
+        
+        if (!_cache.TryGetValue(VideoCountCacheKey, out int totalVideoCount))
+        {
+            totalVideoCount = await _dbContext.Videos.CountAsync();
+
+            _cache.Set(VideoCountCacheKey, totalVideoCount, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(1)
+            });
+        }
 
 
-        if (cachedRecommendations.Count < after + limit)
+        if (cachedRecommendations.Count <= after + limit && cachedRecommendations.Count < totalVideoCount)
         {
             if (!string.IsNullOrEmpty(userId))
                 cachedRecommendations.AddRange(
@@ -59,7 +70,12 @@ public class RecommendationService : IRecomendationService
 
         var result = await _videoService.GetVideosByIdAsync(resultIds);
 
-        return result;
+        return new PagedVideoDto()
+        {
+            Videos = result,
+            NextAfter = after + limit,
+            HasMore = cachedRecommendations.Count > after + limit,
+        };
     }
 
     private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)

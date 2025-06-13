@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OurTube.Application.DTOs.Video;
 using OurTube.Application.DTOs.Views;
 using OurTube.Application.Services;
 
@@ -75,24 +76,18 @@ public class HistoryController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<PagedHistoryDto>> Get(
+    public async Task<ActionResult<PagedVideoDto>> Get(
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0)
     {
         try
         {
-            var history = await _viewService.GetWithLimitAsync(
+            var result = await _viewService.GetWithLimitAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
                 after);
-            var nextAfter = after + limit;
 
-
-            return Ok(new PagedHistoryDto
-            {
-                Views = history,
-                NextAfter = nextAfter
-            });
+            return Ok(result);
         }
 
         catch (InvalidOperationException ex)

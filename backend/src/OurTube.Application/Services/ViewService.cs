@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using OurTube.Application.DTOs.Video;
 using OurTube.Application.DTOs.Views;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
@@ -88,19 +90,25 @@ public class ViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<ViewGetDto>> GetWithLimitAsync(string userId, int limit, int after)
+    public async Task<PagedVideoDto> GetWithLimitAsync(string userId, int limit, int after)
     {
         if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
             throw new InvalidOperationException("Пользователь не найден");
 
-        var result = await _dbContext.Views
+        var videos = await _dbContext.Views
             .Where(v => v.ApplicationUserId == userId)
             .OrderByDescending(v => v.DateTime)
             .Skip(after)
-            .Take(limit)
-            .ProjectTo<ViewGetDto>(_mapper.ConfigurationProvider)
+            .Take(limit+1)
+            .Select(v => v.Video)
+            .ProjectToMinDto(_mapper, userId)
             .ToListAsync();
-
-        return result;
+        
+        return new PagedVideoDto()
+        {
+            Videos = videos.Take(limit),
+            NextAfter = after+limit,
+            HasMore = videos.Count > limit,
+        };
     }
 }
