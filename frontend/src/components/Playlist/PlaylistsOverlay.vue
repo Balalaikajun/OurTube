@@ -35,22 +35,20 @@
     const newPlaylistName = ref('');
     const isMain = ref(true);
 
-    const toggleMenu = async (id)  => {
+    const toggleMenu = async (id) => {
+        videoId.value = id;
+        await nextTick(); // Ждём обновления реактивного значения
         isOpen.value = !isOpen.value;
         isMain.value = true;
         newPlaylistName.value = '';
-        videoId.value = id;
-        console.log(videoId.value, "инициализация работы с видео через меню")
-        await nextTick(); 
-        if(isOpen.value)
-        {
+
+        if (isOpen.value) {
+            await fetchPlaylists(); // Загружаем плейлисты только после открытия и обновления ID
             document.addEventListener('click', handleClickOutside);
-        }
-        else
-        {
+        } else {
             document.removeEventListener('click', handleClickOutside);
         }
-    }
+    };
 
     const handleFocus = () => {
         register('createOverlay');
@@ -120,6 +118,7 @@
         try {
             error.value = null;
 
+            console.log(videoId.value)
             const response = await api.get(`/api/Playlist/video/${videoId.value}`);
             playlists.value = response.data;
             
@@ -134,8 +133,6 @@
             console.log(playlists.value)
         }
     };
-
-    onMounted(fetchPlaylists);
 
     onBeforeUnmount(toggleMenu);
 
