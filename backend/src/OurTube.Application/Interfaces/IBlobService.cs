@@ -8,5 +8,4 @@ public interface IBlobService
     Task UploadFileAsync(string input, string objectName, string bucketName);
     Task UploadFileAsync(IFormFile input, string objectName, string bucketName);
     Task DeleteFileAsync(string objectName, string bucket);
-
 }

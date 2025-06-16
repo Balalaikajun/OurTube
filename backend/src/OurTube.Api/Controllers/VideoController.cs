@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Video;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -10,9 +10,9 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class VideoController : ControllerBase
 {
-    private readonly VideoService _videoService;
+    private readonly IVideoService _videoService;
 
-    public VideoController(VideoService videoService)
+    public VideoController(IVideoService videoService)
     {
         _videoService = videoService;
     }
@@ -41,13 +41,13 @@ public class VideoController : ControllerBase
     }
 
     [HttpGet("{videoId:int}")]
-    public async Task<ActionResult<VideoGetDto>> Get(int videoId, VideoService videoService)
+    public async Task<ActionResult<VideoGetDto>> Get(int videoId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         try
         {
-            return Ok(await videoService.GetVideoByIdAsync(videoId, userId));
+            return Ok(await _videoService.GetVideoByIdAsync(videoId, userId));
         }
         catch (InvalidOperationException ex)
         {

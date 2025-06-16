@@ -1,10 +1,9 @@
 ﻿using System.Security.Claims;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.DTOs.UserAvatar;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -12,10 +11,10 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class UserController : ControllerBase
 {
-    private readonly UserService _userService;
-    private readonly UserAvatarService _userAvatarService;
+    private readonly IUserAvatarService _userAvatarService;
+    private readonly IUserService _userService;
 
-    public UserController(UserService userService, UserAvatarService userAvatarService)
+    public UserController(IUserService userService, IUserAvatarService userAvatarService)
     {
         _userService = userService;
         _userAvatarService = userAvatarService;
@@ -57,13 +56,13 @@ public class UserController : ControllerBase
         return Created(string.Empty, result);
     }
 
-    
+
     [Authorize]
     [HttpDelete("avatar")]
     public async Task<ActionResult> DeleteAvatar()
     {
-        await _userAvatarService.DeleteUserAvatarAsync( User.FindFirstValue(ClaimTypes.NameIdentifier));
-        
+        await _userAvatarService.DeleteUserAvatarAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
         return NoContent();
     }
 }

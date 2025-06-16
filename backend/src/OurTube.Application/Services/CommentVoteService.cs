@@ -4,7 +4,7 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class CommentVoteService
+public class CommentVoteService : ICommentVoteService
 {
     private readonly IApplicationDbContext _dbContext;
 

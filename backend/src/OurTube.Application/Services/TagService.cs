@@ -4,7 +4,7 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class TagService
+public class TagService : ITagService
 {
     private readonly IApplicationDbContext _dbContext;
 

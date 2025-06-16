@@ -1,16 +1,16 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
 [Route("api/Video/{videoId:int}/vote")]
 public class VideoVoteController : ControllerBase
 {
-    private readonly VideoVoteService _videoVoteVoteService;
+    private readonly IVideoVoteService _videoVoteVoteService;
 
-    public VideoVoteController(VideoVoteService videoVoteService)
+    public VideoVoteController(IVideoVoteService videoVoteService)
     {
         _videoVoteVoteService = videoVoteService;
     }

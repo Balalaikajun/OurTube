@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -9,9 +9,9 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class CommentVoteController : ControllerBase
 {
-    private readonly CommentVoteService _commentVoteService;
+    private readonly ICommentVoteService _commentVoteService;
 
-    public CommentVoteController(CommentVoteService commentVoteService)
+    public CommentVoteController(ICommentVoteService commentVoteService)
     {
         _commentVoteService = commentVoteService;
     }

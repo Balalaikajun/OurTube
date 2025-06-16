@@ -4,7 +4,7 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class SubscriptionService
+public class SubscriptionService : ISubscriptionService
 {
     private readonly IApplicationDbContext _dbContext;
 

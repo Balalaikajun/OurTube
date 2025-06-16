@@ -5,6 +5,5 @@ namespace OurTube.Application.DTOs.UserAvatar;
 
 public class UserAvatarPostDto
 {
-    [Required]
-    public IFormFile Image { get; set; }
+    [Required] public IFormFile Image { get; set; }
 }

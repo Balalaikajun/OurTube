@@ -4,15 +4,13 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class VideoVoteService
+public class VideoVoteService : IVideoVoteService
 {
     private readonly IApplicationDbContext _dbContext;
-    private readonly PlaylistService _playlistService;
 
-    public VideoVoteService(IApplicationDbContext dbContext, PlaylistService playlistService)
+    public VideoVoteService(IApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
-        _playlistService = playlistService;
     }
 
     public async Task SetAsync(int videoId, string userId, bool type)

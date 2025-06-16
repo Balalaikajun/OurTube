@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.DTOs.Views;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -11,9 +11,9 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class HistoryController : ControllerBase
 {
-    private readonly ViewService _viewService;
+    private readonly IViewService _viewService;
 
-    public HistoryController(ViewService viewService)
+    public HistoryController(IViewService viewService)
     {
         _viewService = viewService;
     }

@@ -11,13 +11,13 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class VideoService
+public class VideoService : IVideoService
 {
     private readonly IBlobService _blobService;
     private readonly string _bucket;
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly TagService _tagService;
+    private readonly ITagService _tagService;
     private readonly VideoValidator _validator;
     private readonly IVideoProcessor _videoProcessor;
 
@@ -28,9 +28,8 @@ public class VideoService
         IVideoProcessor videoProcessor,
         IConfiguration configuration,
         VideoValidator validator,
-        LocalFilesService localFilesService,
         IBlobService blobService,
-        TagService tagService)
+        ITagService tagService)
     {
         _dbContext = dbContext;
         _mapper = mapper;
@@ -96,8 +95,8 @@ public class VideoService
             .ProjectToMinDto(_mapper, userId)
             .ToDictionaryAsync(x => x.Id);
 
-       var result = videoIds.Select(id => videos[id]).ToList();
-        
+        var result = videoIds.Select(id => videos[id]).ToList();
+
         return result;
     }
 

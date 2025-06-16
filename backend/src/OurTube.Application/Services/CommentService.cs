@@ -7,15 +7,14 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class CommentService
+public class CommentService : ICommentCrudService, ICommentRecommendationService
 {
-    private readonly IApplicationDbContext _dbContext;
-    private readonly IMemoryCache _cache;
-    private readonly IMapper _mapper;
-    
     private const int CommentPull = 15;
+    private readonly IMemoryCache _cache;
+    private readonly IApplicationDbContext _dbContext;
+    private readonly IMapper _mapper;
 
-    public CommentService(IApplicationDbContext dbContext, IMemoryCache cache,IMapper mapper)
+    public CommentService(IApplicationDbContext dbContext, IMemoryCache cache, IMapper mapper)
     {
         _dbContext = dbContext;
         _cache = cache;
@@ -99,7 +98,7 @@ public class CommentService
 
         await _dbContext.SaveChangesAsync();
     }
-    
+
     public async Task<PagedCommentDto> GetCommentsWithLimitAsync(int videoId, int limit, int after,
         string sessionId,
         string? userId,
@@ -108,15 +107,15 @@ public class CommentService
     {
         if (!string.IsNullOrEmpty(userId) && !await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
             throw new InvalidOperationException("Пользователь не найдет");
-        
+
         if (!await _dbContext.Videos.AnyAsync(v => v.Id == videoId))
             throw new InvalidOperationException("Видео не найдено");
 
         if (parentId != null && !await _dbContext.Comments.AnyAsync(p => p.Id == parentId))
             throw new InvalidOperationException("Комментарий не найден");
-        
+
         var cacheKey = GetCacheKey(sessionId, videoId, parentId);
-        
+
         if (reload)
             _cache.Remove(cacheKey);
 
@@ -129,12 +128,10 @@ public class CommentService
                 SlidingExpiration = TimeSpan.FromMinutes(15)
             });
         }
-        
+
         if (cachedRecommendations.Count <= after + limit)
-        {
             cachedRecommendations.AddRange(await GetMoreIds(videoId, CommentPull, sessionId, userId, parentId));
-        }
-        
+
         var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
 
         var commentsDict = await _dbContext.Comments
@@ -144,13 +141,13 @@ public class CommentService
 
         var comments = resultIds
             .Select(id => commentsDict[id]);
-        
+
         var hasMore = cachedRecommendations.Count > after + limit;
 
         return new PagedCommentDto
         {
             Comments = comments,
-            NextAfter = limit+after,
+            NextAfter = limit + after,
             HasMore = hasMore
         };
     }
@@ -167,7 +164,7 @@ public class CommentService
             throw new InvalidOperationException("Комментарий не найден");
 
         _cache.TryGetValue(GetCacheKey(sessionId, videoId, parentId), out List<int> usedId);
-        
+
         var result = await _dbContext.Comments
             .Where(c => c.VideoId == videoId && c.ParentId == parentId)
             .Where(c => !usedId.Contains(c.Id))
@@ -178,7 +175,7 @@ public class CommentService
 
         return result;
     }
-    
+
     private async Task<CommentGetDto?> GetAsync(int commentId, string userId)
     {
         return await _dbContext.Comments
@@ -186,7 +183,9 @@ public class CommentService
             .ProjectToDto(_mapper, userId)
             .FirstOrDefaultAsync();
     }
-    
+
     private static string GetCacheKey(string sessionId, int videoId, int? parentId)
-        => $"Comments_{sessionId}_{videoId}_{parentId}";
+    {
+        return $"Comments_{sessionId}_{videoId}_{parentId}";
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace OurTube.Application.Services;
 
-public class LocalFilesService
+public static class LocalFilesService
 {
     public static async Task<string> SaveFileAsync(IFormFile file, string directory, string fileName)
     {

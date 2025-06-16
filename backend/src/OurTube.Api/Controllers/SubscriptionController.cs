@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -9,9 +9,9 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class SubscriptionController : ControllerBase
 {
-    private readonly SubscriptionService _subscriptionService;
+    private readonly ISubscriptionService _subscriptionService;
 
-    public SubscriptionController(SubscriptionService subscriptionService)
+    public SubscriptionController(ISubscriptionService subscriptionService)
     {
         _subscriptionService = subscriptionService;
     }

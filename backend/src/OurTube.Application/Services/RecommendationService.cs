@@ -14,9 +14,9 @@ public class RecommendationService : IRecomendationService
     private const double WeeksLikesRate = 0.3;
     private readonly IMemoryCache _cache;
     private readonly IApplicationDbContext _dbContext;
-    private readonly VideoService _videoService;
+    private readonly IVideoService _videoService;
 
-    public RecommendationService(IApplicationDbContext dbContext, IMemoryCache cache, VideoService videoService)
+    public RecommendationService(IApplicationDbContext dbContext, IMemoryCache cache, IVideoService videoService)
     {
         _dbContext = dbContext;
         _cache = cache;
@@ -44,7 +44,7 @@ public class RecommendationService : IRecomendationService
                 SlidingExpiration = TimeSpan.FromMinutes(15)
             });
         }
-        
+
         if (!_cache.TryGetValue(VideoCountCacheKey, out int totalVideoCount))
         {
             totalVideoCount = await _dbContext.Videos.CountAsync();
@@ -70,11 +70,11 @@ public class RecommendationService : IRecomendationService
 
         var result = await _videoService.GetVideosByIdAsync(resultIds);
 
-        return new PagedVideoDto()
+        return new PagedVideoDto
         {
             Videos = result,
             NextAfter = after + limit,
-            HasMore = cachedRecommendations.Count > after + limit,
+            HasMore = cachedRecommendations.Count > after + limit
         };
     }
 

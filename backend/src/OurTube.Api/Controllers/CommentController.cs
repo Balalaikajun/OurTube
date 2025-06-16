@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Comment;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -10,11 +10,14 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class CommentController : ControllerBase
 {
-    private readonly CommentService _commentService;
+    private readonly ICommentCrudService _commentCrudService;
+    private readonly ICommentRecommendationService _commentRecommendationService;
 
-    public CommentController(CommentService commentService)
+    public CommentController(ICommentCrudService commentCrudService,
+        ICommentRecommendationService commentRecommendationService)
     {
-        _commentService = commentService;
+        _commentCrudService = commentCrudService;
+        _commentRecommendationService = commentRecommendationService;
     }
 
 
@@ -25,7 +28,7 @@ public class CommentController : ControllerBase
     {
         try
         {
-            var result = await _commentService.CreateAsync(
+            var result = await _commentCrudService.CreateAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 postDto);
             return Created(
@@ -45,7 +48,7 @@ public class CommentController : ControllerBase
     {
         try
         {
-            await _commentService.UpdateAsync(
+            await _commentCrudService.UpdateAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 postDto);
             return Created();
@@ -67,7 +70,7 @@ public class CommentController : ControllerBase
     {
         try
         {
-            await _commentService.DeleteAsync(
+            await _commentCrudService.DeleteAsync(
                 commentId,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
             return Created();
@@ -91,10 +94,10 @@ public class CommentController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var sessionId = Request.Cookies["SessionId"];
-        
+
         try
         {
-            var result = await _commentService.GetCommentsWithLimitAsync(
+            var result = await _commentRecommendationService.GetCommentsWithLimitAsync(
                 videoId,
                 limit,
                 after,

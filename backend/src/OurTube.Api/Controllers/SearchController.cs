@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Video;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -9,9 +9,9 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class SearchController : ControllerBase
 {
-    private readonly SearchService _searchService;
+    private readonly ISearchService _searchService;
 
-    public SearchController(SearchService searchService)
+    public SearchController(ISearchService searchService)
     {
         _searchService = searchService;
     }

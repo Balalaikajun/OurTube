@@ -73,25 +73,26 @@ services.AddMediatR(cfg =>
 });
 
 // Application Services
-services.AddScoped<VideoService>();
-services.AddScoped<PlaylistService>();
-services.AddScoped<VideoVoteService>();
-services.AddScoped<UserService>();
-services.AddScoped<CommentService>();
-services.AddScoped<CommentVoteService>();
-services.AddScoped<ViewService>();
+services.AddScoped<IVideoService, VideoService>();
+services.AddScoped<IPlaylistCrudService, PlaylistService>();
+services.AddScoped<IPlaylistQueryService, PlaylistService>();
+services.AddScoped<IVideoVoteService, VideoVoteService>();
+services.AddScoped<IUserService, UserService>();
+services.AddScoped<ICommentCrudService, CommentService>();
+services.AddScoped<ICommentRecommendationService, CommentService>();
+services.AddScoped<ICommentVoteService, CommentVoteService>();
+services.AddScoped<IViewService, ViewService>();
 services.AddScoped<IRecomendationService, RecommendationService>();
-services.AddScoped<SubscriptionService>();
-services.AddScoped<SearchService>();
-services.AddScoped<TagService>();
-services.AddScoped<UserAvatarService>();
+services.AddScoped<ISubscriptionService, SubscriptionService>();
+services.AddScoped<ISearchService, SearchService>();
+services.AddScoped<ITagService, TagService>();
+services.AddScoped<IUserAvatarService, UserAvatarService>();
 
 // Infrastructure
 services.AddScoped<IBlobService, MinioService>();
 services.AddScoped<IVideoProcessor, FfmpegProcessor>();
 
 // Other
-services.AddScoped<LocalFilesService>();
 services.AddScoped<VideoValidator>();
 
 // CORS
