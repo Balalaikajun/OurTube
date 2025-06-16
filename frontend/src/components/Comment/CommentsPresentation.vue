@@ -55,7 +55,7 @@
                 };
             } catch (err) {
                 throw err;
-            }
+            }            
         },
         initialLoad: true
     });
@@ -115,10 +115,10 @@
             :create-date="formatter.formatRussianDate(comment.created)"
             :update-date="formatter.formatRussianDate(comment.updated)"
             :reaction-status="comment.vote"
+            :childs-count="comment.childsCount"
             :likes-count="comment.likesCount"
             :dislikes-count="comment.dislikesCount"
             :user-info="comment.user"
-            :childs="comment.childs || []"
             @kebab-click="handleKebabClick"
             @edit="handleEditComment"
             @delete="handleDelete"

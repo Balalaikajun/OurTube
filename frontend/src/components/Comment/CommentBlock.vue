@@ -1,5 +1,6 @@
 <script setup>
     import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject, watchEffect  } from "vue";
+    import axios from 'axios';
     import CommentMenu from "../Kebab/CommentMenu.vue";
     import KebabButton from "../Kebab/KebabButton.vue";
     import UserAvatar from "../Solid/UserAvatar.vue";
@@ -7,6 +8,7 @@
     import CreateCommentBlock from "./CreateCommentBlock.vue";
     import useTextOverflow from "@/assets/utils/useTextOverflow";
     import formatter from "@/assets/utils/formatter.js";
+    import { API_BASE_URL } from "@/assets/config.js";
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
 
     const props = defineProps(
@@ -50,6 +52,11 @@
                 required: true,
                 default: null
             },
+            childsCount: {
+                type: Number,
+                required: false,
+                default: 0
+            },
             likesCount: {
                 type: Number,
                 required: true,
@@ -70,12 +77,7 @@
                     "subscribersCount": 0,
                     "userAvatar": null
                 }
-            },
-            childs: {
-                type: Array,
-                default: () => []
             }
-
         }
     )
 
@@ -83,8 +85,20 @@
 
     const { register, unregister } = injectFocusEngine();
 
+    const api = axios.create({
+        baseURL: API_BASE_URL,
+        withCredentials: true,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
     const kebabMenuRef = ref(null);
     const localCommentText = ref(props.commentText);
+    const childs = ref([]);
+    const hasMore = ref(true);
+    const after = ref(0);
+    const isLoading = ref(false);
 
     const showFullText = ref(false);
     const showChilds = ref(false);
@@ -173,9 +187,44 @@
         })
     })
 
+    const fetchComments = async () => {
+        if (!hasMore.value || isLoading.value) return;
+        console.log('Загрузка ответов')
+        
+        isLoading.value = true;
+        try {
+            const response = await api.get(
+                `/api/Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
+            );
+            
+            const newComments = response.data?.comments || [];
+            hasMore.value = response.data?.hasMore || false;
+            
+            if (newComments.length > 0) {
+                childs.value.push(...newComments.map(comment => ({
+                    ...comment,
+                    isDeleted: comment.deleted !== null || comment.isDeleted
+                })));
+                after.value = response.data?.nextAfter || 0;
+            }
+            
+            // Показываем дочерние комментарии, если они есть
+            if (newComments.length > 0 && !showChilds.value) {
+                showChilds.value = true;
+            }
+        } catch (err) {
+            console.error('Ошибка при загрузке комментариев:', err);
+        } finally {
+            isLoading.value = false;
+        }
+    };
 
-
-
+    const loadChildComments = async () => {
+        if (childs.value.length === 0 && props.childsCount > 0) {
+            await fetchComments();
+        }
+        // showChilds.value = !showChilds.value;
+    };
     
     onMounted(() => {
         // console.log(props.commentText, props.id, props.childs)
@@ -253,11 +302,12 @@
                 </div>
                 <!-- комментарии комментария -->
                 <button 
-                    v-if="childs && childs.length > 0 && !showChilds" 
-                    @click="showChilds = true"
+                    v-if="childsCount > 0 && !showChilds" 
+                    @click="loadChildComments"
                     class="control-button show-replies-btn"
+                    :disabled="isLoading"
                 >
-                    Ответы ({{ childs.length }})
+                    Ответы ({{ childsCount }})
                 </button>
                 <CreateCommentBlock
                     v-if="showCreateCommentBlock" 
@@ -294,6 +344,7 @@
                 </div>
             </div>
             <KebabButton
+                v-if="!props.isDeleted"
                 @kebab-click.stop="handleKebabButtonClick"
             />  
         </div>
@@ -301,7 +352,7 @@
             v-if="showChilds && childs && childs.length > 0"       
         >
             <CommentBlock
-                v-for="child in props.childs"
+                v-for="child in childs"
                 :key="child.id"
                 :video-id="props.videoId"
                 :id="child.id"
@@ -310,6 +361,7 @@
                 :create-date="formatter.formatRussianDate(child.created)"
                 :update-date="formatter.formatRussianDate(child.updated)"
                 :reaction-status="child.vote"
+                :childs-count="0"
                 :likes-count="child.likesCount"
                 :dislikes-count="child.dislikesCount"
                 :user-info="child.user"
@@ -321,6 +373,14 @@
                 @edit="(payload) => emit('edit', payload)"
                 @delete="() => emit('delete')"
             />
+            <button 
+                v-if="hasMore"
+                @click="fetchComments"
+                class="control-button show-more-comments-btn"
+                :disabled="isLoading"
+            >
+                {{ isLoading ? 'Загрузка...' : 'Отобразить ещё' }}
+            </button>
         </div>
     </div>
    

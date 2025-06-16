@@ -95,12 +95,11 @@
         
         async search(after) {
             if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 };
-            
+            const limit = computedBlocksInRow.value * 1;
             try {
-                const response = await fetch(`${API_BASE_URL}/api/Search?query=${encodeURIComponent(props.searchQuery)}`);
+                const response = await fetch(`${API_BASE_URL}/api/Search?query=${encodeURIComponent(props.searchQuery)}&limit=${limit}&after=${after || 0}`);
                 if (!response.ok) throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
-                const data = await response.json();
-                return { videos: Array.isArray(data) ? data : [], nextAfter: 0 };
+                return await response.json();
             } catch (error) {
                 console.error('Ошибка при выполнении поиска:', error);
                 return { videos: [], nextAfter: 0 };
