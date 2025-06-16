@@ -1,21 +1,19 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.Views;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class ViewService
+public class ViewService : IViewService
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly VideoService _videoService;
+    private readonly IVideoService _videoService;
 
-    public ViewService(IApplicationDbContext dbContext, VideoService videoService, IMapper mapper)
+    public ViewService(IApplicationDbContext dbContext, IVideoService videoService, IMapper mapper)
     {
         _dbContext = dbContext;
         _videoService = videoService;
@@ -99,16 +97,16 @@ public class ViewService
             .Where(v => v.ApplicationUserId == userId)
             .OrderByDescending(v => v.DateTime)
             .Skip(after)
-            .Take(limit+1)
+            .Take(limit + 1)
             .Select(v => v.Video)
             .ProjectToMinDto(_mapper, userId)
             .ToListAsync();
-        
-        return new PagedVideoDto()
+
+        return new PagedVideoDto
         {
             Videos = videos.Take(limit),
-            NextAfter = after+limit,
-            HasMore = videos.Count > limit,
+            NextAfter = after + limit,
+            HasMore = videos.Count > limit
         };
     }
 }

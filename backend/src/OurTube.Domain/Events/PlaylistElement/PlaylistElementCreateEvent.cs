@@ -1,6 +1,7 @@
 using OurTube.Domain.Interfaces;
 
 namespace OurTube.Domain.Events.PlaylistElement;
+
 public record PlaylistElementCreateEvent(
     int PlaylistId,
     string PlaylistTitle,

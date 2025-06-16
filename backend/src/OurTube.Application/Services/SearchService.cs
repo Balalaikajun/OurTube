@@ -6,15 +6,16 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Application.Services;
 
-public class SearchService
+public class SearchService : ISearchService
 {
     private const int SearchPull = 25;
     private readonly IMemoryCache _cache;
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly VideoService _videoService;
+    private readonly IVideoService _videoService;
 
-    public SearchService(IApplicationDbContext dbContext, IMemoryCache cache, IMapper mapper, VideoService videoService)
+    public SearchService(IApplicationDbContext dbContext, IMemoryCache cache, IMapper mapper,
+        IVideoService videoService)
     {
         _dbContext = dbContext;
         _cache = cache;
@@ -22,9 +23,11 @@ public class SearchService
         _videoService = videoService;
     }
 
-    public async Task<PagedVideoDto> SearchVideos(string searchQuery, string? userId, string sessionId,
-        int limit = 10,
-        int after = 0, bool reload = true)
+    public async Task<PagedVideoDto> SearchVideos(
+        string searchQuery,
+        string? userId, string sessionId,
+        int limit = 10, int after = 0,
+        bool reload = true)
     {
         var cacheKey = GetCacheKey(sessionId);
 
@@ -49,7 +52,7 @@ public class SearchService
 
         var videos = await _videoService.GetVideosByIdAsync(videoIds);
 
-        return new PagedVideoDto()
+        return new PagedVideoDto
         {
             HasMore = cachePull.Count > after + limit,
             NextAfter = after + limit,

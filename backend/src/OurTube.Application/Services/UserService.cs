@@ -4,7 +4,7 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Application.Services;
 
-public class UserService
+public class UserService : IUserService
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
@@ -34,10 +34,12 @@ public class UserService
         }
 
         await _dbContext.SaveChangesAsync();
-        
+
         return _mapper.Map<ApplicationUserDto>(aUser);
     }
 
     public async Task<ApplicationUserDto> GetUserAsync(string userId)
-        => _mapper.Map<ApplicationUserDto>( await _dbContext.ApplicationUsers.FindAsync(userId));
+    {
+        return _mapper.Map<ApplicationUserDto>(await _dbContext.ApplicationUsers.FindAsync(userId));
+    }
 }

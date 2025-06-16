@@ -1,5 +1,5 @@
 using MediatR;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 using OurTube.Domain.Events.VideoVote;
 
 namespace OurTube.Application.Handlers;
@@ -9,11 +9,14 @@ public class PlaylistLikeHandler :
     INotificationHandler<VideoVoteUpdateEvent>,
     INotificationHandler<VideoVoteDeleteEvent>
 {
-    private readonly PlaylistService _playlistService;
+    private readonly IPlaylistCrudService _playlistCrudService;
+    private readonly IPlaylistQueryService _playlistQueryService;
 
-    public PlaylistLikeHandler(PlaylistService playlistService)
+
+    public PlaylistLikeHandler(IPlaylistCrudService playlistCrudService, IPlaylistQueryService playlistQueryService)
     {
-        _playlistService = playlistService;
+        _playlistCrudService = playlistCrudService;
+        _playlistQueryService = playlistQueryService;
     }
 
     public async Task Handle(VideoVoteCreateEvent notification, CancellationToken cancellationToken)
@@ -21,9 +24,9 @@ public class PlaylistLikeHandler :
         if (!notification.Value)
             return;
 
-        var playlist = await _playlistService.GetLikedPlaylistAsync(notification.UserId);
+        var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
-        await _playlistService.AddVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+        await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
     }
 
     public async Task Handle(VideoVoteDeleteEvent notification, CancellationToken cancellationToken)
@@ -31,18 +34,18 @@ public class PlaylistLikeHandler :
         if (!notification.Value)
             return;
 
-        var playlist = await _playlistService.GetLikedPlaylistAsync(notification.UserId);
+        var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
-        await _playlistService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+        await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
     }
 
     public async Task Handle(VideoVoteUpdateEvent notification, CancellationToken cancellationToken)
     {
-        var playlist = await _playlistService.GetLikedPlaylistAsync(notification.UserId);
+        var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
         if (notification.NewValue)
-            await _playlistService.AddVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+            await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
         else
-            await _playlistService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId, true);
+            await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId, true);
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Playlist;
-using OurTube.Application.Services;
+using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
@@ -10,11 +10,13 @@ namespace OurTube.Api.Controllers;
 [ApiController]
 public class PlaylistController : ControllerBase
 {
-    private readonly PlaylistService _playlistService;
+    private readonly IPlaylistCrudService _playlistCrudService;
+    private readonly IPlaylistQueryService _playlistQueryService;
 
-    public PlaylistController(PlaylistService playlistService)
+    public PlaylistController(IPlaylistCrudService playlistCrudService, IPlaylistQueryService playlistQueryService)
     {
-        _playlistService = playlistService;
+        _playlistCrudService = playlistCrudService;
+        _playlistQueryService = playlistQueryService;
     }
 
     [Authorize]
@@ -22,7 +24,7 @@ public class PlaylistController : ControllerBase
     public async Task<ActionResult<PlaylistMinGetDto>> Post(
         [FromBody] PlaylistPostDto postDto)
     {
-        var result = await _playlistService.CreateAsync(
+        var result = await _playlistCrudService.CreateAsync(
             postDto,
             User.FindFirstValue(ClaimTypes.NameIdentifier));
         return CreatedAtAction(
@@ -39,7 +41,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            await _playlistService.UpdateAsync(
+            await _playlistCrudService.UpdateAsync(
                 postDto,
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -63,7 +65,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            await _playlistService.DeleteAsync(
+            await _playlistCrudService.DeleteAsync(
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
             return Ok();
@@ -86,7 +88,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            await _playlistService.AddVideoAsync(
+            await _playlistCrudService.AddVideoAsync(
                 id,
                 videoId,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -114,7 +116,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            await _playlistService.RemoveVideoAsync(
+            await _playlistCrudService.RemoveVideoAsync(
                 id,
                 videoId,
                 User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -139,7 +141,7 @@ public class PlaylistController : ControllerBase
     {
         try
         {
-            var playlistGetDto = await _playlistService.GetWithLimitAsync(
+            var playlistGetDto = await _playlistQueryService.GetWithLimitAsync(
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
@@ -167,7 +169,7 @@ public class PlaylistController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetUserPlaylists()
     {
-        var result = await _playlistService.GetUserPlaylistsAsync(
+        var result = await _playlistQueryService.GetUserPlaylistsAsync(
             User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         return Ok(result);
@@ -178,7 +180,7 @@ public class PlaylistController : ControllerBase
     public async Task<ActionResult<IEnumerable<PlaylistForVideoGetDto>>> GetForVideo(int videoId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _playlistService.GetUserPlaylistsForVideoAsync(userId, videoId);
+        var result = await _playlistQueryService.GetUserPlaylistsForVideoAsync(userId, videoId);
         return Ok(result);
     }
 }

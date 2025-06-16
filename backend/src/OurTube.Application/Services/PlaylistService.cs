@@ -8,13 +8,13 @@ using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
 
-public class PlaylistService
+public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly VideoService _videoService;
+    private readonly IVideoService _videoService;
 
-    public PlaylistService(IApplicationDbContext dbContext, VideoService videoService, IMapper mapper)
+    public PlaylistService(IApplicationDbContext dbContext, IVideoService videoService, IMapper mapper)
     {
         _dbContext = dbContext;
         _videoService = videoService;
