@@ -91,7 +91,7 @@ public class MinioService : IBlobService
             throw new ArgumentException("Имя бакета не задано", nameof(bucketName));
         if (string.IsNullOrEmpty(objectName))
             throw new ArgumentException("Имя объекта не задано", nameof(objectName));
-        
+
         await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName));
