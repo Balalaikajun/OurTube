@@ -22,7 +22,7 @@ public class SearchService
         _videoService = videoService;
     }
 
-    public async Task<IEnumerable<VideoMinGetDto>> SearchVideos(string searchQuery, string? userId, string sessionId,
+    public async Task<PagedVideoDto> SearchVideos(string searchQuery, string? userId, string sessionId,
         int limit = 10,
         int after = 0, bool reload = true)
     {
@@ -45,11 +45,16 @@ public class SearchService
         if (cachePull.Count < limit + after)
             cachePull.AddRange(await SearchMoreVideos(searchQuery, sessionId, SearchPull));
 
-        var resultIds = cachePull.Skip(after).Take(limit).ToList();
+        var videoIds = cachePull.Skip(after).Take(limit).ToList();
 
-        var result = await _videoService.GetVideosByIdAsync(resultIds);
+        var videos = await _videoService.GetVideosByIdAsync(videoIds);
 
-        return result;
+        return new PagedVideoDto()
+        {
+            HasMore = cachePull.Count > after + limit,
+            NextAfter = after + limit,
+            Videos = videos
+        };
     }
 
     private async Task<IEnumerable<int>> SearchMoreVideos(string searchQuery, string sessionId,

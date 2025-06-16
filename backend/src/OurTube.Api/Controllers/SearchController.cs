@@ -17,7 +17,7 @@ public class SearchController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<VideoMinGetDto>>> Get(
+    public async Task<ActionResult<PagedVideoDto>> Get(
         [FromQuery] string query = "",
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
