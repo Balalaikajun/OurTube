@@ -3,5 +3,5 @@
 public class ViewPostDto
 {
     public int VideoId { get; set; }
-    public TimeSpan EndTime { get; set; }
+    public TimeSpan EndTime { get; set; } = TimeSpan.Zero;
 }
