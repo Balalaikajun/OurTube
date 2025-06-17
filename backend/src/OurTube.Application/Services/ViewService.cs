@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Application.DTOs.Video;
+using OurTube.Application.DTOs.Views;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
@@ -20,30 +21,30 @@ public class ViewService : IViewService
         _mapper = mapper;
     }
 
-    public async Task AddVideoAsync(int videoId, string userId, TimeSpan endTime)
+    public async Task AddVideoAsync(ViewPostDto dto, string userId)
     {
         if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
             throw new InvalidOperationException("Пользователь не найден");
 
-        var video = await _dbContext.Videos.FindAsync(videoId);
+        var video = await _dbContext.Videos.FindAsync(dto.VideoId);
 
         if (video == null)
             throw new InvalidOperationException("Видео не найдено");
 
-        var view = await _dbContext.Views.FindAsync(videoId, userId);
+        var view = await _dbContext.Views.FindAsync(dto.VideoId, userId);
 
         if (view != null)
         {
             view.DateTime = DateTime.UtcNow;
-            view.EndTime = endTime;
+            view.EndTime = dto.EndTime;
         }
         else
         {
             view = new VideoView
             {
                 ApplicationUserId = userId,
-                VideoId = videoId,
-                EndTime = endTime,
+                VideoId = dto.VideoId,
+                EndTime = dto.EndTime,
                 DateTime = DateTime.UtcNow
             };
 
@@ -88,17 +89,23 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedVideoDto> GetWithLimitAsync(string userId, int limit, int after)
+    public async Task<PagedVideoDto> GetWithLimitAsync(string userId, int limit, int after, string? query)
     {
         if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
             throw new InvalidOperationException("Пользователь не найден");
 
-        var videos = await _dbContext.Views
-            .Where(v => v.ApplicationUserId == userId)
-            .OrderByDescending(v => v.DateTime)
+        var queryable = _dbContext.Views
+            .Where(v => v.ApplicationUserId == userId);
+        
+        if (!string.IsNullOrEmpty(query))
+            queryable = queryable.Where(v =>EF.Functions.Like(v.Video.Title, $"%{query}%"));
+
+        queryable = queryable.OrderByDescending(v => v.DateTime)
             .Skip(after)
-            .Take(limit + 1)
-            .Select(v => v.Video)
+            .Take(limit + 1);
+        
+        var videos = await queryable
+            .Select(vv => vv.Video)
             .ProjectToMinDto(_mapper, userId)
             .ToListAsync();
 

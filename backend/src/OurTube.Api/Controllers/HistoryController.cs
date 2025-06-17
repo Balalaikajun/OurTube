@@ -26,9 +26,8 @@ public class HistoryController : ControllerBase
         try
         {
             await _viewService.AddVideoAsync(
-                postDto.VideoId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                postDto.EndTime);
+                postDto,
+                User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             return Created();
         }
@@ -78,14 +77,16 @@ public class HistoryController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedVideoDto>> Get(
         [FromQuery] int limit = 10,
-        [FromQuery] int after = 0)
+        [FromQuery] int after = 0,
+        [FromQuery] string? query = null)
     {
         try
         {
             var result = await _viewService.GetWithLimitAsync(
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
-                after);
+                after,
+                query);
 
             return Ok(result);
         }
