@@ -99,6 +99,7 @@
             // emit('comment-created'); //правки
 
             // console.log()
+            handleCancel();
             
         } catch (error) {
             if (error.response) {

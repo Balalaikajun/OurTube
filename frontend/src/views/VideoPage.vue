@@ -19,9 +19,11 @@
   import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
   import useTextOverflow from "@/assets/utils/useTextOverflow";
 
+  // const userStore = useUserStore();
+
   const route = useRoute();
   const videoPage = ref(null);
-  const videoId = computed(() => Number(route.params.id));
+  const videoId = ref(null);
   const Player = ref(null);
   const addComment = ref(null);
   const videoData = ref(null);
@@ -61,6 +63,22 @@
       }
   });
 
+  const addToHistory = async () => {
+  //   console.log(userStore.isAuth)
+  // if (!userStore.isAuth) return;
+  
+  try {
+    console.log(videoId.value);
+    await api.post('/api/History', {
+      videoId: videoId.value,
+      endTime: "0" // Всегда 0, как просили
+    });
+    console.log('Added to history');
+  } catch (error) {
+    console.error('History error:', error);
+  }
+};
+
   const handleKeyDown = (e) => {
     // Добавьте проверку, что плеер инициализирован
     if (focusedElement.value || !Player.value) return;
@@ -93,6 +111,7 @@
     }
 
     try {
+      console.log(videoId.value, 1)
       const response = await api.get(`/api/Video/${videoId.value}`);
       const data = response.data;
 
@@ -216,11 +235,20 @@
     lastWidth.value = width;
   };
 
-  onMounted(async () => {
-    console.log("VideoPage mounted");
-    // console.log(localStorage.getItem('token'))
-    console.log("Текущие куки:", document.cookie);
-    await fetchVideoData();
+  onMounted(async () => {    
+    console.log('VideoPage mounted, route params:', route.params);
+  
+    videoId.value = Number(route.params.id);
+    console.log("Initial video ID:", videoId.value);
+    
+    
+    // Проверяем авторизацию
+    const userData = JSON.parse(localStorage.getItem('userData') || 'null');
+    if (!userData) {
+        console.log("User not authenticated");
+    }
+
+    // await fetchVideoData();
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', () => {
       checkTextOverflow(descriptionElement.value, "Описание к видео");
@@ -228,8 +256,10 @@
 
     await initResizeObserver();
   });
-  onUnmounted(() => {
+  onUnmounted( async () => {
     console.log("Размонтирование VideoPage");
+    await console.log(videoId.value, 2)
+    await addToHistory();
     document.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
 
@@ -302,6 +332,7 @@
   />
   <!-- :video-id="Number(videoId)" -->
   <ShareOverlay
+    v-if="videoId"
     ref="shareRef" 
     :video-id="videoId"
   />
@@ -339,7 +370,7 @@
                   <p>{{videoData.user?.userName}}</p>
                   <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
                 </div>
-                <button v-if="true" style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
+                <button v-auth style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
                 {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}</button>
               </div>
               <div class="actions-wrapper">

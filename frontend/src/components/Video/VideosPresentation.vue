@@ -1,6 +1,7 @@
 <script setup>
     import { ref, onMounted, onUnmounted, computed, nextTick, watch } from "vue";
     import { useRoute, useRouter } from 'vue-router';
+    import axios from 'axios';
     import VideoCard from "@/components/Video/VideoCard.vue";
     import KebabMenu from "../Kebab/KebabMenu.vue";
     import ShareOverlay from "../Kebab/ShareOverlay.vue";
@@ -16,7 +17,7 @@
         request: {
             type: String,
             required: true,
-            validator: (value) => ['recomend', 'search'].includes(value)
+            validator: (value) => ['recomend', 'search', 'history'].includes(value)
         },
         context: {
             type: String,
@@ -66,6 +67,7 @@
     };
 
     const handleAddToPlaylist = () => {
+        console.log("save", currentVideoId.value)
         emit('add-to-playlist', currentVideoId.value);
     };
 
@@ -76,6 +78,7 @@
     };
 
     const navigateToVideo = (video) => {
+        console.log("to", video.id)
         router.push(`/video/${video.id}`);
     };
 
@@ -84,12 +87,19 @@
         async recomend(after) {
             const limit = computedBlocksInRow.value * 1;
             try {
-                const response = await fetch(`${API_BASE_URL}/api/Recommendation?limit=${limit}&after=${after || 0}`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
+            const response = await axios.get(`${API_BASE_URL}/api/Recommendation`, {
+                params: {
+                limit: limit,
+                after: after || 0
+                }
+            });
+            return response.data;
             } catch (error) {
-                console.error('Ошибка получения рекомендаций:', error);
-                return { videos: [], nextAfter: 0 };
+            console.error('Ошибка получения рекомендаций:', error);
+            if (error.response?.status === 401) {
+                router.push('/login');
+            }
+            return { videos: [], nextAfter: 0 };
             }
         },
         
@@ -97,12 +107,40 @@
             if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 };
             const limit = computedBlocksInRow.value * 1;
             try {
-                const response = await fetch(`${API_BASE_URL}/api/Search?query=${encodeURIComponent(props.searchQuery)}&limit=${limit}&after=${after || 0}`);
-                if (!response.ok) throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
-                return await response.json();
+            const response = await axios.get(`${API_BASE_URL}/api/Search`, {
+                params: {
+                query: props.searchQuery,
+                limit: limit,
+                after: after || 0
+                }
+            });
+            return response.data;
             } catch (error) {
-                console.error('Ошибка при выполнении поиска:', error);
-                return { videos: [], nextAfter: 0 };
+            console.error('Ошибка при выполнении поиска:', error);
+            if (error.response?.status === 401) {
+                router.push('/login');
+            }
+            return { videos: [], nextAfter: 0 };
+            }
+        },
+
+        async history(after) {
+            const limit = computedBlocksInRow.value * 1;
+            try {
+            const response = await axios.get(`${API_BASE_URL}/api/History`, {
+                params: {
+                limit: limit,
+                after: after || 0
+                },
+                withCredentials: true // Для отправки кук
+            });
+            return response.data;
+            } catch (error) {
+            console.error('Ошибка при получении истории:', error);
+            if (error.response?.status === 401) {
+                router.push('/login');
+            }
+            return { videos: [], nextAfter: 0 };
             }
         }
     };

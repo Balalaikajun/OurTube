@@ -126,15 +126,15 @@
         } catch (err) {
             error.value = err.response?.data?.message || 
                         err.message || 
-                        'Ошибка при загрузке комментариев';
-            console.error("Ошибка при загрузке комментариев:", err);
+                        'Ошибка при загрузке плейлистов';
+            console.error("Ошибка при загрузке плейлистов:", err);
         } finally {
             error.value = null;
             console.log(playlists.value)
         }
     };
 
-    onBeforeUnmount(toggleMenu);
+    // onBeforeUnmount(toggleMenu);
 
     defineExpose({
         toggleMenu

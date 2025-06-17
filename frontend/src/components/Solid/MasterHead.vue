@@ -14,7 +14,7 @@
     const isLoading = ref(false);
     const errorMessage = ref("");
 
-    const API_URL = API_BASE_URL + "/api/Search";
+    // const API_URL = API_BASE_URL + "/api/Search";
 
     const handleFocus = () => {
         register('searchInput');

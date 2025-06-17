@@ -32,13 +32,13 @@
         localStorage.setItem("token", response.data.accessToken);
         
         // Добавляем интерсептер для автоматической подстановки токена
-        api.interceptors.request.use((config) => {
-            const token = localStorage.getItem("token");
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        });
+        // api.interceptors.request.use((config) => {
+        //     const token = localStorage.getItem("token");
+        //     if (token) {
+        //         config.headers.Authorization = `Bearer ${token}`;
+        //     }
+        //     return config;
+        // });
 
         router.push("/");
     } catch (error) {

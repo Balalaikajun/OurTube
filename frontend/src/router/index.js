@@ -46,6 +46,12 @@ const routes = [
         meta: { title: 'Поиск' },
         props: route => ({ query: route.query.q })
     }
+    ,
+    { 
+        path: '/history', 
+        component: () => import('../views/HistoryPage.vue'),
+        meta: { title: 'История' }
+    }
 ];
 
 const router = createRouter({

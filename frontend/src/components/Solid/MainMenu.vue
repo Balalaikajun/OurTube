@@ -1,15 +1,23 @@
 <script setup>
-    
+    import { useRouter } from 'vue-router';
+    const router = useRouter();
+
+    const pushToMain = () => {
+        router.push(`/`);
+    }
+    const pushToHistory = () => {
+        router.push(`/history`);
+    }
 </script>
 
 <template>
     <div class="side-menu">
     <!-- Содержимое бокового меню -->
         <ul>
-            <li><a href="#">Главная</a></li>
+            <li @click="pushToMain"><a href="#">Главная</a></li>
             <li><a href="#">Ваши видео</a></li>
             <li><a href="#">Плейлисты</a></li>
-            <li><a href="#">История</a></li>
+            <li @click="pushToHistory"><a href="#">История</a></li>
             <li><a href="#">Канала</a></li>
             <!-- <li><a href="#">Настройки</a></li> -->
         </ul>
