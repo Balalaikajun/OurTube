@@ -376,7 +376,7 @@
             <button 
                 v-if="hasMore"
                 @click="fetchComments"
-                class="control-button show-more-comments-btn"
+                class="control-button show-more-comments-btn show-more-button inner-class" 
                 :disabled="isLoading"
             >
                 {{ isLoading ? 'Загрузка...' : 'Отобразить ещё' }}
@@ -411,7 +411,7 @@
     }
 
     .inner-class {
-        padding-left: calc(var(--left-side) + 1em);
+        padding-left: calc(var(--left-side) + 1em) !important;
         box-sizing: border-box;
     }
 
@@ -529,5 +529,11 @@
     .show-replies-btn {
         margin-top: 5px;
         font-size: 0.875rem;
+    }
+
+    .show-more-comments-btn {
+        width: min-content;
+        white-space: nowrap;
+        -webkit-text-stroke: 0.3px currentColor;
     }
 </style>
