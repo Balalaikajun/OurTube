@@ -5,6 +5,19 @@
     import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
     import VideosPresentation from '@/components/Video/VideosPresentation.vue';
 
+    // defineOptions({
+    //     inheritAttrs: false
+    // });
+
+    const props = defineProps({
+        query: {
+            type: String,
+            required: true,
+            default: ""
+        }
+    
+    })
+
     const route = useRoute(); // Переименовано для ясности
     const searchResults = ref([]);
     const isLoading = ref(false);
@@ -20,8 +33,8 @@
         playlistRef.value.toggleMenu(videoId);
     }
 
-    watch(() => route.query.q, (newQuery) => {
-        console.log("смена запроса")
+    watch(() => props.query, (newQuery) => {
+        console.log("смена запроса");
         searchQuery.value = newQuery || '';
     }, { immediate: true });
 </script>

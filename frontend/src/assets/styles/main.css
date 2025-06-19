@@ -19,6 +19,28 @@
 html {
     font-size: 16px; /* Базовый размер для rem */
 }
+
+.kebab-button-type {
+    display: flex;
+    position: relative;
+    justify-self: center;
+    justify-content: center;
+    align-items: center;
+    width: clamp(24px, 1.5vw, 36px);
+    height: clamp(24px, 1.5vw, 36px);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    transition: background 1s ease;
+    border-radius: 50% !important; 
+    margin-top: 1vh;
+}
+
+.kebab-button-type:hover {
+    background: #4A4947;
+}
+
 /* main {
     padding: 20px 100px;
 } */
@@ -42,10 +64,11 @@ body {
     background: #100E0E;
 }
 
-p, span, h3, h1, input, button, a, textarea, ::placeholder {
+p, span, h3, h1, input, button, a, li, textarea, ::placeholder {
     font-family: "Corsa Grotesk", sans-serif;
     font-weight: 400;
-    font-style: normal; 
+    font-style: normal;
+    color: #F3F0E9;
 }
 
 .control-button {

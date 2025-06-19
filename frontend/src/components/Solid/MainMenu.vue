@@ -14,12 +14,12 @@
     <div class="side-menu">
     <!-- Содержимое бокового меню -->
         <ul>
-            <li @click="pushToMain"><a href="#">Главная</a></li>
-            <li><a href="#">Ваши видео</a></li>
-            <li><a href="#">Плейлисты</a></li>
-            <li @click="pushToHistory"><a href="#">История</a></li>
-            <li><a href="#">Канала</a></li>
-            <!-- <li><a href="#">Настройки</a></li> -->
+            <li @click="pushToMain">Главная</li>
+            <li>Ваши видео</li>
+            <li>Плейлисты</li>
+            <li @click.stop="pushToHistory">История</li>
+            <li>Канала</li>
+            <!-- <li>Настройки</li> -->
         </ul>
     </div>
 </template>
@@ -45,14 +45,12 @@
 
     .side-menu li {
         margin: 20px 0;
-    }
-
-    .side-menu a {
         color: #f3f0e9;
         text-decoration: none;
+        cursor: pointer;
     }
 
-    .side-menu a:hover {
+    .side-menu li:hover {
         color: #f39e60;
     }
 </style>

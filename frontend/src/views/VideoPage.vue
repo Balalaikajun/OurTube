@@ -38,7 +38,7 @@
   const shareRef = ref(null);
   const confirmRef = ref(null);
   const commentsRef = ref(null);
-  const playlistRef =ref(null);
+  const playlistRef = ref(null);
 
   const confirmContext = ref("")
 
@@ -64,20 +64,17 @@
   });
 
   const addToHistory = async () => {
-  //   console.log(userStore.isAuth)
-  // if (!userStore.isAuth) return;
-  
-  try {
-    console.log(videoId.value);
-    await api.post('/api/History', {
-      videoId: videoId.value,
-      endTime: "0" // Всегда 0, как просили
-    });
-    console.log('Added to history');
-  } catch (error) {
-    console.error('History error:', error);
-  }
-};
+    try {
+      console.log(videoId.value);
+      await api.post('/api/History', {
+        videoId: videoId.value,
+        endTime: "0" // Всегда 0, как просили
+      });
+      console.log('Added to history');
+    } catch (error) {
+      console.error('History error:', error);
+    }
+  };
 
   const handleKeyDown = (e) => {
     // Добавьте проверку, что плеер инициализирован

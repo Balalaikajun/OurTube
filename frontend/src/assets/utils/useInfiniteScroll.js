@@ -64,11 +64,11 @@ export default function useInfiniteScroll(options) {
             
             if (Array.isArray(result)) {
                 data.value = reset ? result : [...data.value, ...result];
-                hasMore.value = result.length > 0;
+                hasMore.value = result.hasMore;
             } else if (result?.videos) {
                 data.value = reset ? result.videos : [...data.value, ...result.videos];
                 nextAfter.value = result.nextAfter || null;
-                hasMore.value = result.videos.length > 0;
+                hasMore.value = result.hasMore;
             } else {
                 console.error('Неподдерживаемый формат данных');
                 hasMore.value = false;

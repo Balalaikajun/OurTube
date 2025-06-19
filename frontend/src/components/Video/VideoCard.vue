@@ -38,10 +38,15 @@ const props = defineProps({
   rowLayout: {
     type: Boolean,
     default: false
+  },
+  isHistory: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 });
 
-const emit = defineEmits(['click', 'kebab-click', 'share']);
+const emit = defineEmits(['click', 'kebab-click', 'share', 'delete']);
 
 const handleCardClick = (e) => {
   e.stopPropagation();
@@ -54,6 +59,11 @@ const handleKebabButtonClick = (event) => {
     videoId: props.video.id,
     buttonElement: event.currentTarget
   });
+};
+
+const handleDeleteFromHistory = (event) => {
+  event.stopPropagation();
+  emit('delete', props.video.id);
 };
 
 const handleImageError = (event) => {
@@ -105,6 +115,22 @@ const getPreviewUrl = (fileName) => {
         <p v-else class="channel-name">{{video.user.userName}}</p>
       </div>
       
+      <button v-if="isHistory" class="control-button kebab-button-type" @click="handleDeleteFromHistory">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"> 
+            <path 
+                d="M 10 10 L 30 30" 
+                stroke="#F3F0E9"
+                style="stroke-width: 1px !important;"
+                fill="none"
+            />
+            <path 
+                d="M 10 30 L 30 10" 
+                stroke="#F3F0E9"
+                style="stroke-width: 1px !important;"
+                fill="none"
+            />
+        </svg>
+      </button>
       <KebabButton @kebab-click="handleKebabButtonClick"/>        
     </div>
   </div>

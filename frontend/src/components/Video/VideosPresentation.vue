@@ -52,12 +52,33 @@
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
 
-    const emit = defineEmits(['load-more', 'add-to-playlist']);
+    const emit = defineEmits(['load-more', 'add-to-playlist', 'delete']);
 
-    // Функции для работы с видео
+    const { 
+        data: videos, 
+        observerTarget, 
+        hasMore, 
+        isLoading, 
+        error: scrollError, 
+        container,
+        loadMore 
+    } = useInfiniteScroll({
+        fetchMethod: async (after) => {
+            const result = await fetchMethods[props.request](after);
+            emit('load-more');
+            return result;
+        },
+        scrollElement: props.scrollElement,
+        isEnabled: props.isInfiniteScroll,
+        initialLoad: true
+    });
+
     const handleKebabClick = ({ videoId, buttonElement }) => {
         currentVideoId.value = videoId;
         kebabMenuRef.value?.openMenu(buttonElement);
+    };
+    const handleDeleteFromHistory = (videoId) => {
+        emit('delete', videoId);
     };
 
     const handleKebabClose = () => {
@@ -129,11 +150,12 @@
             try {
             const response = await axios.get(`${API_BASE_URL}/api/History`, {
                 params: {
-                limit: limit,
-                after: after || 0
-                },
-                withCredentials: true // Для отправки кук
+                    query: props.searchQuery,
+                    limit: limit,
+                    after: after || 0
+                }
             });
+            console.log(response);
             return response.data;
             } catch (error) {
             console.error('Ошибка при получении истории:', error);
@@ -145,26 +167,6 @@
         }
     };
 
-    const { 
-        data: videos, 
-        observerTarget, 
-        hasMore, 
-        isLoading, 
-        error: scrollError, 
-        container,
-        loadMore 
-    } = useInfiniteScroll({
-        fetchMethod: async (after) => {
-            const result = await fetchMethods[props.request](after);
-            emit('load-more');
-            return result;
-        },
-        scrollElement: props.scrollElement,
-        isEnabled: props.isInfiniteScroll,
-        initialLoad: true
-    });
-
-    // Адаптивный дизайн
     const updateDimensions = () => {
         if (!container.value) return;
         const rect = container.value.getBoundingClientRect();
@@ -206,6 +208,7 @@
         await nextTick();
         await adaptiveView();
         window.addEventListener('resize', adaptiveView);
+        console.log("Request prop:", props.request);
     });
 
     onUnmounted(() => {
@@ -238,16 +241,18 @@
         <div v-if="scrollError" class="error-state">
             {{ scrollError }}
         </div>
-        <div v-else ref="container" class="container" style="width: 100%;">
+        <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
             <VideoCard
                 v-for="video in videos"
                 :video="video"
                 :key="video.id"
                 :row-layout="rowLayout"
+                :is-history="request === 'history'"
                 @click="navigateToVideo(video)"
                 @kebab-click="handleKebabClick"
+                @delete="handleDeleteFromHistory"
                 :style="{ width: computedBlockWidth }"
-            />
+                />
             <LoadingState v-if="isLoading"/>
             <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
         </div>

@@ -116,12 +116,12 @@ defineExpose({ openMenu, closeMenu });
     ref="menuRef"
     class="kebab-menu"
     :style="position"
-    >
+  >
     <!-- @click.stop="handleClick" -->
-    <button @click="handleAddToPlaylist">Добавить в плейлист</button>
-    <button @click="handleWatchLater">Смотреть позже</button>
-    <span class="line"></span>
-    <button @click.stop="handleShare">Поделиться</button>
+      <button @click="handleAddToPlaylist">Добавить в плейлист</button>
+      <button @click="handleWatchLater">Смотреть позже</button>
+      <span class="line"></span>
+      <button @click.stop="handleShare">Поделиться</button>
   </div>
 </template>
 

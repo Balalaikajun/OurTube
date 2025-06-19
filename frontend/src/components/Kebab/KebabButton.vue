@@ -15,7 +15,7 @@
 
 <template>
   <button 
-    class="kebab-button control-button" 
+    class="kebab-button-type control-button" 
     ref="buttonRef" 
     @click.stop="handleClick"
     aria-label="Меню действий"    
@@ -29,7 +29,7 @@
 </template>
 
 <style scoped>
-    .kebab-button {
+    /* .kebab-button {
         display: flex;
         position: relative;
         justify-self: center;
@@ -48,7 +48,7 @@
 
     .kebab-button:hover {
         background: #4A4947;
-    }
+    } */
 
     .kebab-dots {
         display: flex;

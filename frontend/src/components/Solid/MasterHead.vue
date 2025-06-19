@@ -2,10 +2,11 @@
     import { ref, onMounted, onUnmounted, inject } from "vue";
     import MainMenu from "./MainMenu.vue"; // Импортируем компонент бокового меню
     import { API_BASE_URL } from "@/assets/config.js"
-    import { useRouter } from 'vue-router';
+    import { useRouter, useRoute } from 'vue-router';
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
 
     const router = useRouter();
+    const route = useRoute(); // Добавьте эту строку
     const { register, unregister } = injectFocusEngine();
 
     const isSideMenuVisible = ref(false);
@@ -48,8 +49,13 @@
 
     const handleSearch = async (event) => {
         event.preventDefault();
-        if (searchQuery.value.trim()) {
-            router.push({ path: '/search', query: { q: searchQuery.value.trim() } });
+        const query = searchQuery.value.trim();
+        if (query) {
+            // Если уже на странице поиска с тем же запросом - не навигируем
+            if (route.path === '/search' && route.query.q === query) {
+                return;
+            }
+            await router.push({ path: '/search', query: { q: query } });
         }
     };
 
@@ -82,7 +88,6 @@
                     class="search-input"
                     @focus="handleFocus"
                     @blur="handleBlur"
-                    @keypress.enter="handleSearch"
                 >
                 <button 
                     type="submit" 
@@ -169,7 +174,7 @@
     }
 
     .search-input:focus::placeholder {
-        opacity: 1;
+        opacity: 0;
     }
 
     .search-input:focus {
@@ -189,6 +194,6 @@
     }
 
     .search-button:hover {
-        background-color: #3a7bc8;
+        background-color: #4A4947;
     }
 </style>
