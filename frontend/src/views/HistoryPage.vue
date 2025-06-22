@@ -86,6 +86,9 @@
             searchQuery.value = newQuery;
         }
     }, { immediate: true });
+    onMounted(async () => {
+        // document.title = "История просмотра";
+    });
 </script>
 <template>
     <MasterHead />
@@ -113,7 +116,6 @@
                 @add-to-playlist="saveOpen"
                 @delete="handleDeleteFromHistory"
             />
-                <!-- @delete="handleDeleteFromHistory" -->
             <aside class="history-functional">
                 <div class="history-menu">
                     <div class="enter-query">
@@ -187,7 +189,7 @@
                                 fill="none"
                             />
                         </svg>
-                        Удалить историю
+                        Очистить историю
                     </button>
                 </div>            
             </aside>
@@ -281,6 +283,22 @@
         left: 0;
         transform: none;
     }
+
+    .delete-btn {
+        width: 100%;
+        height: 40px;
+        border: 1px solid #F3F0E9;
+        box-sizing: border-box;
+    }
+    .delete-btn:hover {
+        border: 1px solid #4A4947;
+        background-color: #4A4947;
+    }
+    .delete-btn svg {
+        position: absolute;
+        left: 0;
+    }
+
     .component-input:focus {
         opacity: 1;
     }
@@ -296,20 +314,6 @@
         white-space: normal;
         /* min-height: 17px; */
     }
-    .delete-btn {
-        width: 100%;
-        height: 40px;
-        border: 1px solid #F3F0E9;
-        box-sizing: border-box;
-    }
-    .delete-btn:hover {
-        border: 1px solid #4A4947;
-        background-color: #4A4947;
-    }
-    .delete-btn svg {
-        position: absolute;
-        left: 0;
-    }
     .component-input:focus::-moz-placeholder { /* Firefox 19+ */
         opacity: 0;
     }
@@ -320,6 +324,9 @@
         opacity: 0;
     }
     @media (max-width: 1000px) {
+        .delete-btn svg {
+            display: none;
+        }
         .columns-wrapper {
             gap: 1vw;
         }

@@ -20,41 +20,43 @@ const nextAfter = ref(0);
 const hasMore = ref(true);
 const isMobile = ref(false);
 const videosPlace = ref(null);
-const playlistRef =ref(null);
+const playlistRef = ref(null);
 
-const handleScroll = () => {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-  const isNearBottom = scrollTop + clientHeight >= scrollHeight - 500;
+// const handleScroll = () => {
+//   const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+//   const isNearBottom = scrollTop + clientHeight >= scrollHeight - 500;
   
-  if (isNearBottom && hasMore.value && !loadingMore.value) {
-    // fetchVideos();
-  }
-};
+//   if (isNearBottom && hasMore.value && !loadingMore.value) {
+//     // fetchVideos();
+//   }
+// };
 
 const saveOpen = (videoId) => {
     console.log("save")
     playlistRef.value.toggleMenu(videoId);
 }
 
-onMounted(async () => {
-  window.addEventListener('scroll', handleScroll);
-});
+// onMounted(async () => {
+//   window.addEventListener('scroll', handleScroll);
+//   // document.title = "Главная";
+// });
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
+// onUnmounted(() => {
+//   window.removeEventListener('scroll', handleScroll);
+// });
 </script>
 
 <template>
   <MasterHead/>
-  <PlaylistOverlay ref="playlistRef" 
+  <PlaylistOverlay 
+    ref="playlistRef" 
   />
   <VideosPresentation
     request="recomend"
     context="recomend"
     @add-to-playlist="saveOpen"
     :is-infinite-scroll="true"
-/>
+  />
     <!-- @load-more="loadMoreVideos" -->
 </template>
 

@@ -17,7 +17,7 @@
         request: {
             type: String,
             required: true,
-            validator: (value) => ['recomend', 'search', 'history'].includes(value)
+            validator: (value) => ['recomend', 'search', 'history', 'playlist'].includes(value)
         },
         context: {
             type: String,
@@ -27,6 +27,10 @@
         searchQuery: {
             type: String,
             default: ""
+        },
+        playlistId: {
+            type: String,
+            default: null
         },
         blocksInRow: {
             type: Number,
@@ -47,12 +51,21 @@
     });
 
     const router = useRouter();
+    const route = useRoute();
     const currentVideoId = ref(0);
     const parentWidth = ref(0);
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
 
     const emit = defineEmits(['load-more', 'add-to-playlist', 'delete']);
+
+    const api = axios.create({
+        baseURL: API_BASE_URL,
+        withCredentials: true,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 
     const { 
         data: videos, 
@@ -61,11 +74,12 @@
         isLoading, 
         error: scrollError, 
         container,
-        loadMore 
+        loadMore,
+        reset: resetPlaylist
     } = useInfiniteScroll({
         fetchMethod: async (after) => {
             const result = await fetchMethods[props.request](after);
-            emit('load-more');
+            // emit('load-more');
             return result;
         },
         scrollElement: props.scrollElement,
@@ -77,14 +91,15 @@
         currentVideoId.value = videoId;
         kebabMenuRef.value?.openMenu(buttonElement);
     };
-    const handleDeleteFromHistory = (videoId) => {
-        emit('delete', videoId);
-    };
 
     const handleKebabClose = () => {
         if (!shareRef.value?.isOpen) {
             currentVideoId.value = '';
         }
+    };
+
+    const handleShortDelete = (videoId) => {
+        emit('delete', videoId);
     };
 
     const handleAddToPlaylist = () => {
@@ -106,49 +121,59 @@
     // Логика бесконечной прокрутки
     const fetchMethods = {
         async recomend(after) {
-            const limit = computedBlocksInRow.value * 1;
+            const limit = computedBlocksInRow.value * 4;
+            
             try {
-            const response = await axios.get(`${API_BASE_URL}/api/Recommendation`, {
-                params: {
-                limit: limit,
-                after: after || 0
+                const response = await api.get(`/api/Recommendation`, {
+                        params: {
+                        limit: limit,
+                        after: after || 0
+                    }
+                });
+                return {
+                    items: response.data.videos,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: response.data.hasMore
+                };
+            } 
+            catch (error) {
+                console.error('Ошибка получения рекомендаций:', error);
+                if (error.response?.status === 401) {
+                    router.push('/login');
                 }
-            });
-            return response.data;
-            } catch (error) {
-            console.error('Ошибка получения рекомендаций:', error);
-            if (error.response?.status === 401) {
-                router.push('/login');
-            }
-            return { videos: [], nextAfter: 0 };
+                return { videos: [], nextAfter: 0 };
             }
         },
         
         async search(after) {
             if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 };
-            const limit = computedBlocksInRow.value * 1;
+            const limit = computedBlocksInRow.value * 4;
             try {
-            const response = await axios.get(`${API_BASE_URL}/api/Search`, {
+            const response = await api.get(`/api/Search`, {
                 params: {
                 query: props.searchQuery,
                 limit: limit,
                 after: after || 0
                 }
             });
-            return response.data;
+            return {
+                    items: response.data.videos,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: response.data.hasMore
+                };
             } catch (error) {
             console.error('Ошибка при выполнении поиска:', error);
             if (error.response?.status === 401) {
                 router.push('/login');
             }
-            return { videos: [], nextAfter: 0 };
+                return { videos: [], nextAfter: 0 };
             }
         },
 
         async history(after) {
-            const limit = computedBlocksInRow.value * 1;
+            const limit = computedBlocksInRow.value * 4;
             try {
-            const response = await axios.get(`${API_BASE_URL}/api/History`, {
+            const response = await api.get(`/api/History`, {
                 params: {
                     query: props.searchQuery,
                     limit: limit,
@@ -156,13 +181,41 @@
                 }
             });
             console.log(response);
-            return response.data;
+            return {
+                    items: response.data.videos,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: response.data.hasMore
+                };
             } catch (error) {
             console.error('Ошибка при получении истории:', error);
             if (error.response?.status === 401) {
                 router.push('/login');
             }
             return { videos: [], nextAfter: 0 };
+            }
+        },
+
+        async playlist(after) {
+            const playlistId = route.params.id;
+            if (!playlistId) return { items: [], nextAfter: 0, hasMore: false };
+            
+            const limit = computedBlocksInRow.value * 4;
+            
+            try {
+                const response = await api.get(`/api/Playlist/${playlistId}`, {
+                    params: { limit, after: after || 0 }
+                });
+                
+                const items = response.data.playlist.playlistElements.map(el => el.video);
+                return {
+                    items,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: items.length >= limit && response.data.nextAfter !== 0
+                };
+            } catch (error) {
+                console.error('Playlist load error:', error);
+                if (error.response?.status === 401) router.push('/login');
+                return { items: [], nextAfter: 0, hasMore: false };
             }
         }
     };
@@ -219,6 +272,10 @@
     watch(() => props.searchQuery, (newVal, oldVal) => {
         if (newVal !== oldVal) loadMore(true);
     }, { immediate: true });
+
+    defineExpose({
+        resetPlaylist
+    });
 </script>
 
 <template>
@@ -243,15 +300,15 @@
         </div>
         <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
             <VideoCard
-                v-for="video in videos"
-                :video="video"
-                :key="video.id"
-                :row-layout="rowLayout"
-                :is-history="request === 'history'"
-                @click="navigateToVideo(video)"
-                @kebab-click="handleKebabClick"
-                @delete="handleDeleteFromHistory"
-                :style="{ width: computedBlockWidth }"
+                    v-for="video in videos"
+                    :video="video"
+                    :key="video.id"
+                    :row-layout="rowLayout"
+                    :is-short-delete="['history', 'playlist'].includes(request)"
+                    @click="navigateToVideo(video)"
+                    @kebab-click="handleKebabClick"
+                    @delete="handleShortDelete"
+                    :style="{ width: computedBlockWidth }"
                 />
             <LoadingState v-if="isLoading"/>
             <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>

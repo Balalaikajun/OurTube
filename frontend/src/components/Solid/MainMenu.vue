@@ -5,6 +5,9 @@
     const pushToMain = () => {
         router.push(`/`);
     }
+    const pushToPlaylists = () => {
+        router.push(`/playlists`);
+    }
     const pushToHistory = () => {
         router.push(`/history`);
     }
@@ -15,10 +18,10 @@
     <!-- Содержимое бокового меню -->
         <ul>
             <li @click="pushToMain">Главная</li>
-            <li>Ваши видео</li>
-            <li>Плейлисты</li>
+            <!-- <li>Ваши видео</li> -->
+            <li @click.stop="pushToPlaylists">Плейлисты</li>
             <li @click.stop="pushToHistory">История</li>
-            <li>Канала</li>
+            <li>Учётная запись</li>
             <!-- <li>Настройки</li> -->
         </ul>
     </div>

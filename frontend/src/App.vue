@@ -25,6 +25,8 @@
         // Проверяем токен и загружаем данные при монтировании
     onMounted(async () => {
             
+        console.log(window.innerWidth); // Логическая ширина в CSS-пикселях
+        console.log(window.devicePixelRatio); // Соотношение физических и логических пикселей
         const userData = await fetchUserData();
         if (userData) {
             // Сохраняем данные пользователя в localStorage

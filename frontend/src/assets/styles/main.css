@@ -1,5 +1,6 @@
 @import './reset.css';
 @import './normalize.css';
+@import './buttons.css';
 
 @font-face {
     font-family: "Corsa Grotesk";
@@ -20,26 +21,7 @@ html {
     font-size: 16px; /* Базовый размер для rem */
 }
 
-.kebab-button-type {
-    display: flex;
-    position: relative;
-    justify-self: center;
-    justify-content: center;
-    align-items: center;
-    width: clamp(24px, 1.5vw, 36px);
-    height: clamp(24px, 1.5vw, 36px);
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-    background: transparent;
-    transition: background 1s ease;
-    border-radius: 50% !important; 
-    margin-top: 1vh;
-}
 
-.kebab-button-type:hover {
-    background: #4A4947;
-}
 
 /* main {
     padding: 20px 100px;
@@ -71,33 +53,7 @@ p, span, h3, h1, input, button, a, li, textarea, ::placeholder {
     color: #F3F0E9;
 }
 
-.control-button {
-    display: flex;
-    color: #F3F0E9;
-    box-sizing: border-box;
-    position: relative;
-    top: 0;
-    right: 0;
-    justify-content: center;
-    align-items: center;
-    border: 0;
-    cursor: pointer;
-    border-radius: 4px;
-    background: transparent;
-}
 
-.control-button svg {
-    display: inherit;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-}
-
-.control-button svg path {
-    fill: none; 
-    stroke: #f3f0e9; 
-    stroke-width: 2;
-}
 
 
 

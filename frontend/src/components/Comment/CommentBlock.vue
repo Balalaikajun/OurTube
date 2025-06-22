@@ -144,7 +144,7 @@
         kebabMenuRef.value?.openMenu(event.currentTarget);
     };
 
-    const handleChildKebabClick = (event) => {
+    const handleChildKebabButtonClick = (event) => {
         console.log("Нажатие в handleChildKebabClick")
         // if (payload?.event) {
         //     payload.event.stopPropagation();
@@ -365,7 +365,7 @@
                 :likes-count="child.likesCount"
                 :dislikes-count="child.dislikesCount"
                 :user-info="child.user"
-                @kebab-click="() => handleChildKebabClick({
+                @kebab-click="() => handleChildKebabButtonClick({
                     event: $event,
                     commentId: child.id,
                     buttonElement: $event?.currentTarget
@@ -517,23 +517,26 @@
     .show-more-button {
         background: none;
         border: none;
-        color: #f3f0e9;
+        color: #F39E60;
+        opacity: 1;
         cursor: pointer;
         padding: 5px 0;
         font-size: 0.875rem;
     }    
-    .show-more-button:hover {
-        text-decoration: underline;
-    }
 
     .show-replies-btn {
         margin-top: 5px;
         font-size: 0.875rem;
+        color: #F39E60;
     }
 
     .show-more-comments-btn {
         width: min-content;
         white-space: nowrap;
         -webkit-text-stroke: 0.3px currentColor;
+    }
+
+    .show-more-button:hover, .show-more-comments-btn:hover, .show-replies-btn:hover {
+        text-decoration: underline;
     }
 </style>

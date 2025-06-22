@@ -189,11 +189,19 @@
         background-color: #F39E60;
         color: #100E0E;
         cursor: pointer;
-        transition: background-color 1s ease;
         font-size: 14px;
+        border-radius: 0 15px 15px 0;
     }
 
     .search-button:hover {
         background-color: #4A4947;
+    }
+
+    .search-button span {
+        color: #100E0E;
+    }
+
+    .search-button:hover span {
+        color: #F3F0E9;
     }
 </style>

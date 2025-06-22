@@ -57,7 +57,7 @@
 
   const api = axios.create({
       baseURL: API_BASE_URL,
-      withCredentials: true, // Важно для передачи кук
+      withCredentials: true,
       headers: {
           'Content-Type': 'application/json'
       }
@@ -68,7 +68,7 @@
       console.log(videoId.value);
       await api.post('/api/History', {
         videoId: videoId.value,
-        endTime: "0" // Всегда 0, как просили
+        endTime: "0"
       });
       console.log('Added to history');
     } catch (error) {
@@ -77,7 +77,6 @@
   };
 
   const handleKeyDown = (e) => {
-    // Добавьте проверку, что плеер инициализирован
     if (focusedElement.value || !Player.value) return;
 
     if (e.code === 'KeyF') {
@@ -96,10 +95,10 @@
   const fetchVideoData = async () => {
     isLoading.value = true;
     error.value = null;
-    videoData.value = null; // Очищаем предыдущие данные
-    hlsUrl.value = ""; // Очищаем предыдущий URL видео
+    videoData.value = null;
+    hlsUrl.value = "";
 
-    console.log("Fetching video data for ID:", videoId.value); // Лог
+    console.log("Fetching video data for ID:", videoId.value);
 
     if (!videoId.value) {
       error.value = "Идентификатор видео не предоставлен.";
@@ -108,7 +107,7 @@
     }
 
     try {
-      console.log(videoId.value, 1)
+      // console.log(videoId.value, 1)
       const response = await api.get(`/api/Video/${videoId.value}`);
       const data = response.data;
 
@@ -125,7 +124,7 @@
       videoData.value = data;
 
       if (data.files?.length) {
-        const file = data.files[0]; // первый файл
+        const file = data.files[0];
         if (file.fileName) {
           hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
           console.log("HLS URL:", hlsUrl.value);
@@ -144,15 +143,12 @@
       });
     } catch (err) {
       if (err.response) {
-        // Ошибка от сервера
         error.value = err.response.data?.title || 'Ошибка загрузки видео';
         console.error("Ошибка API:", err.response);
       } else {
-        // Ошибка сети или другая
         error.value = err.message || 'Ошибка при загрузке видео';
         console.error("Ошибка при загрузке видео:", err);
       }
-      // Очистка данных при ошибке
       videoData.value = null;
       hlsUrl.value = "";
     } finally {
@@ -200,15 +196,14 @@
     const width = contentWrapper.value.offsetWidth;
     console.log("Current container width:", width);
     
-    // Проверяем, действительно ли изменилась ширина
     if (width !== lastWidth.value) {
       isRow.value = 1200 < width;
       lastWidth.value = width;
       console.log("Layout changed. isRow:", isRow.value);
     }
-  }, 100); // Задержка 100мс
+  }, 100);
 
-  const lastWidth = ref(0); // Храним последнюю известную ширину
+  const lastWidth = ref(0);
 
   const initResizeObserver = async () => {
     await nextTick();
@@ -218,7 +213,6 @@
       return;
     }
 
-    // Останавливаем предыдущий observer, если был
     if (resizeObserver.value) {
       resizeObserver.value.disconnect();
     }
@@ -226,7 +220,6 @@
     resizeObserver.value = new ResizeObserver(checkLayout);
     resizeObserver.value.observe(contentWrapper.value);
     
-    // Первоначальная проверка без debounce
     const width = contentWrapper.value.offsetWidth;
     isRow.value = 1200 < width;
     lastWidth.value = width;
@@ -239,7 +232,6 @@
     console.log("Initial video ID:", videoId.value);
     
     
-    // Проверяем авторизацию
     const userData = JSON.parse(localStorage.getItem('userData') || 'null');
     if (!userData) {
         console.log("User not authenticated");
@@ -255,7 +247,6 @@
   });
   onUnmounted( async () => {
     console.log("Размонтирование VideoPage");
-    await console.log(videoId.value, 2)
     await addToHistory();
     document.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
@@ -291,6 +282,10 @@
 
     videoData.value = null;
     hlsUrl.value = "";
+  });
+  const commentsCount = computed(() => {
+    console.log(videoData.value?.commentsCount || 0)
+    return videoData.value?.commentsCount || 0;
   });
 
   // Добавляем watcher для videoId
@@ -416,6 +411,7 @@
 
           <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
           <CommentsPresentation
+            v-if="commentsCount !== 0"
             ref="commentsRef"
             :video-id="Number(videoId)"
             @delete="handleDeleteComment"

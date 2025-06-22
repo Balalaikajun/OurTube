@@ -92,7 +92,7 @@
                 });
                 console.log(response.data.id)
                 if (response.data.id) {
-                    await api.post(`/api/Playlist/${response.data.id}/${props.videoId}`);
+                    await api.post(`/api/Playlist/${response.data.id}/${videoId.value}`);
                     await fetchPlaylists();
                 }
                 
@@ -118,7 +118,7 @@
         try {
             error.value = null;
 
-            console.log(videoId.value)
+            // console.log(videoId.value)
             const response = await api.get(`/api/Playlist/video/${videoId.value}`);
             playlists.value = response.data;
             
@@ -130,7 +130,7 @@
             console.error("Ошибка при загрузке плейлистов:", err);
         } finally {
             error.value = null;
-            console.log(playlists.value)
+            // console.log(playlists.value)
         }
     };
 
@@ -253,10 +253,42 @@
     .playlist-wrapper {
         display: flex;
         min-width: 250px;
-        min-height: 300px;
+        min-height: 200px;
+        max-height: 300px;
         flex-direction: column;
         gap: 10px;
         flex: 1;
+        overflow-y: auto; /* Добавляем вертикальный скролл */
+        scrollbar-width: thin; /* Для Firefox */
+        scrollbar-color: #F39E60 #4A4947; /* Для Firefox */
+        padding-right: 5px; /* Чтобы контент не прилипал к скроллу */
+        scrollbar-width: thin; /* или 'auto' или 'none' */
+        scrollbar-color: #F39E60 #4A4947;
+    }
+    .playlist-wrapper::-webkit-scrollbar {
+        width: 8px; /* Ширина скроллбара */
+        height: 8px; /* Высота горизонтального скроллбара (если нужен) */
+    }
+    /* .playlist-wrapper::-webkit-scrollbar-track {
+        background: #4A4947;
+        border-radius: 4px;
+    } */
+
+    .playlist-wrapper::-webkit-scrollbar-thumb {
+        background-color: #F39E60;
+        border-radius: 4px;
+        border: 2px solid #4A4947; /* Создает эффект "отступа" */
+    }
+
+    .playlist-wrapper::-webkit-scrollbar-thumb:active,
+    .playlist-wrapper::-webkit-scrollbar-thumb:hover,
+    .playlist-wrapper::-webkit-scrollbar-thumb:focus {
+        background-color: #F39E60 !important;
+        background: #F39E60 !important; /* Оставляем тот же цвет */
+    }
+    .playlist-wrapper {
+        scrollbar-color: #F39E60 transparent !important;
+        -moz-scrollbar-color: #F39E60 !important;
     }
 
     .playlist-title {

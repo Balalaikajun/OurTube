@@ -17,12 +17,12 @@
 
     const openMenu = () => {
         isOpen.value = true;
-        document.addEventListener('click', handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
     };
 
     const closeMenu = () => {
         isOpen.value = false;
-        document.removeEventListener('click', handleClickOutside);
+        document.removeEventListener('mousedown', handleClickOutside);
     };
     
     const handleClickOutside = (event) => {

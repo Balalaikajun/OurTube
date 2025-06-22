@@ -49,15 +49,23 @@
                 const response = await api.get(
                     `/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
                 );
+                console.log(response)
+                console.log("response hasMore", response.data?.hasMore)
+                if(response.data?.hasMore)
+                {
+                    
+                }
                 return {
-                    videos: response.data?.comments || [],
-                    nextAfter: response.data?.comments[response.data?.comments.length - 1]?.id || 0
+                    items: response.data?.comments || [],
+                    nextAfter: response.data?.comments[response.data?.comments.length - 1]?.id || 0,
+                    hasMore: response.data?.hasMore
                 };
             } catch (err) {
                 throw err;
             }            
         },
-        initialLoad: true
+        initialLoad: true,
+        context: 'коммент'
     });
 
     const handleKebabClick = (event) => {
@@ -67,7 +75,7 @@
     const deleteComment = async () => {
         try {
             await api.delete(`/api/Video/Comment/${currentCommentId.value}`);
-            resetComments();
+            await resetComments();
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Ошибка при удалении комментария';
         } finally {
@@ -81,7 +89,7 @@
                 "id": currentCommentId.value,
                 "text": newText.text
             });
-            resetComments();
+            await resetComments();
         } catch (error) {
             console.error("Ошибка редактирования:", error);
         }
@@ -124,7 +132,7 @@
             @delete="handleDelete"
         />
         <LoadingState v-if="isLoading"/>
-        <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
+        <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore">{{ hasMore }}</div>
     </div>
 </template>
 

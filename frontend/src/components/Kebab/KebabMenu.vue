@@ -1,7 +1,16 @@
 <script setup>
 import { ref, onBeforeUnmount, watch, nextTick } from "vue";
 
-const emit = defineEmits(['close', 'add-to-playlist', 'watch-later', 'share']);
+const props = defineProps({
+  context: {
+      type: String,
+      required: false,
+      default: "video",
+      validator: (value) => ['playlist', 'video'].includes(value)
+  },
+});
+
+const emit = defineEmits(['close', 'add-to-playlist', 'watch-later', 'share', 'retitle', 'delete']);
 
 const isOpen = ref(false);
 const position = ref({ top: '0px', left: '0px' });
@@ -19,13 +28,25 @@ const handleAddToPlaylist = () => {
   closeMenu();
 };
 
-const handleWatchLater = () => {
-  console.log(`Отложить видео ${props.videoId}`);
-  closeMenu();
-};
+// const handleWatchLater = () => {
+//   console.log(`Отложить видео ${props.videoId}`);
+//   closeMenu();
+// };
 
 const handleShare = () => {
   emit('share');
+  closeMenu();
+};
+
+const handleRename = (event) => {
+  event.stopPropagation(); // Добавьте эту строку
+  emit('retitle');
+  closeMenu();
+};
+
+const handleDelete = (event) => {
+  event.stopPropagation(); // Добавьте эту строку
+  emit('delete');
   closeMenu();
 };
 
@@ -91,7 +112,6 @@ const closeMenu = async () => {
   if (!isOpen.value) return;
   
   isOpen.value = false;
-  emit('close');
   
   // Очищаем обработчики
   if (cleanupListeners) {
@@ -112,16 +132,25 @@ defineExpose({ openMenu, closeMenu });
 
 <template>
   <div
-    v-if="isOpen"
+    v-if="isOpen && context == 'video'"
     ref="menuRef"
     class="kebab-menu"
     :style="position"
   >
-    <!-- @click.stop="handleClick" -->
-      <button @click="handleAddToPlaylist">Добавить в плейлист</button>
-      <button @click="handleWatchLater">Смотреть позже</button>
-      <span class="line"></span>
-      <button @click.stop="handleShare">Поделиться</button>
+    <button @click="handleAddToPlaylist">Добавить в плейлист</button>
+    <!-- <button @click="handleWatchLater">Смотреть позже</button> -->
+    <span class="line"></span>
+    <button @click.stop="handleShare">Поделиться</button>
+  </div>
+  <div
+    v-if="isOpen && context == 'playlist'"
+    ref="menuRef"
+    class="kebab-menu"
+    :style="position"
+  >
+  <button @click="handleRename">Переименовать</button>
+  <span class="line"></span>
+  <button @click="handleDelete">Удалить</button>
   </div>
 </template>
 
