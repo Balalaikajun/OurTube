@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using OurTube.Application.DTOs.Common;
 using OurTube.Application.DTOs.Playlist;
 using OurTube.Application.DTOs.PlaylistElement;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
@@ -123,13 +125,9 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PlaylistGetDto> GetWithLimitAsync(int playlistId, string userId, int limit, int after)
+    public async Task<PagedDto<PlaylistElementGetDto>> GetElements(int playlistId, string userId, int limit, int after)
     {
         var playlist = await _dbContext.Playlists
-            .Include(p => p.PlaylistElements
-                .OrderBy(pe => pe.AddedAt)
-                .Skip(after)
-                .Take(limit))
             .FirstOrDefaultAsync(x => x.Id == playlistId);
 
         if (playlist == null)
@@ -137,22 +135,36 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
         if (playlist.ApplicationUserId != userId)
             throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
+        
+        var playlistElements = await _dbContext.PlaylistElements
+            .Where(x => x.PlaylistId == playlistId)
+            .OrderBy(x => x.AddedAt)
+            .Skip(after)
+            .Take(limit + 1)
+            .ToListAsync();
 
-        var playlistGetDto = _mapper.Map<PlaylistGetDto>(playlist);
+        var hasMore = playlistElements.Count > limit;
+        playlistElements = playlistElements.Take(limit).ToList();
 
-        var videos = (await _videoService.GetVideosByIdAsync(
-                playlist.PlaylistElements.Select(x => x.VideoId).ToList()))
-            .ToDictionary(v => v.Id);
+        var videoIds = playlistElements.Take(limit).Select(x => x.VideoId).ToList();
 
-        playlistGetDto.PlaylistElements = [];
-        foreach (var pe in playlist.PlaylistElements)
-            playlistGetDto.PlaylistElements.Add(new PlaylistElementGetDto
-            {
-                AddedAt = pe.AddedAt,
-                Video = videos[pe.VideoId]
-            });
+        var videos = await _dbContext.Videos
+            .Where(x => videoIds.Contains(x.Id))
+            .ProjectToMinDto(_mapper, userId)
+            .ToDictionaryAsync(x => x.Id, x => x);
 
-        return playlistGetDto;
+        var elementsDto = playlistElements.Select(x => new PlaylistElementGetDto
+        {
+            Video = videos[x.VideoId],
+            AddedAt = x.AddedAt
+        });
+
+        return new PagedDto<PlaylistElementGetDto>()
+        {
+            Elements = elementsDto,
+            HasMore = hasMore,
+            NextAfter = after+limit
+        };
     }
 
     public async Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(string userId)

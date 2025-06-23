@@ -45,7 +45,7 @@ public class SearchService : ISearchService
         if (reload)
             cachePull = [];
 
-        if (cachePull.Count < limit + after)
+        if (cachePull.Count <= limit + after)
             cachePull.AddRange(await SearchMoreVideos(searchQuery, sessionId, SearchPull));
 
         var videoIds = cachePull.Skip(after).Take(limit).ToList();

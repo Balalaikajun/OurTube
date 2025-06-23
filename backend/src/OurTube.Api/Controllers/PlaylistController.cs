@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OurTube.Application.DTOs.Common;
 using OurTube.Application.DTOs.Playlist;
+using OurTube.Application.DTOs.PlaylistElement;
 using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
@@ -28,7 +30,7 @@ public class PlaylistController : ControllerBase
             postDto,
             User.FindFirstValue(ClaimTypes.NameIdentifier));
         return CreatedAtAction(
-            nameof(GetById),
+            nameof(GetByElements),
             new { id = result.Id },
             result);
     }
@@ -134,26 +136,20 @@ public class PlaylistController : ControllerBase
 
     [Authorize]
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<PagedPlaylistDto>> GetById(
+    public async Task<ActionResult<PagedDto<PlaylistElementGetDto>>> GetByElements(
         int id,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0)
     {
         try
         {
-            var playlistGetDto = await _playlistQueryService.GetWithLimitAsync(
+            var result = await _playlistQueryService.GetElements(
                 id,
                 User.FindFirstValue(ClaimTypes.NameIdentifier),
                 limit,
                 after);
-            var nextAfter = after + limit;
 
-
-            return Ok(new PagedPlaylistDto
-            {
-                Playlist = playlistGetDto,
-                NextAfter = nextAfter
-            });
+            return Ok(result);
         }
         catch (KeyNotFoundException ex)
         {
