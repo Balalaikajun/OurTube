@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -16,6 +17,7 @@ using Xabe.FFmpeg;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
+builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 // Infrastructure
@@ -89,7 +91,7 @@ services.AddScoped<ITagService, TagService>();
 services.AddScoped<IUserAvatarService, UserAvatarService>();
 
 // Infrastructure
-services.AddScoped<IBlobService, MinioService>();
+services.AddScoped<IStorageClient, MinioClient>();
 services.AddScoped<IVideoProcessor, FfmpegProcessor>();
 
 // Other
@@ -114,39 +116,57 @@ services.Configure<FormOptions>(options => { options.MultipartBodyLengthLimit = 
 
 // Controllers & Swagger
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen(c =>
+if (builder.Environment.IsDevelopment())
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    services.AddSwaggerGen(c =>
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Введите: Bearer {токен}"
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Введите: Bearer {токен}"
+        });
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
     });
-});
+}
 services.AddControllers();
+
+// DataProtection directory
+var keysPath = builder.Configuration["DataProtection:KeysPath"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "DataProtection.Keys");
+
+Directory.CreateDirectory(keysPath);
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
 var app = builder.Build();
 
-// Middleware
+// Migration
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
+// Middleware
 
 if (app.Environment.IsDevelopment())
 {
@@ -158,8 +178,6 @@ if (app.Environment.IsDevelopment())
         c.OAuthAppName("Swagger UI");
     });
 }
-
-app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseCors("AllowFrontend");

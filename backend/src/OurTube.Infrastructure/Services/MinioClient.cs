@@ -6,7 +6,7 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Infrastructure.Other;
 
-public class MinioService : IBlobService
+public class MinioClient : IStorageClient
 {
     private readonly string _accessKey;
     private readonly string _bucketName;
@@ -14,14 +14,14 @@ public class MinioService : IBlobService
     private readonly IMinioClient _minioClient;
     private readonly string _secretKey;
 
-    public MinioService(IConfiguration configuration)
+    public MinioClient(IConfiguration configuration)
     {
-        _accessKey = configuration["Minio:AccessKey"];
-        _secretKey = configuration["Minio:SecretKey"];
-        _endpoint = configuration["Minio:Endpoint"];
-        _bucketName = configuration["Minio:VideoBucket"];
+        _accessKey = configuration["MinIO:AccessKey"];
+        _secretKey = configuration["MinIO:SecretKey"];
+        _endpoint = configuration["MinIO:Endpoint"];
+        _bucketName = configuration["MinIO:VideoBucket"];
 
-        _minioClient = new MinioClient()
+        _minioClient = new Minio.MinioClient()
             .WithEndpoint(_endpoint)
             .WithCredentials(_accessKey, _secretKey)
             .WithSSL(false)

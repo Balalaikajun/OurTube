@@ -16,8 +16,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{0353F9B4-C9AF-4488-BA0E-D81CEB7B2FD8}"
 	ProjectSection(SolutionItems) = preProject
 		Readme.md = Readme.md
-		docker-compose.yml = docker-compose.yml
 		..\.gitignore = ..\.gitignore
+		..\infrastructure\docker-compose.yml = ..\infrastructure\docker-compose.yml
+		..\infrastructure\.env = ..\infrastructure\.env
+		..\infrastructure\.env.example = ..\infrastructure\.env.example
+		Dockerfile = Dockerfile
 	EndProjectSection
 EndProject
 Global

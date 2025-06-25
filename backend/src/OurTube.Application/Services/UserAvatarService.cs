@@ -17,16 +17,16 @@ public class UserAvatarService : IUserAvatarService
         { "image/webp", ".webp" }
     };
 
-    private readonly IBlobService _blobService;
+    private readonly IStorageClient _storageClient;
     private readonly string _bucket;
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
 
-    public UserAvatarService(IApplicationDbContext dbContext, IBlobService blobService, IMapper mapper,
+    public UserAvatarService(IApplicationDbContext dbContext, IStorageClient storageClient, IMapper mapper,
         IConfiguration configuration)
     {
         _dbContext = dbContext;
-        _blobService = blobService;
+        _storageClient = storageClient;
         _mapper = mapper;
         _bucket = configuration.GetSection("Minio:UserBucket").Get<string>();
     }
@@ -47,7 +47,7 @@ public class UserAvatarService : IUserAvatarService
 
 
         if (userAvatar != null)
-            await _blobService.DeleteFileAsync(userAvatar.FileName, userAvatar.FileName);
+            await _storageClient.DeleteFileAsync(userAvatar.FileName, userAvatar.FileName);
         else
             userAvatar = new UserAvatar
             {
@@ -56,7 +56,7 @@ public class UserAvatarService : IUserAvatarService
                 Bucket = _bucket
             };
 
-        await _blobService.UploadFileAsync(
+        await _storageClient.UploadFileAsync(
             image,
             userAvatar.FileName,
             userAvatar.Bucket);
@@ -78,7 +78,7 @@ public class UserAvatarService : IUserAvatarService
         if (userAvatar == null)
             throw new InvalidOperationException($"User with id {userId} not found");
 
-        await _blobService.DeleteFileAsync(userAvatar.Bucket, userAvatar.FileName);
+        await _storageClient.DeleteFileAsync(userAvatar.Bucket, userAvatar.FileName);
 
         _dbContext.UserAvatars.Remove(userAvatar);
 
