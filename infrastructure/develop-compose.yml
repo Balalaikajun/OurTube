@@ -5,8 +5,8 @@ services:
     image: quay.io/minio/minio
     container_name: minio
     ports:
-      - "9000:9000"  # MinIO API
-      - "9090:9090"  # MinIO Web UI
+      - "9000:9000"
+      - "9090:9090"
     environment:
       MINIO_ROOT_USER: ${MinIO__AccessKey}
       MINIO_ROOT_PASSWORD: ${MinIO__SecretKey}
@@ -17,7 +17,7 @@ services:
       - minio_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,12 +35,93 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    container_name: backend
+    build:
+      context: ../backend/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      DATAPROTECTION__KEYSPATH: /root/.aspnet/DataProtection-Keys
+      AllowedHosts: ${ALLOWED_HOSTS}
+      Cors__AllowedOrigins: http://ourtube.space;https://ourtube.space
+      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING}
+      SMTP__Server: ${SMTP__Server}
+      SMTP__Port: ${SMTP__Port}
+      SMTP__Email: ${SMTP__Email}
+      SMTP__Password: ${SMTP__Password}
+      Minio__AccessKey: ${MinIO__AccessKey}
+      Minio__SecretKey: ${MinIO__SecretKey}
+      Minio__Endpoint: ${MinIO__Endpoint}
+      Minio__VideoBucket: ${MinIO__VideoBucket}
+      Minio__UserBucket: ${MinIO__UserBucket}
+      FFmpeg__ExecutablesPath: ${FFmpeg__ExecutablesPath}
+    volumes:
+      - data-protection-keys:/root/.aspnet/DataProtection-Keys
+      - ./wait-for-it.sh:/wait-for-it.sh
+    entrypoint: /bin/sh
+    command: >
+      -c "chmod +x /wait-for-it.sh &&
+          /wait-for-it.sh postgres:5432 -- /wait-for-it.sh minio:9000 -- 
+          dotnet OurTube.Api.dll"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ../frontend/
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://${DOMAIN}/api
+        VITE_MINIO_BASE_URL: https://${DOMAIN}/storage
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - webroot:/var/www/certbot          # для ACME challenge
+      - certs:/etc/letsencrypt
+      - webroot:/var/www/certbot# для сертификатов
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - webroot:/var/www/certbot
+      - certs:/etc/letsencrypt
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        certbot certonly --webroot -w /var/www/certbot \
+          --non-interactive --agree-tos \
+          --email ${LETSENCRYPT_EMAIL} \
+          -d ${DOMAIN} || true;
+        while true; do
+          sleep 12h;
+          certbot renew --webroot -w /var/www/certbot \
+            --deploy-hook 'nginx -s reload';
+        done
 
 volumes:
   minio_data:
   postgres_data:
   data-protection-keys:
+  webroot:
+  certs:

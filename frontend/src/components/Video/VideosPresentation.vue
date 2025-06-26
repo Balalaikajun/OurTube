@@ -263,39 +263,40 @@ defineExpose({
 </script>
 
 <template>
-  <KebabMenu
-      ref="kebabMenuRef"
-      @add-to-playlist="handleAddToPlaylist"
-      @share="handleShareClick"
-  />
-  <ShareOverlay
-      ref="shareRef"
-      :videoId="currentVideoId"
-  />
-  <div class="container-wrapper"
-       :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, { 'row-layout': rowLayout || context == 'aside-recomend' }]">
-    <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
-      <div v-if="videos.length === 0" class="empty-results">
-        Ничего не найдено
+  <div>
+    <KebabMenu
+        ref="kebabMenuRef"
+        @add-to-playlist="handleAddToPlaylist"
+        @share="handleShareClick"
+    />
+    <ShareOverlay
+        ref="shareRef"
+        :videoId="currentVideoId"
+    />
+    <div class="container-wrapper" :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, { 'row-layout': rowLayout || context == 'aside-recomend' }]">
+      <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
+        <div v-if="videos.length === 0" class="empty-results">
+          Ничего не найдено
+        </div>
       </div>
-    </div>
-    <div v-if="scrollError" class="error-state">
-      {{ scrollError }}
-    </div>
-    <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
-      <VideoCard
-          v-for="video in videos"
-          :video="video"
-          :key="video.id"
-          :row-layout="rowLayout"
-          :is-short-delete="['history', 'playlist'].includes(request)"
-          @click="navigateToVideo(video)"
-          @kebab-click="handleKebabClick"
-          @delete="handleShortDelete"
-          :style="{ width: computedBlockWidth }"
-      />
-      <LoadingState v-if="isLoading"/>
-      <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
+      <div v-if="scrollError" class="error-state">
+        {{ scrollError }}
+      </div>
+      <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
+        <VideoCard
+            v-for="video in videos"
+            :video="video"
+            :key="video.id"
+            :row-layout="rowLayout"
+            :is-short-delete="['history', 'playlist'].includes(request)"
+            @click="navigateToVideo(video)"
+            @kebab-click="handleKebabClick"
+            @delete="handleShortDelete"
+            :style="{ width: computedBlockWidth }"
+        />
+        <LoadingState v-if="isLoading"/>
+        <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
+      </div>
     </div>
   </div>
 </template>

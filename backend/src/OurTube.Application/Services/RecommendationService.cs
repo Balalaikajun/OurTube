@@ -37,7 +37,7 @@ public class RecommendationService : IRecomendationService
 
         if (!_cache.TryGetValue(cacheKey, out List<int> cachedRecommendations))
         {
-            cachedRecommendations = [];
+            cachedRecommendations = new List<int>();
 
             _cache.Set(cacheKey, cachedRecommendations, new MemoryCacheEntryOptions
             {

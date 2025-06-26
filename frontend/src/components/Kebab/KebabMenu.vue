@@ -131,26 +131,23 @@ defineExpose({ openMenu, closeMenu });
 </script>
 
 <template>
-  <div
-    v-if="isOpen && context == 'video'"
+  <div 
+    v-if="isOpen"
     ref="menuRef"
     class="kebab-menu"
     :style="position"
   >
-    <button @click="handleAddToPlaylist">Добавить в плейлист</button>
-    <!-- <button @click="handleWatchLater">Смотреть позже</button> -->
-    <span class="line"></span>
-    <button @click.stop="handleShare">Поделиться</button>
-  </div>
-  <div
-    v-if="isOpen && context == 'playlist'"
-    ref="menuRef"
-    class="kebab-menu"
-    :style="position"
-  >
-  <button @click="handleRename">Переименовать</button>
-  <span class="line"></span>
-  <button @click="handleDelete">Удалить</button>
+    <template v-if="context == 'video'">
+      <button @click="handleAddToPlaylist">Добавить в плейлист</button>
+      <span class="line"></span>
+      <button @click.stop="handleShare">Поделиться</button>
+    </template>
+
+    <template v-if="context == 'playlist'">
+      <button @click="handleRename">Переименовать</button>
+      <span class="line"></span>
+      <button @click="handleDelete">Удалить</button>
+    </template>
   </div>
 </template>
 

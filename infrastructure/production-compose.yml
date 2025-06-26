@@ -1,12 +1,12 @@
-version: '3.9'
+version: "3.9"
 
 services:
   minio:
     image: quay.io/minio/minio
     container_name: minio
     ports:
-      - "9000:9000"  # MinIO API
-      - "9090:9090"  # MinIO Web UI
+      - "9000:9000" # MinIO API
+      - "9090:9090" # MinIO Web UI
     environment:
       MINIO_ROOT_USER: ${MinIO__AccessKey}
       MINIO_ROOT_PASSWORD: ${MinIO__SecretKey}
@@ -17,7 +17,7 @@ services:
       - minio_data:/data
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +35,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,16 +77,13 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-
-
-
   frontend:
     build:
       context: ../frontend/
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: https://${DOMAIN}/api
-        VITE_MINIO_BASE_URL: https://${DOMAIN}/storage
+        VITE_API_BASE_URL: http://${DOMAIN}/api
+        VITE_MINIO_BASE_URL: http://${DOMAIN}/storage
     environment:
       - DOMAIN=${DOMAIN}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}

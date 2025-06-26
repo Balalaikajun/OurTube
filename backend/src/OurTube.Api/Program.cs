@@ -161,6 +161,8 @@ builder.Services.AddDataProtection()
 
 var app = builder.Build();
 
+app.UsePathBase("/api");
+
 using (var scope = app.Services.CreateScope())
 {
     var storageClient = scope.ServiceProvider.GetRequiredService<IStorageClient>();
