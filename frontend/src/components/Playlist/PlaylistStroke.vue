@@ -15,20 +15,20 @@
             },
             count: {
                 type: [Number, null],
-                required: false,
+                required: true,
                 default: null
             },
-            isСontained: {
-                type: [Number, null],
-                required: false,
-                default: null
+            hasVideo: {
+                type: [Boolean, null],
+                required: true,
+                default: false
             }
         }
     )
 
     const emit = defineEmits(['select']);
 
-    const localContained = ref(props.isСontained)
+    const localContained = ref(props.hasVideo)
 
     const handleClick = () => {
         localContained.value = !localContained.value;
@@ -68,6 +68,7 @@
         border-radius: 4px;
     }
     .playlist-stroke {
+        min-width: 250px;
         --size: 30px; 
         display: flex;
         flex-direction: row;

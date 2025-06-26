@@ -1,15 +1,28 @@
 <script setup>
-    
+    import { useRouter } from 'vue-router';
+    const router = useRouter();
+
+    const pushToMain = () => {
+        router.push(`/`);
+    }
+    const pushToPlaylists = () => {
+        router.push(`/playlists`);
+    }
+    const pushToHistory = () => {
+        router.push(`/history`);
+    }
 </script>
 
 <template>
     <div class="side-menu">
     <!-- Содержимое бокового меню -->
         <ul>
-            <li><a href="#">Главная</a></li>
-            <li><a href="#">Мои видео</a></li>
-            <li><a href="#">История</a></li>
-            <li><a href="#">Настройки</a></li>
+            <li @click="pushToMain">Главная</li>
+            <!-- <li>Ваши видео</li> -->
+            <li @click.stop="pushToPlaylists">Плейлисты</li>
+            <li @click.stop="pushToHistory">История</li>
+            <li>Учётная запись</li>
+            <!-- <li>Настройки</li> -->
         </ul>
     </div>
 </template>
@@ -35,14 +48,12 @@
 
     .side-menu li {
         margin: 20px 0;
-    }
-
-    .side-menu a {
         color: #f3f0e9;
         text-decoration: none;
+        cursor: pointer;
     }
 
-    .side-menu a:hover {
+    .side-menu li:hover {
         color: #f39e60;
     }
 </style>

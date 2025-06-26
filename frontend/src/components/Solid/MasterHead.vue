@@ -1,60 +1,89 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, inject } from "vue";
+    import { ref, onMounted, onUnmounted, inject, computed } from "vue";
     import MainMenu from "./MainMenu.vue"; // Импортируем компонент бокового меню
+    import UserAvatar from "./UserAvatar.vue";
     import { API_BASE_URL } from "@/assets/config.js"
-    import { useRouter } from 'vue-router';
+    import { useRouter, useRoute } from 'vue-router';
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
+    import axios from 'axios';
 
     const router = useRouter();
+    const route = useRoute();
     const { register, unregister } = injectFocusEngine();
 
-    const isSideMenuVisible = ref(false);
+    const userData = computed(() => JSON.parse(localStorage.getItem('userData')));
+    const activeMenu = ref(null); // 'side' | 'account' | null
     const searchQuery = ref("");
-    const searchResults = ref([]);
     const isLoading = ref(false);
-    const errorMessage = ref("");
 
-    const API_URL = API_BASE_URL + "/api/Search";
-
-    const handleFocus = () => {
-        register('searchInput');
+    const logout = () => {
+        // Очищаем все куки (устанавливаем срок действия в прошлое)
+        document.cookie.split(";").forEach(cookie => {
+            const [name] = cookie.split("=");
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        });
+        
+        // Очищаем локальное хранилище
+        localStorage.removeItem('userData');
+        
+        // Закрываем меню
+        activeMenu.value = null;
+        
+        // Перенаправляем на главную страницу или страницу входа
+        router.push('/');
     };
 
-    const handleBlur = () => {
-        setTimeout(() => {
-            if (!document.activeElement?.closest('.search-block')) {
-            unregister('searchInput');
-            }
-        }, 100);
-    };
+    // const handleFocus = () => {
+    //     register('searchInput');
+    // };
 
-    const toggleSideMenu = (event) => {
-        if (event.target.closest('.burger-button')) {
-            isSideMenuVisible.value = !isSideMenuVisible.value;
+    // const handleBlur = () => {
+    //     setTimeout(() => {
+    //         if (!document.activeElement?.closest('.search-block')) {
+    //         unregister('searchInput');
+    //         }
+    //     }, 100);
+    // };
+
+    const toggleMenu = (menuType) => {
+        if (activeMenu.value === menuType) {
+            activeMenu.value = null;
+        } else {
+            activeMenu.value = menuType;
         }
     };
 
     const handleClickOutside = (event) => {
-        if (isSideMenuVisible.value && 
-            !event.target.closest('.side-menu') && 
-            !event.target.closest('.burger-button')) {
-            isSideMenuVisible.value = false;
+        const clickedOnMenuTrigger = 
+            event.target.closest('.burger-button') || 
+            event.target.closest('.user-avatar-container');
+        
+        if (!clickedOnMenuTrigger) {
+            activeMenu.value = null;
         }
     };
 
-    const pushToMain = () => {
-        router.push(`/`);
-    }
+    // const pushToMain = () => {
+    //     router.push(`/`);
+    // }
 
     const handleSearch = async (event) => {
         event.preventDefault();
-        if (searchQuery.value.trim()) {
-            router.push({ path: '/search', query: { q: searchQuery.value.trim() } });
+        const query = searchQuery.value.trim();
+        if (query) {
+            // Если уже на странице поиска с тем же запросом - не навигируем
+            if (route.path === '/search' && route.query.q === query) {
+                return;
+            }
+            await router.push({ path: '/search', query: { q: query } });
         }
     };
 
     onMounted(() => {
         document.addEventListener('click', handleClickOutside);
+        if (route.path === '/search' && route.query.q) {
+            searchQuery.value = route.query.q;
+        }
     });
 
     onUnmounted(() => {
@@ -63,57 +92,81 @@
 </script>
 
 <template>
-    <div class="master-head-block">
-        <button class="burger-button" v-on:click="toggleSideMenu">
-            <span></span>
-            <span></span>
-            <span></span>
+    <header class="top-head">
+      <div class="master-head-block">
+        <button class="burger-button" @click="() => toggleMenu('side')" aria-label="Главное меню">
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
-
-        <h1 class="logo-text" @click="pushToMain"><span class="our">Our</span>Tube</h1>
-
-        <search class="search-block">
-            <form @submit="handleSearch">
-                <input 
-                    type="search" 
-                    v-model="searchQuery"
-                    placeholder="Поиск видео..."
-                    aria-label="Поиск видео"
-                    class="search-input"
-                    @focus="handleFocus"
-                    @blur="handleBlur"
-                    @keypress.enter="handleSearch"
-                >
-                <button 
-                    type="submit" 
-                    class="search-button"
-                    :disabled="isLoading || !searchQuery.trim()"
-                    >
-                    <span v-if="isLoading">Поиск...</span>
-                    <span v-else>Поиск</span>
-                </button>
-            </form>
-        </search>
-    </div>
-    
-    <MainMenu v-if="isSideMenuVisible" class="side-menu"/>
-    
-</template>
+  
+        <h1 class="logo-text" @click="() => router.push('/')">
+          <span class="our">Our</span>Tube
+        </h1>
+  
+        <form class="search-block" @submit="handleSearch">
+          <input 
+            type="search" 
+            v-model="searchQuery"
+            placeholder="Поиск видео..."
+            aria-label="Поиск видео"
+            class="search-input"
+            @focus="() => register('searchInput')"
+            @blur="() => setTimeout(() => !document.activeElement?.closest('.search-block') && unregister('searchInput'), 100)"
+          >
+          <button 
+            type="submit" 
+            class="search-button"
+            :disabled="isLoading || !searchQuery.trim()"
+          >
+            <span v-if="isLoading">Поиск...</span>
+            <span v-else>Поиск</span>
+          </button>
+        </form>
+        
+        <div class="user-avatar-container" @click="() => toggleMenu('account')">
+          <UserAvatar />
+        </div>
+      </div>
+      
+      <MainMenu v-if="activeMenu === 'side'" class="side-menu" />
+      
+      <div v-if="activeMenu === 'account'" class="account-menu">
+        <div class="account-header">
+          <UserAvatar />
+          <p class="user-name">{{ userData?.userName }}</p>
+        </div>
+        
+        <span class="divider"></span>
+        
+        <div class="account-actions">                
+            <button class="control-button">Настройки аккаунта</button>
+            <button class="control-button" @click="logout">Выйти из аккаунта</button>
+        </div>
+      </div>
+    </header>
+  </template>
 
 <style scoped>
+    .top-head {
+        position: fixed;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+    }
+
     .master-head-block {
         display: flex;
-        justify-content: space-between; /* Равномерное распределение пространства */
-        box-sizing: border-box;
+        justify-content: space-between;
         align-items: center;
-        position: fixed;
         background: #100E0E;
-        top: 0;
         height: 70px;
         padding: 0 25px;
-        width: 100%;
-        z-index: 1000;
-        gap: 20px; /* Добавляем отступ между элементами */
+        gap: 20px;
+    }
+
+    .user-avatar-container {
+        cursor: pointer;
     }
     .our {
         color: #F39E60;
@@ -138,15 +191,13 @@
 
     .search-block {
         display: flex;
-        flex-grow: 1; /* Занимает все доступное пространство */
-        justify-content: center; /* Центрируем содержимое */
-        margin: 0 auto; /* Дополнительное центрирование */
+        flex-grow: 1;
+        margin: 0 auto;
     }
 
     .search-block form {
         display: flex;
-        width: 100%; /* Форма занимает всю ширину search-block */
-        justify-content: safe; /* Центрируем элементы формы */
+        justify-content: start;
     }
 
     .search-input {
@@ -169,7 +220,7 @@
     }
 
     .search-input:focus::placeholder {
-        opacity: 1;
+        opacity: 0;
     }
 
     .search-input:focus {
@@ -184,11 +235,120 @@
         background-color: #F39E60;
         color: #100E0E;
         cursor: pointer;
-        transition: background-color 1s ease;
         font-size: 14px;
+        border-radius: 0 15px 15px 0;
     }
 
     .search-button:hover {
-        background-color: #3a7bc8;
+        background-color: #4A4947;
+    }
+
+    .search-button span {
+        color: #100E0E;
+    }
+
+    .search-button:hover span {
+        color: #F3F0E9;
+    }
+
+    .side-menu,
+    .account-menu {
+        position: absolute;
+        z-index: 1001;        
+    }
+    .account-menu {
+        right: 25px;
+        top: 70px;
+        width: 250px;
+        padding: 20px;
+        background: #4A4947;
+    }
+
+    .account-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .side-menu {
+        left: 0;
+        top: 70px;
+        width: 300px;
+        height: calc(100vh - 70px);
+    }
+
+    .account-menu span {
+        display: block;
+        content: "";
+        height: 1px;
+        width: 100%;
+        background: #F3F0E9;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .user-name {
+        font-size: 1rem;
+        color: #F3F0E9;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+    }
+
+    .divider {
+        display: block;
+        height: 1px;
+        background: #F3F0E9;
+        margin: 15px 0;
+        opacity: 0.3;
+    }
+
+    .account-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .account-menu div:nth-child(1) {
+        gap: 20px;
+    }
+
+    .account-menu div:nth-last-child(1) {
+        flex-direction: column;
+    }
+
+    .account-menu div:nth-last-child(1) button {
+        padding: 10px;
+    }
+
+    .account-menu div:nth-last-child(1) button:hover {
+        background: #100E0E;
+    }
+
+    .account-menu div {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+
+    }
+    .comment-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 1; /* Количество строк до обрезки */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+    }
+
+    @media (max-width: 768px) {
+    .master-head-block {
+        padding: 0 15px;
+        gap: 15px;
+    }
+    
+    .logo-text {
+        font-size: 1.2rem;
+    }
     }
 </style>

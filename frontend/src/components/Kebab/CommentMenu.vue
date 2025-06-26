@@ -1,6 +1,7 @@
 <script setup>
-    import { ref, onBeforeUnmount, watch, nextTick } from "vue";
+    import { ref, onBeforeUnmount, watch, nextTick, computed } from "vue";
     import { useMenuManager } from '@/assets/utils/useMenuManager.js';
+    import { onClickOutside } from '@vueuse/core';
 
     const emit = defineEmits(['delete', 'edit-click', 'share']);
     const isOpen = ref(false);
@@ -9,61 +10,55 @@
 
     const { registerMenu, unregisterMenu } = useMenuManager();
 
-    let cleanupListeners = null;
-
-    // const handleClick = (event) => {
-    //     emit('kebab-click', { 
-    //         buttonElement: event.currentTarget 
-    //     });
-    // };
     const handleEdit = () => {
-        console.log("menu")
         emit('edit-click');
         closeMenu();
     };
+
     const handleDelete = () => {
         emit('delete');
         closeMenu();
-    };  
+    };
 
     const openMenu = async (buttonElement) => {
-        // console.log(buttonElement)
         try {
             if (!buttonElement?.getBoundingClientRect) {
                 console.error('Invalid button element');
                 return;
             }
 
-            
-            // Если меню уже открыто - сначала закрываем
             if (isOpen.value) {
-                console.log(position.value, 'меню уже открыто')
                 await closeMenu();
                 return;
             }
-            
+
             registerMenu({ closeMenu });
-            // Получаем позицию кнопки
+            
             const rect = buttonElement.getBoundingClientRect();
             const windowsScroll = window.scrollY;
             
             isOpen.value = true;
             
-            // Ждем рендера меню
             await nextTick();
             
-            // Корректируем позицию после рендера
             if (menuRef.value) {
                 const menuRect = menuRef.value.getBoundingClientRect();
+                
+                let left = rect.left - menuRect.width;
+                if (left < 0) left = rect.left + rect.width;
+                
+                let top = windowsScroll + rect.top;
+                if (top + menuRect.height > window.innerHeight + window.scrollY) {
+                    top = windowsScroll + rect.top - menuRect.height;
+                }
+                
                 position.value = {
-                    left: `${rect.left - menuRect.width}px`,
-                    top: `${windowsScroll + rect.top}px`
+                    left: `${left}px`,
+                    top: `${top}px`
                 };
-                console.log(menuRef.value, position.value, 'изменение позиции меню')
             }
             
-            // Устанавливаем обработчики
-            cleanupListeners = setupEventListeners();
+            onClickOutside(menuRef, closeMenu, { capture: true });
         } 
         catch (error) {
             console.error('Error opening menu:', error);
@@ -71,48 +66,19 @@
     };
 
     const closeMenu = async () => {
-        
         if (!isOpen.value) return;
-        
         isOpen.value = false;
         unregisterMenu({ closeMenu });
-        
-        // Очищаем обработчики
-        if (cleanupListeners) {
-            cleanupListeners();
-            cleanupListeners = null;
-        }
-        
-        // Даем время на анимацию закрытия
         await nextTick();
-    };
-
-    const setupEventListeners = () => {
-        const handleClickOutside = (event) => {
-            console.log('closeMenuClickOutside')
-            if (menuRef.value && !menuRef.value.contains(event.target)) {
-                closeMenu();
-            }
-        };
-
-        const handleScroll = () => closeMenu();
-        const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
-
-        document.addEventListener('click', handleClickOutside);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-            window.removeEventListener('scroll', handleScroll);
-            document.removeEventListener('keydown', handleKeyDown);
-        };
     };
 
     onBeforeUnmount(() => {
         closeMenu();
     });
-    defineExpose({ openMenu, closeMenu });
+    defineExpose({ 
+        openMenu, 
+        closeMenu,
+    });
 </script>
 <template>
     <div
@@ -120,7 +86,7 @@
         ref="menuRef"
         class="kebab-menu"
         :style="position"
-        @click.stop="handleClick"
+        @click.stop
     >
         <button @click="handleEdit">Редактировать</button>
         <button @click="handleDelete">Удалить</button>
@@ -161,5 +127,6 @@
 
     .kebab-menu button:hover {
         background: #F39E60;
+        color: #100E0E;
     }
 </style>

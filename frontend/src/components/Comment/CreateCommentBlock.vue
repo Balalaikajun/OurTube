@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, inject} from "vue";
+    import { ref, onMounted, onUnmounted, inject, computed} from "vue";
     import axios from 'axios';
     import { useRouter } from 'vue-router';
     import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
@@ -20,7 +20,8 @@
 
     const { register, unregister } = injectFocusEngine();
 
-    const userAvatar = ref('/default-avatar.jpg'); // Путь к дефолтному аватару
+    const userData = computed(() => JSON.parse(localStorage.getItem('userData')));
+    const isAuthenticated = computed(() => !!userData.value);
     const commentText = ref('');
     const textareaRef = ref(null);
     const showButtons = ref(false);
@@ -77,46 +78,42 @@
             return;
         }
 
+        if (!isAuthenticated.value) {
+            router.push('/login');
+            return;
+        }
+
         try {
-            if(!localStorage.getItem("token"))
-            {
-                console.log("Токен не действителен"); //правки
-                confirm("Переадресация на страницу авторизации.")
-                router.push(`/login`);
-                return;
-            }   
-            console.log('Отправка коммента', rootParentId)
             const response = await api.post('/api/Video/Comment', {
                 videoId: props.videoId,
                 text: commentText.value,
                 parentId: rootParentId
             });
 
-            // Успешная отправка
             commentText.value = '';
             showButtons.value = false;
-            
-            // emit('comment-created'); //правки
-
-            // console.log()
+            // emit('comment-created', response.data);
+            handleCancel();
             
         } catch (error) {
-            if (error.response) {
-            // Сервер ответил с ошибкой
+            handleCommentError(error);
+        }
+    };
+
+    const handleCommentError = (error) => {
+        if (error.response) {
             if (error.response.status === 401) {
-                errorMessage.value = "Пожалуйста, войдите в систему";
+                errorMessage.value = "Сессия истекла. Пожалуйста, войдите снова";
+                localStorage.removeItem('userData');
+                localStorage.removeItem('token');
+                router.push('/login');
             } else {
                 errorMessage.value = error.response.data?.message || "Ошибка сервера";
             }
-            } else if (error.request) {
-            // Запрос был сделан, но нет ответа
-            errorMessage.value = "Нет ответа от сервера";
-            } else {
-            // Ошибка при настройке запроса
-            errorMessage.value = "Ошибка при отправке комментария";
-            }
-            console.error('Ошибка:', error);
+        } else {
+            errorMessage.value = "Ошибка соединения";
         }
+        console.error('Ошибка:', error);
     };
 
     onMounted(() => {
@@ -125,40 +122,44 @@
 </script>
 
 <template>
-    <div class="comment-create">
-        <UserAvatar/>
+    <div class="comment-create" v-if="isAuthenticated">
+        <UserAvatar :user-avatar-path="userData?.userAvatar?.fileDirInStorage"/>
         <div class="comment-container">
             <textarea  
-            ref="textareaRef"
-            @focus="handleFocus"
-            @blur="handleBlur"
-            @input="adjustHeight" 
-            v-model="commentText" 
-            class="component-input" 
-            placeholder="Комментарий" 
-            rows="1"
+                ref="textareaRef"
+                @focus="handleFocus"
+                @blur="handleBlur"
+                @input="adjustHeight" 
+                v-model="commentText" 
+                class="component-input" 
+                placeholder="Комментарий" 
+                rows="1"
             ></textarea>
             <div v-if="showButtons" class="functional-buttons-block">
-            <button 
-                @click="handleCancel" 
-                @mousedown.prevent
-                class="control-button comment-button"
-            >
-                Отмена
-            </button>
-            <button 
-                class="control-button comment-button"
-                :class="{ 
-                'disabled-button': !commentText.trim(), 
-                'comment-isFilled': commentText.trim() 
-                }"
-                :disabled="!commentText.trim()"
-                @click="handleComment" 
-            >
-                Комментировать
-            </button>
+                <button 
+                    @click="handleCancel" 
+                    @mousedown.prevent
+                    class="control-button comment-button"
+                >
+                    Отмена
+                </button>
+                <button 
+                    class="control-button comment-button"
+                    :class="{ 
+                        'disabled-button': !commentText.trim(), 
+                        'comment-isFilled': commentText.trim() 
+                    }"
+                    :disabled="!commentText.trim()"
+                    @click="handleComment" 
+                >
+                    Комментировать
+                </button>
             </div>
+            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         </div>
+    </div>
+    <div v-else class="auth-prompt">
+        <p>Чтобы оставить комментарий, <router-link to="/login">войдите</router-link> в аккаунт</p>
     </div>
 </template>
 
@@ -211,5 +212,25 @@
         cursor: pointer !important;
         background-color: #F39E60;
         color: #100E0E;
+    }
+    .error-message {
+        color: #ff4d4f;
+        margin-top: 8px;
+        font-size: 0.875rem;
+    }
+
+    .auth-prompt {
+        padding: 16px;
+        text-align: center;
+        color: #F3F0E9;
+    }
+
+    .auth-prompt a {
+        color: #F39E60;
+        text-decoration: none;
+    }
+
+    .auth-prompt a:hover {
+        text-decoration: underline;
     }
 </style>

@@ -15,25 +15,14 @@
     const overlayRef = ref(null);
     const overlayContentRef = ref(null);
 
-    const openMenu = async () => {
-        try {        
-            if (isOpen.value) {
-                await closeMenu();
-            }
-            
-            isOpen.value = true;
-            
-            await nextTick();            
-            
-            document.addEventListener('click', handleClickOutside);
-        } catch (error) {
-            console.error('Error opening menu:', error);
-        }
+    const openMenu = () => {
+        isOpen.value = true;
+        document.addEventListener('mousedown', handleClickOutside);
     };
 
     const closeMenu = () => {
         isOpen.value = false;
-        document.removeEventListener('click', handleClickOutside);
+        document.removeEventListener('mousedown', handleClickOutside);
     };
     
     const handleClickOutside = (event) => {
@@ -53,8 +42,7 @@
 
     defineExpose({
         openMenu,
-        closeMenu,
-        isOpen
+        closeMenu
     });
 </script>
 

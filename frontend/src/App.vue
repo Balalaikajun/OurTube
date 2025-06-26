@@ -1,16 +1,17 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch, nextTick, toRef } from "vue";
-    const token = localStorage.getItem("token")
-    onMounted(
-        () =>
-        {
-            console.log(token)
-        }
-    )
+    import { onMounted } from "vue";
+    import { saveUserDataToLocalStorage } from "@/assets/utils/userServiсe.js";
+
+        // Проверяем токен и загружаем данные при монтировании
+    onMounted(async () => {
+        console.log(window.innerWidth);
+        console.log(window.devicePixelRatio);
+        await saveUserDataToLocalStorage();
+    });
 </script>
 
 <template>
-    <router-view></router-view>
+    <router-view :key="$route.fullPath" />
 </template>
 
 <style scoped>

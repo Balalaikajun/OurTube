@@ -1,5 +1,6 @@
 @import './reset.css';
 @import './normalize.css';
+@import './buttons.css';
 
 @font-face {
     font-family: "Corsa Grotesk";
@@ -19,6 +20,9 @@
 html {
     font-size: 16px; /* Базовый размер для rem */
 }
+
+
+
 /* main {
     padding: 20px 100px;
 } */
@@ -42,39 +46,14 @@ body {
     background: #100E0E;
 }
 
-p, span, h3, h1, input, button, a, textarea, ::placeholder {
+p, span, h3, h1, input, button, a, li, textarea, ::placeholder {
     font-family: "Corsa Grotesk", sans-serif;
     font-weight: 400;
-    font-style: normal; 
-}
-
-.control-button {
-    display: flex;
+    font-style: normal;
     color: #F3F0E9;
-    box-sizing: border-box;
-    position: relative;
-    top: 0;
-    right: 0;
-    justify-content: center;
-    align-items: center;
-    border: 0;
-    cursor: pointer;
-    border-radius: 4px;
-    background: transparent;
 }
 
-.control-button svg {
-    display: inherit;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-}
 
-.control-button svg path {
-    fill: none; 
-    stroke: #f3f0e9; 
-    stroke-width: 2;
-}
 
 
 

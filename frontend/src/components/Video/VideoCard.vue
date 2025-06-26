@@ -38,10 +38,15 @@ const props = defineProps({
   rowLayout: {
     type: Boolean,
     default: false
+  },
+  isShortDelete: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 });
 
-const emit = defineEmits(['click', 'kebab-click', 'share']);
+const emit = defineEmits(['click', 'kebab-click', 'share', 'delete']);
 
 const handleCardClick = (e) => {
   e.stopPropagation();
@@ -54,6 +59,11 @@ const handleKebabButtonClick = (event) => {
     videoId: props.video.id,
     buttonElement: event.currentTarget
   });
+};
+
+const handleShortDelete = (event) => {
+  event.stopPropagation();
+  emit('delete', props.video.id);
 };
 
 const handleImageError = (event) => {
@@ -76,9 +86,6 @@ const getPreviewUrl = (fileName) => {
     <div class="video-block">
       <div class="thumbnail-overlay-badge">
         <div class="badge-text">{{ formatter.formatDuration(video.duration) }}</div>
-        <!-- <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
-          <div class="badge-text">{{ video.duration }}</div>
-        </div> -->
       </div>
       <img 
         class="video-thumbnail" 
@@ -105,6 +112,22 @@ const getPreviewUrl = (fileName) => {
         <p v-else class="channel-name">{{video.user.userName}}</p>
       </div>
       
+      <button v-if="isShortDelete" class="control-button kebab-button-type" @click="handleShortDelete">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"> 
+            <path 
+                d="M 10 10 L 30 30" 
+                stroke="#F3F0E9"
+                style="stroke-width: 1px !important;"
+                fill="none"
+            />
+            <path 
+                d="M 10 30 L 30 10" 
+                stroke="#F3F0E9"
+                style="stroke-width: 1px !important;"
+                fill="none"
+            />
+        </svg>
+      </button>
       <KebabButton @kebab-click="handleKebabButtonClick"/>        
     </div>
   </div>
@@ -119,7 +142,7 @@ const getPreviewUrl = (fileName) => {
 
   .video-card.row-layout {
       display: flex;
-      width: 80%;
+      width: 100%;
       gap: 20px;
       transition: background 1s ease;
   }
@@ -132,12 +155,18 @@ const getPreviewUrl = (fileName) => {
       aspect-ratio: 16/9;
   }
 
+  
   .video-card.row-layout .video-block {
-      flex-grow: 1;
+    width: 10vw;
+    /* flex-shrink: 0; */
+  }
+
+  .video-card.row-layout .video-block {
+      /* flex-grow: 1;
       flex-shrink: 2;
-      flex-basis: 30%;
-      /* width: 20%; */
-      flex-shrink: 0;
+      flex-basis: 30%; */
+      /* width: 50%; */
+      /* flex-shrink: 0; */
   }
 
   
@@ -148,18 +177,14 @@ const getPreviewUrl = (fileName) => {
   }
 
   .video-card.row-layout .bottom-block {
-      flex-grow: 2;
+      /* flex-grow: 2;
       flex-shrink: 1;
-      flex-basis: 70%;
-      /* flex-direction: row; */
+      flex-basis: 70%; */
+      flex-direction: row;
+      width: 80%;
       justify-content: flex-start;
       gap: 10px;
   }
-
-  /* .video-card.row-layout .video-block {
-    width: 20vw;
-    flex-shrink: 0;
-  } */
 
   .thumbnail-overlay-badge {
       position: absolute;
@@ -254,5 +279,9 @@ const getPreviewUrl = (fileName) => {
       height: 36px;
       border-radius: 50%;
       background: #4A4947;
+  }
+
+  @media (max-width: 480px) {
+    
   }
 </style>

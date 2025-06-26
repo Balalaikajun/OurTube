@@ -19,20 +19,26 @@
   import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
   import useTextOverflow from "@/assets/utils/useTextOverflow";
 
+  // const userStore = useUserStore();
+
   const route = useRoute();
   const videoPage = ref(null);
-  const videoId = computed(() => route.params.id);
+  const videoId = ref(null);
   const Player = ref(null);
   const addComment = ref(null);
   const videoData = ref(null);
   const hlsUrl = ref("");
-  const isLoading = ref(true); // Добавляем состояние загрузки
-  const error = ref(null); // Добавляем обработку ошибок
+  const isLoading = ref(true);
+  const error = ref(null);
+
+  const isRow = ref(false);
+  const contentWrapper = ref(null);
+  const resizeObserver = ref(null);
 
   const shareRef = ref(null);
   const confirmRef = ref(null);
   const commentsRef = ref(null);
-  const playlistRef =ref(null);
+  const playlistRef = ref(null);
 
   const confirmContext = ref("")
 
@@ -51,14 +57,26 @@
 
   const api = axios.create({
       baseURL: API_BASE_URL,
-      withCredentials: true, // Важно для передачи кук
+      withCredentials: true,
       headers: {
           'Content-Type': 'application/json'
       }
   });
 
+  const addToHistory = async () => {
+    try {
+      console.log(videoId.value);
+      await api.post('/api/History', {
+        videoId: videoId.value,
+        endTime: "0"
+      });
+      console.log('Added to history');
+    } catch (error) {
+      console.error('History error:', error);
+    }
+  };
+
   const handleKeyDown = (e) => {
-    // Добавьте проверку, что плеер инициализирован
     if (focusedElement.value || !Player.value) return;
 
     if (e.code === 'KeyF') {
@@ -77,10 +95,10 @@
   const fetchVideoData = async () => {
     isLoading.value = true;
     error.value = null;
-    videoData.value = null; // Очищаем предыдущие данные
-    hlsUrl.value = ""; // Очищаем предыдущий URL видео
+    videoData.value = null;
+    hlsUrl.value = "";
 
-    console.log("Fetching video data for ID:", videoId.value); // Лог
+    console.log("Fetching video data for ID:", videoId.value);
 
     if (!videoId.value) {
       error.value = "Идентификатор видео не предоставлен.";
@@ -89,6 +107,7 @@
     }
 
     try {
+      // console.log(videoId.value, 1)
       const response = await api.get(`/api/Video/${videoId.value}`);
       const data = response.data;
 
@@ -105,7 +124,7 @@
       videoData.value = data;
 
       if (data.files?.length) {
-        const file = data.files[0]; // первый файл
+        const file = data.files[0];
         if (file.fileName) {
           hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
           console.log("HLS URL:", hlsUrl.value);
@@ -124,15 +143,12 @@
       });
     } catch (err) {
       if (err.response) {
-        // Ошибка от сервера
         error.value = err.response.data?.title || 'Ошибка загрузки видео';
         console.error("Ошибка API:", err.response);
       } else {
-        // Ошибка сети или другая
         error.value = err.message || 'Ошибка при загрузке видео';
         console.error("Ошибка при загрузке видео:", err);
       }
-      // Очистка данных при ошибке
       videoData.value = null;
       hlsUrl.value = "";
     } finally {
@@ -141,8 +157,7 @@
   };
 
   const handleShareClick = () => {
-      // Проверяем, что ссылка существует и имеет метод
-      if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
+    if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
       shareRef.value.openMenu();
     } else {
       console.error('ShareOverlay ref is not properly set or missing openMenu method');
@@ -160,30 +175,88 @@
       }
   };
 
-  const saveOpen = () => {
-      playlistRef.value.toggleMenu();
+  const saveOpen = (videoId) => {
+      playlistRef.value.toggleMenu(videoId);
   }
 
-  onMounted(() => {
-    console.log("VideoPage mounted");
-    // console.log(localStorage.getItem('token'))
-    fetchVideoData(); // Вызываем при первом монтировании
+  const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    };
+  };
+
+  const checkLayout = debounce(() => {
+    if (!contentWrapper.value) {
+      console.warn("Content wrapper not available");
+      return;
+    }
+    
+    const width = contentWrapper.value.offsetWidth;
+    console.log("Current container width:", width);
+    
+    if (width !== lastWidth.value) {
+      isRow.value = 1200 < width;
+      lastWidth.value = width;
+      console.log("Layout changed. isRow:", isRow.value);
+    }
+  }, 100);
+
+  const lastWidth = ref(0);
+
+  const initResizeObserver = async () => {
+    await nextTick();
+    
+    if (!contentWrapper.value) {
+      console.error("Content wrapper element not found!");
+      return;
+    }
+
+    if (resizeObserver.value) {
+      resizeObserver.value.disconnect();
+    }
+
+    resizeObserver.value = new ResizeObserver(checkLayout);
+    resizeObserver.value.observe(contentWrapper.value);
+    
+    const width = contentWrapper.value.offsetWidth;
+    isRow.value = 1200 < width;
+    lastWidth.value = width;
+  };
+
+  onMounted(async () => {    
+    console.log('VideoPage mounted, route params:', route.params);
+  
+    videoId.value = Number(route.params.id);
+    console.log("Initial video ID:", videoId.value);
+    
+    
+    const userData = JSON.parse(localStorage.getItem('userData') || 'null');
+    if (!userData) {
+        console.log("User not authenticated");
+    }
+
+    // await fetchVideoData();
     document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Проверяем при изменении размера окна
+    window.addEventListener('resize', () => {
+      checkTextOverflow(descriptionElement.value, "Описание к видео");
+    });
+
+    await initResizeObserver();
   });
-  onUnmounted(() => {
+  onUnmounted( async () => {
     console.log("Размонтирование VideoPage");
+    await addToHistory();
     document.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
 
-    // Проверяем и очищаем плеер
     if (Player.value) {
       console.log("Player ref существует, попытка очистки");
       if (typeof Player.value.destroyPlayer === 'function') {
         console.log("Вызов destroyPlayer");
         Player.value.destroyPlayer();
       }
-      // Очистка video элемента
       if (Player.value.videoPlayerRef) {
           console.log("Ручная очистка video элемента");
           try {
@@ -199,15 +272,20 @@
     } else {
       console.log("Player ref уже null или недоступен, очистка не требуется");
     }
-
-    // Очистка других ресурсов
     if (window.controlPanelTimeout) {
       clearTimeout(window.controlPanelTimeout);
     }
 
-    // Очистка данных компонента при размонтировании, если это необходимо
+    if (resizeObserver.value && contentWrapper.value) {
+      resizeObserver.value.unobserve(contentWrapper.value);
+    }
+
     videoData.value = null;
     hlsUrl.value = "";
+  });
+  const commentsCount = computed(() => {
+    console.log(videoData.value?.commentsCount || 0)
+    return videoData.value?.commentsCount || 0;
   });
 
   // Добавляем watcher для videoId
@@ -242,12 +320,15 @@
     :action="confirmContext"
     @confirm="handleConfirmDelete"
   />
-  <PlaylistOverlay ref="playlistRef" :video-id="Number(videoId)"/>
+  <PlaylistOverlay ref="playlistRef" 
+  />
+  <!-- :video-id="Number(videoId)" -->
   <ShareOverlay
+    v-if="videoId"
     ref="shareRef" 
     :video-id="videoId"
   />
-  <main class="video-page">
+  <main class="video-page" ref="contentWrapper">
     <LoadingState v-if="isLoading" />
     
     <div v-else-if="error" class="error-message">
@@ -255,92 +336,98 @@
     </div>
     
     <template v-else-if="videoData">
-      <div class="content-wrapper">
-        <section>
-          <VideoPlayer
-            ref="Player"
-            v-if="hlsUrl" 
-            :video-src="hlsUrl" 
-            :poster="videoData?.thumbnailUrl"
-            :key="hlsUrl"
-          />
-          <div v-else class="no-video">
-            Видео недоступно
-          </div>
-        </section>
-        <section 
-          v-if="videoData" 
-          class="video-info"
-        >
-          <h1 class="video-title">{{ videoData.title }}</h1>
-          <section class="channel-row">
-            <div class="channel-block">
-              <UserAvatar :user-avatar-path="videoData.user?.userAvatar?.fileDirInStorage"/>
-              <div class="channel-data">
-                <p>{{videoData.user?.userName}}</p>
-                <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
-              </div>
-              <button v-if="true" style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
-              {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}</button>
-            </div>
-            <div class="actions-wrapper">
-
-              <ReactionBlock
-                :context="'video'"
-                :reaction-status="videoData?.vote"
-                :likes-count="videoData?.likesCount" 
-                :dislikes-count="videoData?.dislikesCount"
-              />
-                <!-- @update-reaction="updateReaction" -->
-              <div class="secondary-actions">
-                <button class="control-button" @click.stop="handleShareClick">
-                  Поделиться
-                </button>
-                <button class="control-button" @click.stop="saveOpen">
-                  Сохранить
-                </button>
-              </div>
-
+      <!-- <div class="video-page"> -->
+        <div class="content-wrapper">
+          <section>
+            <VideoPlayer
+              ref="Player"
+              v-if="hlsUrl" 
+              :video-src="hlsUrl" 
+              :poster="videoData?.thumbnailUrl"
+              :key="hlsUrl"
+            />
+            <div v-else class="no-video">
+              Видео недоступно
             </div>
           </section>
-          <div class="video-meta">
-            <div class="video-statistic">
-              <span v-if="videoData.viewsCount != null">{{formatter.countFormatter(videoData.viewsCount, 'views')}}</span>
-              <span v-if="videoData.created">{{formatter.formatRussianDate(videoData.created)}}</span>
-            </div>
-            <p 
-              class="video-description" 
-              :class="{ 'clamped': !showFullDescription}"
-              ref="descriptionElement"
-            >
-              {{ videoData.description }}
-            </p>            
-            <button 
-                v-if="isDescriptionClamped" 
-                @click="showFullDescription = !showFullDescription"
-                class="show-more-button"
+          <section 
+            v-if="videoData" 
+            class="video-info"
+          >
+            <h1 class="video-title">{{ videoData.title }}</h1>
+            <section class="channel-row">
+              <div class="channel-block">
+                <UserAvatar :user-avatar-path="videoData.user?.userAvatar?.fileDirInStorage"/>
+                <div class="channel-data">
+                  <p>{{videoData.user?.userName}}</p>
+                  <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
+                </div>
+                <button v-auth style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
+                {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}</button>
+              </div>
+              <div class="actions-wrapper">
+
+                <ReactionBlock
+                  :context="'video'"
+                  :reaction-status="videoData?.vote"
+                  :likes-count="videoData?.likesCount" 
+                  :dislikes-count="videoData?.dislikesCount"
+                />
+                  <!-- @update-reaction="updateReaction" -->
+                <div class="secondary-actions">
+                  <button class="control-button" @click.stop="handleShareClick">
+                    Поделиться
+                  </button>
+                  <button class="control-button" @click.stop="saveOpen(videoId)">
+                    Сохранить
+                  </button>
+                </div>
+
+              </div>
+            </section>
+            <div class="video-meta">
+              <div class="video-statistic">
+                <span v-if="videoData.viewsCount != null">{{formatter.countFormatter(videoData.viewsCount, 'views')}}</span>
+                <span v-if="videoData.created">{{formatter.formatRussianDate(videoData.created)}}</span>
+              </div>
+              <p 
+                class="video-description" 
+                :class="{ 'clamped': !showFullDescription}"
+                ref="descriptionElement"
               >
-                {{ showFullDescription ? 'Скрыть' : 'Показать больше' }}
-            </button>
-          </div>
+                {{ videoData.description }}
+              </p>            
+              <button 
+                  v-if="isDescriptionClamped" 
+                  @click="showFullDescription = !showFullDescription"
+                  class="show-more-button"
+                >
+                  {{ showFullDescription ? 'Скрыть' : 'Показать больше' }}
+              </button>
+            </div>
 
-          <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
-        </section>
+            <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
+          </section>
 
-        <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
-        <CommentsPresentation
-          ref="commentsRef"
-          :video-id="Number(videoId)"
-          @delete="handleDeleteComment"
-        />
-      </div>
+          <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
+          <CommentsPresentation
+            v-if="commentsCount !== 0"
+            ref="commentsRef"
+            :video-id="Number(videoId)"
+            @delete="handleDeleteComment"
+          />
+        </div>
          
-      <aside class="side-recomendation">
-        <VideoPresentation
-          context="recomend"
-          :row-layout=true
-        />
-      </aside>
+        <aside :class="{'side-recomendation': true}" >
+          <VideoPresentation
+            request="recomend"
+            context="aside-recomend"
+            @add-to-playlist="saveOpen"
+            :row-layout=isRow
+          />
+        </aside>
+      <!-- </div> -->
+
     </template>
   </main>
 </template>

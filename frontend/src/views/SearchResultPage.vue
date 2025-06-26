@@ -2,7 +2,21 @@
     import { ref, watch } from 'vue';
     import { useRoute, useRouter } from 'vue-router';
     import MasterHead from '@/components/Solid/MasterHead.vue';
-    import VideoPresentation from '@/components/Video/VideosPresentation.vue';
+    import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
+    import VideosPresentation from '@/components/Video/VideosPresentation.vue';
+
+    // defineOptions({
+    //     inheritAttrs: false
+    // });
+
+    const props = defineProps({
+        query: {
+            type: String,
+            required: true,
+            default: ""
+        }
+    
+    })
 
     const route = useRoute(); // Переименовано для ясности
     const searchResults = ref([]);
@@ -12,22 +26,32 @@
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
     const searchQuery = ref('');
+    const playlistRef =ref(null);
 
-    watch(() => route.query.q, (newQuery) => {
-        console.log("смена запроса")
+    const saveOpen = (videoId) => {
+        console.log("save")
+        playlistRef.value.toggleMenu(videoId);
+    }
+
+    watch(() => props.query, (newQuery) => {
+        console.log("смена запроса");
         searchQuery.value = newQuery || '';
     }, { immediate: true });
 </script>
 
 <template>
     <MasterHead />
-    <VideoPresentation
+    <PlaylistOverlay ref="playlistRef" 
+    />
+    <VideosPresentation
+        request="search"
         context="search"
         :search-query="searchQuery"
         :is-infinite-scroll="true"
         :row-layout=true
-        @load-more="loadMoreVideos"
+        @add-to-playlist="saveOpen"
     />
+        <!-- @load-more="loadMoreVideos" -->
 </template>
   
 

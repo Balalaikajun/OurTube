@@ -1,29 +1,36 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed, nextTick, watch  } from "vue";
+    import { ref, onMounted, onUnmounted, computed, nextTick, watch } from "vue";
     import { useRoute, useRouter } from 'vue-router';
-    import VideoCard from "./VideoCard.vue";
+    import axios from 'axios';
+    import VideoCard from "@/components/Video/VideoCard.vue";
     import KebabMenu from "../Kebab/KebabMenu.vue";
     import ShareOverlay from "../Kebab/ShareOverlay.vue";
     import LoadingState from "@/components/Solid/LoadingState.vue";
     import { API_BASE_URL } from "@/assets/config.js";
+    import useInfiniteScroll from "@/assets/utils/useInfiniteScroll.js";
 
     const props = defineProps({
         errorMessage: {
             type: String,
             default: ""
         },
+        request: {
+            type: String,
+            required: true,
+            validator: (value) => ['recomend', 'search', 'history', 'playlist'].includes(value)
+        },
         context: {
             type: String,
             required: true,
-            validator: (value) => [
-                'recomend', 
-                'aside-recomend',
-                'search'
-            ].includes(value)
+            validator: (value) => ['recomend', 'aside-recomend', 'search'].includes(value)
         },
         searchQuery: {
             type: String,
             default: ""
+        },
+        playlistId: {
+            type: String,
+            default: null
         },
         blocksInRow: {
             type: Number,
@@ -35,7 +42,7 @@
         },              
         scrollElement: {
             type: String,
-            default: 'window' // или 'parent' или CSS-селектор
+            default: 'window'
         },          
         rowLayout: {
             type: Boolean,
@@ -43,71 +50,55 @@
         }
     });
 
-    const videos = ref([]);
-    const router = useRouter(); // Получаем роутер
-    const scrollElement = ref(null);
-    const container = ref(null);
-    const hasMore = ref(true);
-    const nextAfter = ref(0);
-    const loading = ref(false);
-    const errorMessage = ref("");
-
+    const router = useRouter();
+    const route = useRoute();
     const currentVideoId = ref(0);
-
     const parentWidth = ref(0);
-    const parentHeight = ref(0);
     const kebabMenuRef = ref(null);
     const shareRef = ref(null);
-    const isInitialized = ref(false);
-    const resizeObserver = ref(null);
-    const testWidth = ref(1089);
 
-    const emit = defineEmits(['load-more']);
+    const emit = defineEmits(['load-more', 'add-to-playlist', 'delete']);
 
-    const handleScroll = () => {
-        if (!props.isInfiniteScroll || loading.value) return;
-
-        const element = getScrollElement();
-        if (!element) return;
-
-        const { scrollTop, scrollHeight, clientHeight } = element;
-        if (scrollTop + clientHeight >= scrollHeight - 500) {
-            loadMoreVideos();
+    const api = axios.create({
+        baseURL: API_BASE_URL,
+        withCredentials: true,
+        headers: {
+            'Content-Type': 'application/json'
         }
-    };
+    });
 
-    const loadMoreVideos = async () => {
-        await fetchVideos(false);
-        emit('load-more');
-    };
-
-    const getScrollElement = () => {
-        if (props.scrollElement === 'window') return document.documentElement;
-        if (props.scrollElement === 'parent') return container.value?.parentElement;
-        return document.querySelector(props.scrollElement);
-    };
-
-    const initResizeObserver = () => {
-        if (resizeObserver.value) return;
-        
-        resizeObserver.value = new ResizeObserver(() => {
-            adaptiveView();
-        });
-        
-        if (container.value) {
-            resizeObserver.value.observe(container.value);
-        }
-    };
+    const { 
+        data: videos, 
+        observerTarget, 
+        hasMore, 
+        isLoading, 
+        error: scrollError, 
+        container,
+        loadMore,
+        reset: resetPlaylist
+    } = useInfiniteScroll({
+        fetchMethod: async (after) => {
+            const result = await fetchMethods[props.request](after);
+            // emit('load-more');
+            return result;
+        },
+        scrollElement: props.scrollElement,
+        isEnabled: props.isInfiniteScroll,
+        initialLoad: true
+    });
 
     const handleKebabClick = ({ videoId, buttonElement }) => {
         currentVideoId.value = videoId;
         kebabMenuRef.value?.openMenu(buttonElement);
     };
 
-    const handleKebabClose = () => {
-        if (!shareRef.value?.isOpen) {
-            currentVideoId.value = '';
-        }
+    const handleShortDelete = (videoId) => {
+        emit('delete', videoId);
+    };
+
+    const handleAddToPlaylist = () => {
+        console.log("save", currentVideoId.value)
+        emit('add-to-playlist', currentVideoId.value);
     };
 
     const handleShareClick = () => {
@@ -117,42 +108,142 @@
     };
 
     const navigateToVideo = (video) => {
-        console.log('Navigating to video:', video.id); // Для отладки
+        console.log("to", video.id)
         router.push(`/video/${video.id}`);
+    };
+
+    // Логика бесконечной прокрутки
+    const fetchMethods = {
+        async recomend(after) {
+            const limit = computedBlocksInRow.value * 4;
+            
+            try {
+                const response = await api.get(`/api/Recommendation`, {
+                        params: {
+                        limit: limit,
+                        after: after || 0
+                    }
+                });
+                return {
+                    items: response.data.videos,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: response.data.hasMore
+                };
+            } 
+            catch (error) {
+                console.error('Ошибка получения рекомендаций:', error);
+                if (error.response?.status === 401) {
+                    router.push('/login');
+                }
+                return { videos: [], nextAfter: 0 };
+            }
+        },
+        
+        async search(after) {
+            if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 };
+            const limit = computedBlocksInRow.value * 4;
+            try {
+            const response = await api.get(`/api/Search`, {
+                params: {
+                query: props.searchQuery,
+                limit: limit,
+                after: after || 0
+                }
+            });
+            return {
+                    items: response.data.videos,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: response.data.hasMore
+                };
+            } catch (error) {
+            console.error('Ошибка при выполнении поиска:', error);
+            if (error.response?.status === 401) {
+                router.push('/login');
+            }
+                return { videos: [], nextAfter: 0 };
+            }
+        },
+
+        async history(after) {
+            const limit = computedBlocksInRow.value * 4;
+            try {
+            const response = await api.get(`/api/History`, {
+                params: {
+                    query: props.searchQuery,
+                    limit: limit,
+                    after: after || 0
+                }
+            });
+            console.log(response);
+            return {
+                    items: response.data.videos,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: response.data.hasMore
+                };
+            } catch (error) {
+            console.error('Ошибка при получении истории:', error);
+            if (error.response?.status === 401) {
+                router.push('/login');
+            }
+            return { videos: [], nextAfter: 0 };
+            }
+        },
+
+        async playlist(after) {
+            const playlistId = route.params.id;
+            if (!playlistId) return { items: [], nextAfter: 0, hasMore: false };
+            
+            const limit = computedBlocksInRow.value * 4;
+            
+            try {
+                const response = await api.get(`/api/Playlist/${playlistId}`, {
+                    params: { limit, after: after || 0 }
+                });
+                
+                const items = response.data.playlist.playlistElements.map(el => el.video);
+                return {
+                    items,
+                    nextAfter: response.data.nextAfter,
+                    hasMore: items.length >= limit && response.data.nextAfter !== 0
+                };
+            } catch (error) {
+                console.error('Playlist load error:', error);
+                if (error.response?.status === 401) router.push('/login');
+                return { items: [], nextAfter: 0, hasMore: false };
+            }
+        }
     };
 
     const updateDimensions = () => {
         if (!container.value) return;
-        
         const rect = container.value.getBoundingClientRect();
         parentWidth.value = rect.width - 20;
-        console.log('Ширина контейнера:', parentWidth.value);
     };
-    const adaptiveView = async () => { // правки
+
+    const adaptiveView = async () => {
         await nextTick();
         updateDimensions();
         
         if (!container.value) return;
 
-        const gap = blocksInRow.value > 1 
-            ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(blockWidth.value) * blocksInRow.value)) / (blocksInRow.value - 1))) : 0;
+        const gap = computedBlocksInRow.value > 1 
+            ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(computedBlockWidth.value) * computedBlocksInRow.value)) / (computedBlocksInRow.value - 1))) 
+            : 0;
         
-            container.value.style.gap = `30px ${Math.floor(gap)}px`;
-            console.log('Обновлены отступы:', container.value.style.gap);
-        };
+        container.value.style.gap = `30px ${Math.floor(gap)}px`;
+    };
 
-        const blocksInRow = computed(() => {
-            const widthParent = parentWidth.value;
-            if (widthParent < 600 || props.rowLayout) return 1;
-            if (widthParent < 800) return 2;
-            if (widthParent < 1200) return 3;
-            if (widthParent < 1920) return 4;
-            return 5;
+    const computedBlocksInRow = computed(() => {
+        if (props.rowLayout || props.context === "aside-recomend") return 1;
+        if (parentWidth.value < 600) return 1;
+        if (parentWidth.value < 800) return 2;
+        if (parentWidth.value < 1200) return 3;
+        if (parentWidth.value < 1920) return 4;
+        return 5;
     });
 
-    const blockWidth = computed(() => {
-        if (!parentWidth.value || parentWidth.value <= 0 || props.rowLayout) return "100%";
-
+    const computedBlockWidth = computed(() => {
+        if (props.rowLayout || props.context === "aside-recomend") return "100%";
         if (parentWidth.value < 600) return `${parentWidth.value}px`;
         if (parentWidth.value < 800) return `${Math.floor(parentWidth.value * 0.49)}px`;
         if (parentWidth.value < 1200) return `${Math.floor(parentWidth.value * 0.32)}px`;
@@ -160,203 +251,60 @@
         return `${Math.floor(parentWidth.value * 0.19)}px`;
     });
 
-    const fetchMethods = {
-        async recomend() {
-            if (!isInitialized.value) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            const limit = blocksInRow.value * 8;
-            console.log('Запрос рекомендаций с параметрами:', { limit, after: nextAfter.value });
-            
-            try {
-            const response = await fetch(`${API_BASE_URL}/api/Recommendation?limit=${limit}&after=${nextAfter.value}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('Получены данные:', data);
-            return data;
-            } catch (error) {
-            console.error('Ошибка получения рекомендаций:', error);
-            return [];
-            }
-        },
-  
-        async search() {
-    // Если компонент ещё не инициализирован, ждём
-            if (!isInitialized.value) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-
-            // Проверка пустого запроса
-            if (!props.searchQuery.trim()) {
-                console.log('Пустой поисковый запрос');
-                return [];
-            }
-
-            try {
-                // Формируем URL с кодированием параметров
-                // const url = new URL(`${API_BASE_URL}/api/Search`);
-                // url.searchParams.append('query', encodeURIComponent(props.searchQuery));
-                // url.searchParams.append('after', nextAfter.value.toString());
-
-                console.log('Выполняем поиск с параметрами:', {
-                    query: props.searchQuery,
-                    after: nextAfter.value
-                });
-
-                const response = await fetch(`${API_BASE_URL}/api/Search?query=${encodeURIComponent(props.searchQuery,)}`);
-                // const response = await fetch(url.toString(), {
-                //     headers: {
-                //         'Accept': 'application/json'
-                //     }
-                // });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => null);
-                    console.error('Ошибка поиска:', {
-                        status: response.status,
-                        statusText: response.statusText,
-                        errorData
-                    });
-                    throw new Error(`Ошибка ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log('Получены результаты поиска:', data);
-
-                // Проверяем формат ответа
-                if (!Array.isArray(data)) {
-                    console.error("Некорректный формат ответа, ожидался массив:", data);
-                    return [];
-                }
-
-                return data;
-            } 
-            catch (error) {
-                console.error('Ошибка при выполнении поиска:', error);
-                errorMessage.value = `Ошибка поиска: ${error.message}`;
-                return [];
-            }
-        }
-    };
-
-    const fetchVideos = async (initial = false) => {
-        if (loading.value || (!initial && !hasMore.value)) return;
-        
-        try {
-            loading.value = true;
-            if (initial) {
-                videos.value = [];
-                hasMore.value = true;
-            }
-            
-            const data = await fetchMethods[props.context]();
-            console.log(data)
-
-            if (!Array.isArray(data) && !Array.isArray(data.videos)) {
-                throw new Error('API вернул не массив видео');
-            }
-            if(props.context === "search") videos.value = [...videos.value, ...data];   //костыль
-            else videos.value = [...videos.value, ...data.videos];                      
-            console.log(videos.value)
-            nextAfter.value = data.nextAfter || 0;
-            hasMore.value = data.length > 0;
-        } 
-        catch (error) {
-            errorMessage.value = error.message;
-            hasMore.value = false;
-        } 
-        finally {
-            loading.value = false;
-        }
-    };
-
-    // 1. Первая загрузка
     onMounted(async () => {
-        try {
-            // 1. Инициализация DOM элементов
-            scrollElement.value = getScrollElement();
-            if (scrollElement.value) {
-                scrollElement.value.addEventListener('scroll', handleScroll);
-            }
-            window.addEventListener('resize', adaptiveView);
-            
-            // 2. Ожидаем полный рендеринг
-            await nextTick();
-            
-            // 3. Настройка адаптивного вида
-            await adaptiveView();
-            
-            // 4. Загрузка данных
-            await fetchVideos(true);
-            
-            // 5. Финальная настройка после загрузки
-            await adaptiveView();
-            
-            isInitialized.value = true;
-        } 
-        catch (error) {
-            console.error('Ошибка инициализации:', error);
-            errorMessage.value = 'Ошибка загрузки компонента';
-        }
+        await nextTick();
+        await adaptiveView();
+        window.addEventListener('resize', adaptiveView);
+        console.log("Request prop:", props.request);
     });
 
     onUnmounted(() => {
-        if (scrollElement.value) {
-            scrollElement.value.removeEventListener('scroll', handleScroll);
-        }
-        
         window.removeEventListener('resize', adaptiveView);
-        
-        if (resizeObserver.value && container.value) {
-            resizeObserver.value.unobserve(container.value);
-        }
     });
 
-    watch(() => props.context, () => fetchVideos(true));
-
+    watch(() => props.request, () => loadMore(true));
     watch(() => props.searchQuery, (newVal, oldVal) => {
-        if (newVal !== oldVal) {
-            fetchVideos(true);
-        }
+        if (newVal !== oldVal) loadMore(true);
     }, { immediate: true });
+
+    defineExpose({
+        resetPlaylist
+    });
 </script>
 
 <template>
     <KebabMenu 
-        ref="kebabMenuRef" 
+        ref="kebabMenuRef"
+        @add-to-playlist="handleAddToPlaylist"
         @share="handleShareClick"
-        @close="handleKebabClose"
     />
     <ShareOverlay
         ref="shareRef" 
         :videoId="currentVideoId"
     />
-    <div class="container-wrapper" :class="[rowLayout && context == 'recomend' ? 'aside-recomend' : `context-${context}`, { 'row-layout': rowLayout }]">
-        <div v-if="!loading && errorMessage.length > 0" class="results-grid">
+    <div class="container-wrapper" :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, { 'row-layout': rowLayout || context == 'aside-recomend' }]">
+        <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
             <div v-if="videos.length === 0" class="empty-results">
                 Ничего не найдено
             </div>
         </div>
-        <div v-if="errorMessage" class="error-state">
-            {{ errorMessage }}
+        <div v-if="scrollError" class="error-state">
+            {{ scrollError }}
         </div>
-        <div v-else ref="container" class="container" style="width: 100%;">
-
+        <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
             <VideoCard
-                v-for="video in videos"
-                :video="video"
-                :key="video.id"
-                :row-layout="rowLayout"
-                @click="navigateToVideo(video)"
-                @kebab-click="handleKebabClick"
-                :style="{ width: blockWidth }"
-            />
-            <LoadingState v-if="loading"/>
+                    v-for="video in videos"
+                    :video="video"
+                    :key="video.id"
+                    :row-layout="rowLayout"
+                    :is-short-delete="['history', 'playlist'].includes(request)"
+                    @click="navigateToVideo(video)"
+                    @kebab-click="handleKebabClick"
+                    @delete="handleShortDelete"
+                    :style="{ width: computedBlockWidth }"
+                />
+            <LoadingState v-if="isLoading"/>
+            <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
         </div>
     </div>
 </template>
@@ -369,23 +317,19 @@
         container-type: inline-size;
         container-name: recommendations-container;
     }
-    .container-wrapper.context-recomend {
+    .container-wrapper.standart-recomend {
         width: 100%;
         padding: 20px 100px;
         margin-top: 70px;
     }
     .container-wrapper.aside-recomend {
         width: 100%;
-        padding: 0p;
-    }
-    .container-wrapper.context-search {
-        width: 100%;
-        padding: 20px 100px;
-        margin-top: 70px;
+        padding: 0px;
     }
     .container {
         display: flex;
         flex-wrap: wrap;
+        align-items: flex-start;
     }
     .row-layout {
         display: grid;
@@ -412,5 +356,13 @@
     .results-grid {
         display: grid;
         gap: 20px;
+    }
+
+    .observer-target {
+        width: 100%;
+        height: 1px;
+        margin: 0;
+        padding: 0;
+        background: #f39e60;
     }
 </style>

@@ -1,11 +1,11 @@
 <script setup>
-    import { ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
+    import { ref, onMounted, computed, watch } from "vue";
     import axios from 'axios';
     import CommentBlock from "./CommentBlock.vue";
     import LoadingState from "../Solid/LoadingState.vue";
-    // import CommentMenu from "../Kebab/CommentMenu.vue";
     import { API_BASE_URL } from "@/assets/config.js";
     import formatter from "@/assets/utils/formatter.js";
+    import useInfiniteScroll from "@/assets/utils/useInfiniteScroll.js";
 
     const props = defineProps({
         videoId: {
@@ -16,112 +16,89 @@
         initialLimit: {
             type: Number,
             default: 20
+        },
+        isInfiniteScroll: {
+            type: Boolean,
+            default: true
         }
     });
+
     const emit = defineEmits(['delete', 'edit']);
-
-    const commentsData = ref([]);
-    const isLoading = ref(false);
-    const error = ref(null);
-    const lastCommentId = ref(null);
-    const hasMore = ref(true);
-    const nextAfter = ref(0);
-
     const currentCommentId = ref(0);
-
-    const commentRef = ref(null)
 
     const api = axios.create({
         baseURL: API_BASE_URL,
-        withCredentials: true, // Важно для передачи кук
+        withCredentials: true,
         headers: {
             'Content-Type': 'application/json'
         }
     });
-    
-    const fetchComments = async (reset = false) =>
-    {
-        if (isLoading.value || !hasMore.value) return;
-        try {
-            isLoading.value = true;
-            error.value = null;
 
-            if (reset) {
-                commentsData.value = [];
-                lastCommentId.value = null;
-                hasMore.value = true;
-            }
-
-            const response = await api.get(`/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${nextAfter.value}`);
-            const newComments = response.data?.comments || [];
-            
-            if (newComments.length > 0) {
-                commentsData.value = reset ? newComments : [...commentsData.value, ...newComments];
-                lastCommentId.value = newComments[newComments.length - 1].id;
-                console.log(commentsData.value)
-            }
-
-            hasMore.value = newComments.length >= props.initialLimit;
-
-        } catch (err) {
-            error.value = err.response?.data?.message || 
-                        err.message || 
-                        'Ошибка при загрузке комментариев';
-            console.error("Ошибка при загрузке комментариев:", err);
-        } finally {
-            isLoading.value = false;
-        }
-    };
-
-    onMounted(fetchComments);
-
-    watch(() => props.videoId, (newId) => {
-        if (newId) fetchComments(true);
+    // Используем композицию бесконечной прокрутки
+    const { 
+        data: commentsData, 
+        observerTarget,
+        hasMore,
+        isLoading, 
+        error, 
+        loadMore,
+        reset: resetComments
+    } = useInfiniteScroll({
+        fetchMethod: async (after) => {
+            try {
+                const response = await api.get(
+                    `/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
+                );
+                console.log(response)
+                console.log("response hasMore", response.data?.hasMore)
+                if(response.data?.hasMore)
+                {
+                    
+                }
+                return {
+                    items: response.data?.comments || [],
+                    nextAfter: response.data?.comments[response.data?.comments.length - 1]?.id || 0,
+                    hasMore: response.data?.hasMore
+                };
+            } catch (err) {
+                throw err;
+            }            
+        },
+        initialLoad: true,
+        context: 'коммент'
     });
 
-    const refreshComments = () => {
-        fetchComments(true);
+    const handleKebabClick = (event) => {
+        currentCommentId.value = event.commentId;
     };
 
-    const handleKebabClick = ({ commentId}) => {
-        console.log('Kebab clicked for comment:', commentId);
-        currentCommentId.value = commentId;
-    };
-
-    const handleKebabClose = () => {
-        if (!shareRef.value?.isOpen) {
+    const deleteComment = async () => {
+        try {
+            if (!currentCommentId.value) return;
+            
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            const comment = commentsData.value.find(c => c.id === currentCommentId.value);
+            
+            if (comment && comment.user.id !== userData?.id) {
+                throw new Error("Вы не можете удалить чужой комментарий");
+            }
+            
+            await api.delete(`/api/Video/Comment/${currentCommentId.value}`);
+            await resetComments();
+        } catch (err) {
+            error.value = err.response?.data?.message || err.message || 'Ошибка при удалении комментария';
+        } finally {
             currentCommentId.value = 0;
         }
     };
 
-    const deleteComment = async () =>
-    {
-        console.log(currentCommentId.value)
-        try {
-
-            const response = await api.delete(`/api/Video/Comment/${currentCommentId.value}`);        
-
-        } catch (err) {
-            error.value = err.response?.data?.message || 
-                        err.message || 
-                        'Ошибка при удалении комментария';
-            console.error("Ошибка при удалении комментария", err);
-        } finally {
-            currentCommentId.value == 0;
-        }
-    }
-
     const handleEditComment = async (newText) => {
-        console.log(currentCommentId.value, newText)
         try {
-            const response = await api.patch(`/api/Video/Comment`, {
+            await api.patch(`/api/Video/Comment`, {
                 "id": currentCommentId.value,
                 "text": newText.text
             });
-            
-            // if (response.status === 200) {
-            // refreshComments(); // Обновляем список
-            // }
+            await resetComments();
         } catch (error) {
             console.error("Ошибка редактирования:", error);
         }
@@ -131,36 +108,40 @@
         emit("delete");
     };
 
+    // При изменении videoId сбрасываем и загружаем заново
+    watch(() => props.videoId, () => {
+        resetComments();
+    });
+
     defineExpose({
-        refreshComments,
+        refreshComments: resetComments,
         deleteComment
     });
 </script>
 
 <template>
     <div class="comments-wrapper">
-        <LoadingState v-if="isLoading" />
-        <template v-if="!isLoading">
-            <CommentBlock
-                v-for="comment in commentsData"
-                :key="comment.id"
-                :video-id="props.videoId"
-                :parent-id="comment.parentId || null"
-                :id="comment.id"
-                :comment-text="comment.text"
-                :create-date="formatter.formatRussianDate(comment.created)"
-                :update-date="formatter.formatRussianDate(comment.updated)"
-                :reaction-status="comment.vote"
-                :likes-count="comment.likesCount"
-                :dislikes-count="comment.dislikesCount"
-                :user-info="comment.user"
-                :childs="comment.childs || []"
-                @kebab-click="handleKebabClick"
-                @edit="handleEditComment"
-                @delete="handleDelete"
-                @close="handleKebabClose"
-            />
-        </template>
+        <CommentBlock
+            v-for="comment in commentsData"
+            :key="comment.id"
+            :video-id="props.videoId"
+            :parent-id="comment.parentId || null"
+            :id="comment.id"
+            :isDeleted="comment.isDeleted"
+            :comment-text="comment.text"
+            :create-date="formatter.formatRussianDate(comment.created)"
+            :update-date="formatter.formatRussianDate(comment.updated)"
+            :reaction-status="comment.vote"
+            :childs-count="comment.childsCount"
+            :likes-count="comment.likesCount"
+            :dislikes-count="comment.dislikesCount"
+            :user-info="comment.user"
+            @kebab-click="handleKebabClick"
+            @edit="handleEditComment"
+            @delete="handleDelete"
+        />
+        <LoadingState v-if="isLoading"/>
+        <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore">{{ hasMore }}</div>
     </div>
 </template>
 
@@ -170,5 +151,12 @@
         flex-direction: column;
         margin-top: 40px;
         gap: 10px;
+    }
+    .observer-target {
+        width: 100%;
+        height: 1px;
+        margin: 0;
+        padding: 0;
+        background: #f39e60;
     }
 </style>

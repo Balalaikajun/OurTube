@@ -33,12 +33,12 @@ const routes = [
     { 
         path: '/forgot-password', 
         component: () => import('../views/FogPassPage.vue'),
-        meta: { title: 'Восстановление' }
+        meta: { title: 'Восстановление пароля' }
     },
     { 
         path: '/reset-password', 
         component: () => import('../views/ResetPasswordPage.vue'),
-        meta: { title: 'Сброс' }
+        meta: { title: 'Сброс пароля' }
     },
     { 
         path: '/search', 
@@ -46,22 +46,50 @@ const routes = [
         meta: { title: 'Поиск' },
         props: route => ({ query: route.query.q })
     }
+    ,
+    { 
+        path: '/history', 
+        component: () => import('../views/HistoryPage.vue'),
+        meta: { title: 'История просмотра' }
+    }
+    ,
+    { 
+        path: '/account', 
+        component: () => import('../views/AccountPage.vue'),
+        meta: { title: 'Страница пользователя' }
+    }
+    ,
+    { 
+        path: '/playlists', 
+        component: () => import('../views/PlaylistsPage.vue'),
+        meta: { title: 'Плейлисты' }
+    }
+    ,
+    { 
+        path: '/playlist/:id', 
+        component: () => import('../views/PlaylistPage.vue'),
+        meta: { title: 'Плейлист' }
+    }
 ];
 
 const router = createRouter({
-    // Если приложение в корне сервера, можно просто createWebHistory()
     history: createWebHistory(import.meta.env.BASE_URL),
-    
     routes,
-    
     scrollBehavior(to, from, savedPosition) {
-      // Прокрутка к якорю если есть hash
-      if (to.hash) {
-        return { el: to.hash, behavior: 'smooth' }
-      }
-      // Возврат к сохраненной позиции или в начало
-      return savedPosition || { top: 0 }
+        if (savedPosition) {
+            return savedPosition;
+        } else if (to.hash) {
+            return { el: to.hash, behavior: 'smooth' };
+        } else {
+            return { top: 0 };
+        }
     }
+});
+
+router.beforeEach((to, from, next) => {
+    // Устанавливаем title из meta или дефолтный
+    document.title = to.meta.title ? `${to.meta.title}` : 'OurTube';
+    next();
 });
 
 router.afterEach((to, from) => {
