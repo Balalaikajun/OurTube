@@ -19,7 +19,8 @@ RUN apt-get update && \
 
 COPY --from=build /app/out ./
 
+
 EXPOSE 80
 
-ENTRYPOINT ["dotnet", "OurTube.Api.dll"]
+CMD ["dotnet", "OurTube.Api.dll"]
 

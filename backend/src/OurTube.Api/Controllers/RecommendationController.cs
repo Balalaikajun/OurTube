@@ -5,7 +5,7 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class RecommendationController : ControllerBase
 {
@@ -30,6 +30,25 @@ public class RecommendationController : ControllerBase
             reload
         );
 
+        return Ok(result);
+    }
+    
+    [HttpGet("video/{videoId:int}")]
+    public async Task<ActionResult<PagedVideoDto>> GetForVideo(
+        int videoId,
+        [FromQuery] int limit = 10,
+        [FromQuery] int after = 0,
+        [FromQuery] bool reload = false)
+    {
+        var result = await _recommendationService.GetRecommendationsForVideoAsync(
+            videoId,
+            User.FindFirstValue(ClaimTypes.NameIdentifier),
+            Request.Cookies["SessionId"],
+            limit,
+            after,
+            reload
+        );
+        
         return Ok(result);
     }
 }

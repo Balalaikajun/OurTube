@@ -98,11 +98,13 @@ services.AddScoped<IVideoProcessor, FfmpegProcessor>();
 services.AddScoped<VideoValidator>();
 
 // CORS
+var originsEnv = configuration["Cors:AllowedOrigins"];
+var allowedOrigins = originsEnv.Split(';', StringSplitOptions.RemoveEmptyEntries);
 services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -158,6 +160,14 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var storageClient = scope.ServiceProvider.GetRequiredService<IStorageClient>();
+    var videoBucket = configuration["MinIO:VideoBucket"];
+    var userBucket = configuration["MinIO:UserBucket"];
+    await storageClient.EnsureBucketsExistAsync(videoBucket,userBucket);
+}
 
 // Migration
 using (var scope = app.Services.CreateScope())

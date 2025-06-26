@@ -8,22 +8,17 @@ namespace OurTube.Infrastructure.Other;
 
 public class MinioClient : IStorageClient
 {
-    private readonly string _accessKey;
-    private readonly string _bucketName;
-    private readonly string _endpoint; // Обязательно так
     private readonly IMinioClient _minioClient;
-    private readonly string _secretKey;
 
     public MinioClient(IConfiguration configuration)
     {
-        _accessKey = configuration["MinIO:AccessKey"];
-        _secretKey = configuration["MinIO:SecretKey"];
-        _endpoint = configuration["MinIO:Endpoint"];
-        _bucketName = configuration["MinIO:VideoBucket"];
-
+        var accessKey = configuration["MinIO:AccessKey"];
+        var secretKey = configuration["MinIO:SecretKey"];
+        var endpoint = configuration["MinIO:Endpoint"];
+        
         _minioClient = new Minio.MinioClient()
-            .WithEndpoint(_endpoint)
-            .WithCredentials(_accessKey, _secretKey)
+            .WithEndpoint(endpoint)
+            .WithCredentials(accessKey, secretKey)
             .WithSSL(false)
             .Build();
     }
@@ -95,5 +90,45 @@ public class MinioClient : IStorageClient
         await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName));
+    }
+
+    public async Task EnsureBucketsExistAsync(params string[] bucketNames)
+    {
+        var existed = (await _minioClient.ListBucketsAsync())
+            .Buckets.Select(b => b.Name)
+            .ToHashSet();
+
+
+        foreach (var bucket in bucketNames.Where(b => !existed.Contains(b)))
+        {
+            await _minioClient.MakeBucketAsync(
+                new MakeBucketArgs()
+                    .WithBucket(bucket));
+
+            var policy = @"
+        {
+          ""Version"": ""2012-10-17"",
+          ""Statement"": [
+            {
+              ""Action"": [""s3:GetBucketLocation"", ""s3:ListBucket""],
+              ""Effect"": ""Allow"",
+              ""Principal"": { ""AWS"": [""*""] },
+              ""Resource"": [""arn:aws:s3:::" + bucket + @"""]
+            },
+            {
+              ""Action"": [""s3:GetObject""],
+              ""Effect"": ""Allow"",
+              ""Principal"": { ""AWS"": [""*""] },
+              ""Resource"": [""arn:aws:s3:::" + bucket + @"/*""]
+            }
+          ]
+        }";
+
+
+            await _minioClient.SetPolicyAsync(
+                new SetPolicyArgs()
+                    .WithBucket(bucket)
+                    .WithPolicy(policy));
+        }
     }
 }

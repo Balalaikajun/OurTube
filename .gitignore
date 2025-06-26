@@ -77,3 +77,4 @@ yarn-error.log
 *.sln.iml
 /backend/src/OurTube.Api/appsettings.json
 /infrastructure/.env
+/frontend/.env
