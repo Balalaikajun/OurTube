@@ -86,9 +86,6 @@ const getPreviewUrl = (fileName) => {
     <div class="video-block">
       <div class="thumbnail-overlay-badge">
         <div class="badge-text">{{ formatter.formatDuration(video.duration) }}</div>
-        <!-- <div class="badge" role="img" :aria-label="`${video.duration} секунд`">
-          <div class="badge-text">{{ video.duration }}</div>
-        </div> -->
       </div>
       <img 
         class="video-thumbnail" 
@@ -145,7 +142,7 @@ const getPreviewUrl = (fileName) => {
 
   .video-card.row-layout {
       display: flex;
-      width: 80%;
+      width: 100%;
       gap: 20px;
       transition: background 1s ease;
   }
@@ -158,12 +155,18 @@ const getPreviewUrl = (fileName) => {
       aspect-ratio: 16/9;
   }
 
+  
   .video-card.row-layout .video-block {
-      flex-grow: 1;
+    width: 10vw;
+    /* flex-shrink: 0; */
+  }
+
+  .video-card.row-layout .video-block {
+      /* flex-grow: 1;
       flex-shrink: 2;
-      flex-basis: 30%;
-      /* width: 20%; */
-      flex-shrink: 0;
+      flex-basis: 30%; */
+      /* width: 50%; */
+      /* flex-shrink: 0; */
   }
 
   
@@ -174,18 +177,14 @@ const getPreviewUrl = (fileName) => {
   }
 
   .video-card.row-layout .bottom-block {
-      flex-grow: 2;
+      /* flex-grow: 2;
       flex-shrink: 1;
-      flex-basis: 70%;
-      /* flex-direction: row; */
+      flex-basis: 70%; */
+      flex-direction: row;
+      width: 80%;
       justify-content: flex-start;
       gap: 10px;
   }
-
-  /* .video-card.row-layout .video-block {
-    width: 20vw;
-    flex-shrink: 0;
-  } */
 
   .thumbnail-overlay-badge {
       position: absolute;
@@ -280,5 +279,9 @@ const getPreviewUrl = (fileName) => {
       height: 36px;
       border-radius: 50%;
       background: #4A4947;
+  }
+
+  @media (max-width: 480px) {
+    
   }
 </style>

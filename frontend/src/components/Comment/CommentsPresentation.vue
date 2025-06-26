@@ -74,6 +74,15 @@
 
     const deleteComment = async () => {
         try {
+            if (!currentCommentId.value) return;
+            
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            const comment = commentsData.value.find(c => c.id === currentCommentId.value);
+            
+            if (comment && comment.user.id !== userData?.id) {
+                throw new Error("Вы не можете удалить чужой комментарий");
+            }
+            
             await api.delete(`/api/Video/Comment/${currentCommentId.value}`);
             await resetComments();
         } catch (err) {

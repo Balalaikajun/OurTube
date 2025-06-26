@@ -82,15 +82,15 @@
             <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
         </div>
         <div class="other-content">
-            <p>
+            <!-- <p>
                 Регистрируясь на нашей платформе Вы автоматически соглашаетесь политикой пользователя.
-            </p>
-            <!-- <router-link to="/login" custom v-slot="{ navigate }">
+            </p> -->
+            <router-link to="/login" custom v-slot="{ navigate }">
                 <button @click="navigate">Войти</button>
             </router-link>
             <router-link to="/forgot-password" custom v-slot="{ navigate }">
                 <button @click="navigate">Восстановление доступа</button>
-            </router-link> -->
+            </router-link>
         </div>
         <div class="right-pannel"></div>
     </div>

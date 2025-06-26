@@ -92,12 +92,6 @@
         kebabMenuRef.value?.openMenu(buttonElement);
     };
 
-    const handleKebabClose = () => {
-        if (!shareRef.value?.isOpen) {
-            currentVideoId.value = '';
-        }
-    };
-
     const handleShortDelete = (videoId) => {
         emit('delete', videoId);
     };
@@ -283,7 +277,6 @@
         ref="kebabMenuRef"
         @add-to-playlist="handleAddToPlaylist"
         @share="handleShareClick"
-        @close="handleKebabClose"
     />
     <ShareOverlay
         ref="shareRef" 
@@ -336,6 +329,7 @@
     .container {
         display: flex;
         flex-wrap: wrap;
+        align-items: flex-start;
     }
     .row-layout {
         display: grid;

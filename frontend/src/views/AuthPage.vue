@@ -1,8 +1,9 @@
 <script setup>
     import { ref } from "vue";
     import { useRouter } from "vue-router";
-    import { API_BASE_URL } from "@/assets/config"; // Импортируем базовый URL
+    import { API_BASE_URL } from "@/assets/config";
     import axios from "axios";
+    import { saveUserDataToLocalStorage } from "@/assets/utils/userServiсe.js";
     
     const email = ref("");
     const password = ref("");
@@ -16,48 +17,44 @@
         headers: {
             "Content-Type": "application/json",
         },
+        withCredentials: true // Важно!
     });
 
     const submitForm = async () => {
-    errorMessage.value = "";
-    loading.value = true;
+        errorMessage.value = "";
+        loading.value = true;
 
-    try {
-        const response = await api.post("/identity/login?useCookies=true&useSessionCookies=true", {
-            email: email.value,
-            password: password.value,
-        });
+        try {
+            const response = await api.post("/identity/login?useCookies=true&useSessionCookies=true", {
+                email: email.value,
+                password: password.value,
+            });
 
-        // Сохраняем токен
-        localStorage.setItem("token", response.data.accessToken);
-        
-        // Добавляем интерсептер для автоматической подстановки токена
-        // api.interceptors.request.use((config) => {
-        //     const token = localStorage.getItem("token");
-        //     if (token) {
-        //         config.headers.Authorization = `Bearer ${token}`;
-        //     }
-        //     return config;
-        // });
+                    // Получаем и сохраняем данные пользователя
+            const userData = await saveUserDataToLocalStorage();
+            if (!userData) {
+                throw new Error("Не удалось получить данные пользователя");
+            }
 
-        router.push("/");
-    } catch (error) {
+            router.push("/");
+        } catch (error) {
+        handleAuthError(error);
+        } finally {
+            loading.value = false;
+        }
+    };
+    const handleAuthError = (error) => {
         if (error.response) {
-        // Обрабатываем ответ сервера
-        const errorData = error.response.data;
-        errorMessage.value = errorData.title || "Ошибка авторизации";
-        
-        // Показываем детали ошибок валидации
-        if (errorData.errors) {
-            const errors = Object.values(errorData.errors).flat();
-            errorMessage.value += ": " + errors.join(", ");
-        }
+            const errorData = error.response.data;
+            errorMessage.value = errorData.title || "Ошибка авторизации";
+            
+            if (errorData.errors) {
+                const errors = Object.values(errorData.errors).flat();
+                errorMessage.value += ": " + errors.join(", ");
+            }
         } else {
-        errorMessage.value = "Ошибка соединения с сервером";
+            errorMessage.value = error.message || "Ошибка соединения с сервером";
         }
-    } finally {
-        loading.value = false;
-    }
     };
 </script>
 

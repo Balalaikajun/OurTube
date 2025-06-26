@@ -45,6 +45,7 @@
         try {
             const response = await api.get(`/api/Playlist/${currentPlaylistId.value}`);
             playlistData.value = response.data.playlist;
+            console.log(playlistData.value.title)
         } catch (err) {
             errorMessage.value = err.response?.data?.message || err.message || 'Ошибка загрузки';
             console.error('Ошибка:', err);
@@ -78,10 +79,10 @@
                     "description": "плейлист"
                 }
             );
-            await videosRef.value.resetPlaylist();
+            playlistData.value.title = playlist;
         } catch (err) {
             errorMessage.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста';
-        }
+        }        
     };
 
     const deletePlaylist = async () => {
@@ -216,7 +217,7 @@
     }
     .playlist-functional {
         position: relative;
-        flex: 1;
+        width: 30%;
         box-sizing: border-box;
     }
     .playlist-menu {

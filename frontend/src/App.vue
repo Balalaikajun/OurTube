@@ -1,38 +1,12 @@
 <script setup>
-    import { ref, onMounted } from "vue";
-    import axios from 'axios';
-    import { API_BASE_URL } from "@/assets/config.js";
-
-    const api = axios.create({
-        baseURL: API_BASE_URL,
-        withCredentials: true,
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
-    // Функция для получения данных пользователя
-    const fetchUserData = async () => {
-        try {
-            const response = await api.get('/api/User');
-            return response.data;
-        } catch (err) {
-            console.error('Ошибка при получении данных пользователя:', err);
-            return null;
-        }
-        };
+    import { onMounted } from "vue";
+    import { saveUserDataToLocalStorage } from "@/assets/utils/userServiсe.js";
 
         // Проверяем токен и загружаем данные при монтировании
     onMounted(async () => {
-            
-        console.log(window.innerWidth); // Логическая ширина в CSS-пикселях
-        console.log(window.devicePixelRatio); // Соотношение физических и логических пикселей
-        const userData = await fetchUserData();
-        if (userData) {
-            // Сохраняем данные пользователя в localStorage
-            localStorage.setItem('userData', JSON.stringify(userData));
-            console.log("userData", userData);
-        }
+        console.log(window.innerWidth);
+        console.log(window.devicePixelRatio);
+        await saveUserDataToLocalStorage();
     });
 </script>
 

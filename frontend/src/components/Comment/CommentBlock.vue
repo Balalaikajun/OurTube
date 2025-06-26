@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject, watchEffect  } from "vue";
+    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject, watchEffect, computed } from "vue";
     import axios from 'axios';
     import CommentMenu from "../Kebab/CommentMenu.vue";
     import KebabButton from "../Kebab/KebabButton.vue";
@@ -91,6 +91,13 @@
         headers: {
             'Content-Type': 'application/json'
         }
+    });
+
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const currentUserId = userData?.id;
+
+    const isCommentOwner = computed(() => {
+        return currentUserId === props.userInfo.id;
     });
 
     const kebabMenuRef = ref(null);
@@ -344,9 +351,9 @@
                 </div>
             </div>
             <KebabButton
-                v-if="!props.isDeleted"
+                v-if="!props.isDeleted && isCommentOwner"
                 @kebab-click.stop="handleKebabButtonClick"
-            />  
+            />
         </div>
         <div class="childs-comments"
             v-if="showChilds && childs && childs.length > 0"       

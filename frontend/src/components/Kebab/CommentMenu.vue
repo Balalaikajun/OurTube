@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onBeforeUnmount, watch, nextTick} from "vue";
+    import { ref, onBeforeUnmount, watch, nextTick, computed } from "vue";
     import { useMenuManager } from '@/assets/utils/useMenuManager.js';
     import { onClickOutside } from '@vueuse/core';
 
@@ -11,14 +11,14 @@
     const { registerMenu, unregisterMenu } = useMenuManager();
 
     const handleEdit = () => {
-        console.log("menu")
         emit('edit-click');
         closeMenu();
     };
+
     const handleDelete = () => {
         emit('delete');
         closeMenu();
-    };  
+    };
 
     const openMenu = async (buttonElement) => {
         try {
@@ -58,18 +58,7 @@
                 };
             }
             
-            onClickOutside(menuRef, (event) => {
-                if (event.target.closest('.kebab-button')) return;
-                
-                closeMenu();
-            }, { capture: true });
-            
-            const handleKeyDown = (e) => e.key === 'Escape' && closeMenu();
-            document.addEventListener('keydown', handleKeyDown);
-            
-            return () => {
-                document.removeEventListener('keydown', handleKeyDown);
-            };
+            onClickOutside(menuRef, closeMenu, { capture: true });
         } 
         catch (error) {
             console.error('Error opening menu:', error);
@@ -78,17 +67,18 @@
 
     const closeMenu = async () => {
         if (!isOpen.value) return;
-        
         isOpen.value = false;
         unregisterMenu({ closeMenu });
-        
         await nextTick();
     };
 
     onBeforeUnmount(() => {
         closeMenu();
     });
-    defineExpose({ openMenu, closeMenu });
+    defineExpose({ 
+        openMenu, 
+        closeMenu,
+    });
 </script>
 <template>
     <div
@@ -96,7 +86,7 @@
         ref="menuRef"
         class="kebab-menu"
         :style="position"
-        @click.stop="handleClick"
+        @click.stop
     >
         <button @click="handleEdit">Редактировать</button>
         <button @click="handleDelete">Удалить</button>
@@ -137,5 +127,6 @@
 
     .kebab-menu button:hover {
         background: #F39E60;
+        color: #100E0E;
     }
 </style>
