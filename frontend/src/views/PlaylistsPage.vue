@@ -1,13 +1,11 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
-    import { useRoute } from "vue-router";
-    import axios from 'axios';
+import { onMounted, ref } from 'vue'
 
-    import MasterHead from "../components/Solid/MasterHead.vue";
-    import ConfirmPannel from "@/components/Solid/ConfirmPannel.vue";
-    import PlaylistsPresentation from "@/components/Playlist/PlaylistsPresentation.vue";
+import MasterHead from '../components/Solid/MasterHead.vue'
+import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
+import PlaylistsPresentation from '@/components/Playlist/PlaylistsPresentation.vue'
 
-    const confirmRef = ref(null);
+const confirmRef = ref(null);
     const confirmContext = ref("")
     const playlistsRef = ref(null);
     const currentPlaylistId = ref(null); 

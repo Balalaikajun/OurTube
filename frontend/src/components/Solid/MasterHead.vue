@@ -1,13 +1,12 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, inject, computed } from "vue";
-    import MainMenu from "./MainMenu.vue"; // Импортируем компонент бокового меню
-    import UserAvatar from "./UserAvatar.vue";
-    import { API_BASE_URL } from "@/assets/config.js"
-    import { useRouter, useRoute } from 'vue-router';
-    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
-    import axios from 'axios';
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import MainMenu from './MainMenu.vue' // Импортируем компонент бокового меню
+import UserAvatar from './UserAvatar.vue'
 
-    const router = useRouter();
+import { useRoute, useRouter } from 'vue-router'
+import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
+
+const router = useRouter();
     const route = useRoute();
     const { register, unregister } = injectFocusEngine();
 

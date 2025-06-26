@@ -1,9 +1,9 @@
 <script setup>
-    import { ref, onMounted } from "vue";
-    import { useRouter, useRoute } from "vue-router";
-    import { API_BASE_URL } from "@/assets/config.js"
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import api from '@/assets/utils/api.js'
 
-    const router = useRouter();
+const router = useRouter();
     const route = useRoute();
 
     const code = ref("");
@@ -30,7 +30,7 @@
     errorMessage.value = "";
 
     try {
-        const response = await fetch(`${API_BASE_URL}/identity/resetPassword`, {
+        const response = await api.post(`/identity/resetPassword`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

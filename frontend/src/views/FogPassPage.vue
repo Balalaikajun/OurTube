@@ -1,7 +1,7 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { API_BASE_URL } from "@/assets/config.js"
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/assets/utils/api.js'
 
 const router = useRouter();
 
@@ -14,7 +14,7 @@ const submitForm = async () => {
     errorMessage.value = "";
 
     try {
-        const response = await fetch(`${API_BASE_URL}/identity/forgotPassword`, {
+        const response = await api.post(`/identity/forgotPassword`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

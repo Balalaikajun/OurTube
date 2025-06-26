@@ -1,7 +1,7 @@
 <script setup>
-    import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref } from 'vue'
 
-    const emit = defineEmits(['kebab-click']);
+const emit = defineEmits(['kebab-click']);
 
     const buttonRef = ref(null);
 

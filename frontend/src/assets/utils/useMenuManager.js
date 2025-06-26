@@ -1,5 +1,5 @@
 // useMenuManager.js
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 const activeMenu = ref(null);
 

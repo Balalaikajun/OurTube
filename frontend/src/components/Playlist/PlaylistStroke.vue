@@ -1,7 +1,7 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject } from "vue";
+import { ref } from 'vue'
 
-    const props = defineProps(
+const props = defineProps(
         {
             id: {
                 type: [Number, null],

@@ -1,17 +1,18 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, watch, nextTick, toRef, provide, inject, watchEffect, computed } from "vue";
-    import axios from 'axios';
-    import CommentMenu from "../Kebab/CommentMenu.vue";
-    import KebabButton from "../Kebab/KebabButton.vue";
-    import UserAvatar from "../Solid/UserAvatar.vue";
-    import ReactionBlock from "@/components/Solid/ReactionBlock.vue";
-    import CreateCommentBlock from "./CreateCommentBlock.vue";
-    import useTextOverflow from "@/assets/utils/useTextOverflow";
-    import formatter from "@/assets/utils/formatter.js";
-    import { API_BASE_URL } from "@/assets/config.js";
-    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
+import { computed, inject, nextTick, onMounted, provide, ref, watch, watchEffect } from 'vue'
+import api from '@/assets/utils/api.js'
+import CommentMenu from '../Kebab/CommentMenu.vue'
+import KebabButton from '../Kebab/KebabButton.vue'
+import UserAvatar from '../Solid/UserAvatar.vue'
+import ReactionBlock from '@/components/Solid/ReactionBlock.vue'
+import CreateCommentBlock from './CreateCommentBlock.vue'
+import useTextOverflow from '@/assets/utils/useTextOverflow'
+import formatter from '@/assets/utils/formatter.js'
+import { onClickOutside } from '@vueuse/core';
 
-    const props = defineProps(
+import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
+
+const props = defineProps(
         {
             videoId: {
                 type: Number,
@@ -84,14 +85,6 @@
     const emit = defineEmits(['kebab-click', 'edit', 'delete', 'close']);
 
     const { register, unregister } = injectFocusEngine();
-
-    const api = axios.create({
-        baseURL: API_BASE_URL,
-        withCredentials: true,
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
 
     const userData = JSON.parse(localStorage.getItem('userData'));
     const currentUserId = userData?.id;
@@ -201,7 +194,7 @@
         isLoading.value = true;
         try {
             const response = await api.get(
-                `/api/Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
+                `Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
             );
             
             const newComments = response.data?.comments || [];

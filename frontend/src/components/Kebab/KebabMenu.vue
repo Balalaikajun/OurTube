@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onBeforeUnmount, watch, nextTick } from "vue";
+import { nextTick, onBeforeUnmount, ref } from 'vue'
 
 const props = defineProps({
   context: {

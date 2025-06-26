@@ -1,12 +1,11 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, inject, computed} from "vue";
-    import axios from 'axios';
-    import { useRouter } from 'vue-router';
-    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
-    import UserAvatar from "../Solid/UserAvatar.vue";
-    import { API_BASE_URL } from "@/assets/config.js";
+import { computed, inject, onMounted, ref } from 'vue'
+import api from '@/assets/utils/api.js'
+import { useRouter } from 'vue-router'
+import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
+import UserAvatar from '../Solid/UserAvatar.vue'
 
-    const props = defineProps({
+const props = defineProps({
         videoId: {
             type: Number,
             required: true,
@@ -28,14 +27,6 @@
     const errorMessage = ref("");
 
     const rootParentId = inject('rootParentId', 100000000);
-
-    const api = axios.create({
-        baseURL: API_BASE_URL,
-        withCredentials: true, // Важно для передачи кук
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
 
     function adjustHeight() {
         if (textareaRef.value) {
@@ -84,7 +75,7 @@
         }
 
         try {
-            const response = await api.post('/api/Video/Comment', {
+            const response = await api.post('Video/Comment', {
                 videoId: props.videoId,
                 text: commentText.value,
                 parentId: rootParentId

@@ -1,12 +1,10 @@
 <script setup>
-    import { ref, onMounted, onBeforeUnmount, nextTick} from "vue";
-    import axios from 'axios';
-    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
-    import PlaylistStroke from "./PlaylistStroke.vue";
-    import { API_BASE_URL } from "@/assets/config.js";
-    import { scroll  } from '@/assets/utils/scroll.js';
+import { nextTick, ref } from 'vue'
+import api from '@/assets/utils/api.js'
+import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
+import PlaylistStroke from './PlaylistStroke.vue'
 
-    // const props = defineProps(
+// const props = defineProps(
     //     {
     //         videoId: {
     //             type: Number,
@@ -15,14 +13,6 @@
     //         }
     //     }
     // )
-
-    const api = axios.create({
-        baseURL: API_BASE_URL,
-        withCredentials: true, // Важно для передачи кук
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
 
     const { register, unregister } = injectFocusEngine();
 
@@ -72,12 +62,12 @@
     const addToPlaylist = async (playlistId, isContained) => {
         if(isContained)
         {
-            const response = await api.post(`/api/Playlist/${playlistId}/${videoId.value}`);
+            const response = await api.post(`Playlist/${playlistId}/${videoId.value}`);
             console.log("Добавление в плейлист")
         }
         else
         {
-            const response = await api.delete(`/api/Playlist/${playlistId}/${videoId.value}`);
+            const response = await api.delete(`Playlist/${playlistId}/${videoId.value}`);
             console.log("Удаление из плейлиста")
         }
 
@@ -86,13 +76,13 @@
     const createNewPlaylist = async () => {
         if (!isMain.value && newPlaylistName.value.trim()) {
             try {
-                const response = await api.post('/api/Playlist', {
+                const response = await api.post('Playlist', {
                     title: newPlaylistName.value.trim(),
                     description: "плейлист"
                 });
                 console.log(response.data.id)
                 if (response.data.id) {
-                    await api.post(`/api/Playlist/${response.data.id}/${videoId.value}`);
+                    await api.post(`Playlist/${response.data.id}/${videoId.value}`);
                     await fetchPlaylists();
                 }
                 
@@ -119,7 +109,7 @@
             error.value = null;
 
             // console.log(videoId.value)
-            const response = await api.get(`/api/Playlist/video/${videoId.value}`);
+            const response = await api.get(`Playlist/video/${videoId.value}`);
             playlists.value = response.data;
             
 

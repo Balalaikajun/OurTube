@@ -1,24 +1,15 @@
 <script setup>
-    import { ref } from "vue";
-    import { useRouter } from "vue-router";
-    import { API_BASE_URL } from "@/assets/config";
-    import axios from "axios";
-    import { saveUserDataToLocalStorage } from "@/assets/utils/userServiсe.js";
-    
-    const email = ref("");
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/assets/utils/api.js'
+import { saveUserDataToLocalStorage } from '@/assets/utils/userServiсe.js'
+
+const email = ref("");
     const password = ref("");
     const loading = ref(false);
     const errorMessage = ref("");
 
     const router = useRouter();
-
-    const api = axios.create({
-        baseURL: API_BASE_URL,
-        headers: {
-            "Content-Type": "application/json",
-        },
-        withCredentials: true // Важно!
-    });
 
     const submitForm = async () => {
         errorMessage.value = "";

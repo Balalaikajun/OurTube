@@ -1,9 +1,7 @@
 <script setup>
-import { ref } from "vue";
-import KebabButton from "../Kebab/KebabButton.vue";
-import UserAvatar from "../Solid/UserAvatar.vue";
-import { MINIO_BASE_URL } from "@/assets/config.js";
-import formatter from "@/assets/utils/formatter.js";
+import KebabButton from '../Kebab/KebabButton.vue'
+import UserAvatar from '../Solid/UserAvatar.vue'
+import formatter from '@/assets/utils/formatter.js'
 
 const props = defineProps({
   video: {
@@ -72,7 +70,7 @@ const handleImageError = (event) => {
 
 const getPreviewUrl = (fileName) => {
   if (!fileName) return '';
-  return `${MINIO_BASE_URL}/videos/${fileName}`;
+  return `${import.meta.env.VITE_MINIO_BASE_URL}/videos/${fileName}`;
 };
 
 </script>

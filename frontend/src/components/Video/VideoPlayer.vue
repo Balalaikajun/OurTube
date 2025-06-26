@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, onUnmounted, computed } from 'vue';
-import Hls from 'hls.js';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import Hls from 'hls.js'
 
 const props = defineProps({
   videoSrc: {

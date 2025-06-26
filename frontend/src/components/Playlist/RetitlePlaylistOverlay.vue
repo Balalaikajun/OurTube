@@ -1,8 +1,8 @@
 <script setup>
-    import { ref, onMounted, onBeforeUnmount, nextTick} from "vue";
-    import { injectFocusEngine } from '@/assets/utils/focusEngine.js';
+import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
 
-    const emit = defineEmits(['retitle']);
+const emit = defineEmits(['retitle']);
 
     const { register, unregister } = injectFocusEngine();
 

@@ -1,9 +1,9 @@
 <script setup>
-    import { ref } from "vue";
-    import { useRouter } from "vue-router";
-    import { API_BASE_URL } from "@/assets/config.js"
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/assets/utils/api.js'
 
-    const username = ref("");
+const username = ref("");
     const email = ref("");
     const password = ref("");
     const loading = ref(false);
@@ -18,7 +18,7 @@
         try {
             // Запрос на бэкенд для регистрации
             // Эндпоинты менять не забывайте
-            const response = await fetch(`${API_BASE_URL}/identity/register`, {
+            const response = await api.post(`/identity/register`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -1,7 +1,7 @@
 <script setup>
-    import { ref, onBeforeUnmount, watch, nextTick } from "vue";
-    import { scroll  } from '@/assets/utils/scroll.js';
-    const props = defineProps({
+import { nextTick, onBeforeUnmount, ref } from 'vue'
+
+const props = defineProps({
         videoId: {
             type: [String, Number],
             required: true

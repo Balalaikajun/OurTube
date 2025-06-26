@@ -1,7 +1,7 @@
 <script setup>
-    import { ref, onBeforeUnmount, watch, nextTick } from "vue";
+import { onBeforeUnmount, ref } from 'vue'
 
-    const props = defineProps({
+const props = defineProps({
         action: {
             type: String,
             required: true,

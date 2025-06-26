@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 
 export default function useInfiniteScroll(options) {
     const {

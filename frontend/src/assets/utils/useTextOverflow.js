@@ -1,4 +1,4 @@
-import { ref, nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 
 export default function useTextOverflow() {
     const isClamped = ref(false)

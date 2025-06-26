@@ -1,11 +1,11 @@
 <script setup>
-    import { ref, watch } from 'vue';
-    import { useRoute, useRouter } from 'vue-router';
-    import MasterHead from '@/components/Solid/MasterHead.vue';
-    import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
-    import VideosPresentation from '@/components/Video/VideosPresentation.vue';
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import MasterHead from '@/components/Solid/MasterHead.vue'
+import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
+import VideosPresentation from '@/components/Video/VideosPresentation.vue'
 
-    // defineOptions({
+// defineOptions({
     //     inheritAttrs: false
     // });
 

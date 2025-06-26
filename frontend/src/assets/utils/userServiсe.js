@@ -1,17 +1,8 @@
-import axios from "axios";
-import { API_BASE_URL } from "@/assets/config.js";
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+import api from '@/assets/utils/api.js'
 
 export const fetchUserData = async () => {
   try {
-    const response = await api.get('/api/User');
+    const response = await api.get('User');
     // console.log(response.data)
     return response.data;
   } catch (err) {

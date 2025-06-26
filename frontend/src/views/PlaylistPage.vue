@@ -1,17 +1,16 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
-    import { useRoute } from "vue-router";
-    import axios from 'axios';
+import { onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import api from '@/assets/utils/api.js'
 
-    import MasterHead from "../components/Solid/MasterHead.vue";
-    import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
-    import RenamePlaylistOverlay from "@/components/Playlist/RetitlePlaylistOverlay.vue";
-    import ConfirmPannel from "@/components/Solid/ConfirmPannel.vue";
-    import LoadingState from "@/components/Solid/LoadingState.vue";
-    import VideosPresentation from "@/components/Video/VideosPresentation.vue";
-    import { API_BASE_URL } from "@/assets/config.js";
+import MasterHead from '../components/Solid/MasterHead.vue'
+import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
+import RenamePlaylistOverlay from '@/components/Playlist/RetitlePlaylistOverlay.vue'
+import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
+import LoadingState from '@/components/Solid/LoadingState.vue'
+import VideosPresentation from '@/components/Video/VideosPresentation.vue'
 
-    const playlistData = ref(null);
+const playlistData = ref(null);
     const currentPlaylistId = ref(null);
     const playlistRef = ref(null);
     const confirmRef = ref(null);
@@ -31,19 +30,11 @@
 
     const route = useRoute();
 
-    const api = axios.create({
-      baseURL: API_BASE_URL,
-      withCredentials: true, // Важно для передачи кук
-      headers: {
-          'Content-Type': 'application/json'
-      }
-    });
-
     const fetchPlaylistData = async () => {
         isLoading.value = true;
         errorMessage.value = null;
         try {
-            const response = await api.get(`/api/Playlist/${currentPlaylistId.value}`);
+            const response = await api.get(`Playlist/${currentPlaylistId.value}`);
             playlistData.value = response.data.playlist;
             console.log(playlistData.value.title)
         } catch (err) {
@@ -73,7 +64,7 @@
     const retitlePlaylist = async (playlist) => {
         try {
             console.log(playlist)
-            await api.patch(`/api/Playlist/${currentPlaylistId.value}`,
+            await api.patch(`Playlist/${currentPlaylistId.value}`,
                 {
                     "title": playlist,
                     "description": "плейлист"
@@ -87,7 +78,7 @@
 
     const deletePlaylist = async () => {
         try {
-            await api.delete(`/api/Playlist/${currentPlaylistId.value}`);
+            await api.delete(`Playlist/${currentPlaylistId.value}`);
             await videosRef.value.resetPlaylist();
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста';
@@ -97,7 +88,7 @@
     const handleDeleteFromPlaylist = async (videoId) => {
         try {
             console.log("Удаление", videoId, "из", currentPlaylistId.value )
-            await api.delete(`/api/Playlist/${currentPlaylistId.value}/${videoId}`);
+            await api.delete(`Playlist/${currentPlaylistId.value}/${videoId}`);
             await videosRef.value.resetPlaylist();
         } catch (error) {
             console.error('Playlist error:', error);

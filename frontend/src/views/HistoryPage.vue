@@ -1,14 +1,13 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
-    import { useRoute, useRouter } from 'vue-router';
-    import axios from 'axios';
-    import MasterHead from "../components/Solid/MasterHead.vue";
-    import ConfirmPannel from "@/components/Solid/ConfirmPannel.vue";
-    import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
-    import VideosPresentation from "@/components/Video/VideosPresentation.vue";
-    import { API_BASE_URL } from "@/assets/config.js";
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import api from '@/assets/utils/api.js'
+import MasterHead from '../components/Solid/MasterHead.vue'
+import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
+import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
+import VideosPresentation from '@/components/Video/VideosPresentation.vue'
 
-    const router = useRouter();
+const router = useRouter();
     const route = useRoute();
 
     const videoId = ref(null);
@@ -18,15 +17,6 @@
     const queryText = ref("");
     const searchQuery = ref(""); // Отдельное состояние для поискового запроса
     const isInputFocused = ref(false);
-
-    const api = axios.create({
-      baseURL: API_BASE_URL,
-      withCredentials: true, // Важно для передачи кук
-      headers: {
-          'Content-Type': 'application/json'
-      }
-    });
-
 
     const saveOpen = (videoId) => {
       playlistRef.value.toggleMenu(videoId);
@@ -58,7 +48,7 @@
     };
     const handleDeleteFromHistory = async (videoId) => {
         try {
-            await api.delete(`/api/History/${videoId}`);
+            await api.delete(`History/${videoId}`);
             console.log(videoId)
         } catch (error) {
             console.error('History error:', error);
@@ -70,7 +60,7 @@
 
     const clearHistory = async () => {
         try {
-            await api.delete('/api/History');
+            await api.delete('History');
             console.log('Clear history');
         } catch (error) {
             console.error('History error:', error);

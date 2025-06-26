@@ -1,13 +1,13 @@
 <script setup>
-    import { ref, onMounted, computed, watch } from "vue";
-    import axios from 'axios';
-    import CommentBlock from "./CommentBlock.vue";
-    import LoadingState from "../Solid/LoadingState.vue";
-    import { API_BASE_URL } from "@/assets/config.js";
-    import formatter from "@/assets/utils/formatter.js";
-    import useInfiniteScroll from "@/assets/utils/useInfiniteScroll.js";
+import { ref, watch } from 'vue'
+import api from '@/assets/utils/api.js'
+import CommentBlock from './CommentBlock.vue'
+import LoadingState from '../Solid/LoadingState.vue'
 
-    const props = defineProps({
+import formatter from '@/assets/utils/formatter.js'
+import useInfiniteScroll from '@/assets/utils/useInfiniteScroll.js'
+
+const props = defineProps({
         videoId: {
             type: Number,
             required: true,
@@ -26,14 +26,6 @@
     const emit = defineEmits(['delete', 'edit']);
     const currentCommentId = ref(0);
 
-    const api = axios.create({
-        baseURL: API_BASE_URL,
-        withCredentials: true,
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
     // Используем композицию бесконечной прокрутки
     const { 
         data: commentsData, 
@@ -47,7 +39,7 @@
         fetchMethod: async (after) => {
             try {
                 const response = await api.get(
-                    `/api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
+                    `Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
                 );
                 console.log(response)
                 console.log("response hasMore", response.data?.hasMore)
@@ -83,7 +75,7 @@
                 throw new Error("Вы не можете удалить чужой комментарий");
             }
             
-            await api.delete(`/api/Video/Comment/${currentCommentId.value}`);
+            await api.delete(`Video/Comment/${currentCommentId.value}`);
             await resetComments();
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Ошибка при удалении комментария';
@@ -94,7 +86,7 @@
 
     const handleEditComment = async (newText) => {
         try {
-            await api.patch(`/api/Video/Comment`, {
+            await api.patch(`Video/Comment`, {
                 "id": currentCommentId.value,
                 "text": newText.text
             });

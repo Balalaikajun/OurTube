@@ -1,25 +1,23 @@
 <script setup>
-  import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
-  import { useRoute } from "vue-router";
-  import axios from 'axios';
-  import MasterHead from "../components/Solid/MasterHead.vue";
-  import ConfirmPannel from "@/components/Solid/ConfirmPannel.vue";
-  import PlaylistOverlay from "@/components/Playlist/PlaylistsOverlay.vue";
-  import VideoPlayer from "@/components/Video/VideoPlayer.vue";
-  import LoadingState from "@/components/Solid/LoadingState.vue"; // Импортируем компонент загрузки
-  import ShareOverlay from "@/components/Kebab/ShareOverlay.vue";
-  import CreateCommentBlock from "@/components/Comment/CreateCommentBlock.vue";
-  import VideoPresentation from "@/components/Video/VideosPresentation.vue";
-  import CommentsPresentation from "@/components/Comment/CommentsPresentation.vue";
-  import UserAvatar from "@/components/Solid/UserAvatar.vue";
-  import ReactionBlock from "@/components/Solid/ReactionBlock.vue";
-  import { API_BASE_URL } from "@/assets/config.js";
-  import { MINIO_BASE_URL } from "@/assets/config.js";
-  import formatter from "@/assets/utils/formatter.js";
-  import { useFocusEngine  } from '@/assets/utils/focusEngine.js';
-  import useTextOverflow from "@/assets/utils/useTextOverflow";
+import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import api from '@/assets/utils/api.js'
+import MasterHead from '../components/Solid/MasterHead.vue'
+import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
+import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
+import VideoPlayer from '@/components/Video/VideoPlayer.vue'
+import LoadingState from '@/components/Solid/LoadingState.vue' // Импортируем компонент загрузки
+import ShareOverlay from '@/components/Kebab/ShareOverlay.vue'
+import CreateCommentBlock from '@/components/Comment/CreateCommentBlock.vue'
+import VideoPresentation from '@/components/Video/VideosPresentation.vue'
+import CommentsPresentation from '@/components/Comment/CommentsPresentation.vue'
+import UserAvatar from '@/components/Solid/UserAvatar.vue'
+import ReactionBlock from '@/components/Solid/ReactionBlock.vue'
+import formatter from '@/assets/utils/formatter.js'
+import { useFocusEngine } from '@/assets/utils/focusEngine.js'
+import useTextOverflow from '@/assets/utils/useTextOverflow'
 
-  // const userStore = useUserStore();
+// const userStore = useUserStore();
 
   const route = useRoute();
   const videoPage = ref(null);
@@ -55,18 +53,10 @@
     return url.startsWith('http') ? url : `http://${url}`;
   };
 
-  const api = axios.create({
-      baseURL: API_BASE_URL,
-      withCredentials: true,
-      headers: {
-          'Content-Type': 'application/json'
-      }
-  });
-
   const addToHistory = async () => {
     try {
       console.log(videoId.value);
-      await api.post('/api/History', {
+      await api.post('History', {
         videoId: videoId.value,
         endTime: "0"
       });
@@ -108,7 +98,7 @@
 
     try {
       // console.log(videoId.value, 1)
-      const response = await api.get(`/api/Video/${videoId.value}`);
+      const response = await api.get(`Video/${videoId.value}`);
       const data = response.data;
 
       console.log(data, "Информация о видео");
@@ -126,7 +116,7 @@
       if (data.files?.length) {
         const file = data.files[0];
         if (file.fileName) {
-          hlsUrl.value = ensureHttpUrl(`${MINIO_BASE_URL}/videos/${file.fileName}`);
+          hlsUrl.value = ensureHttpUrl(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${file.fileName}`);
           console.log("HLS URL:", hlsUrl.value);
         } else {
           console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);

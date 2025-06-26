@@ -1,9 +1,8 @@
 <script setup>
-    import { ref, onMounted, onUnmounted, computed, nextTick, provide, watch  } from "vue";
-    import { useRoute } from "vue-router";
-    import KebabButton from "../Kebab/KebabButton.vue";
+import { onMounted } from 'vue'
+import KebabButton from '../Kebab/KebabButton.vue'
 
-    const props = defineProps({
+const props = defineProps({
         playlist: {
             type: Object,
             required: true,

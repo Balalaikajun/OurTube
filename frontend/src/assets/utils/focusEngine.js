@@ -1,4 +1,4 @@
-import { ref, provide, inject } from 'vue';
+import { inject, provide, ref } from 'vue'
 
 export const useFocusEngine = () => {
   const focusedElement = ref(null);
