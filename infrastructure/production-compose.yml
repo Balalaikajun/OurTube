@@ -1,0 +1,103 @@
+version: '3.9'
+
+services:
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"  # MinIO API
+      - "9090:9090"  # MinIO Web UI
+    environment:
+      MINIO_ROOT_USER: ${MinIO__AccessKey}
+      MINIO_ROOT_PASSWORD: ${MinIO__SecretKey}
+      MINIO_SERVER_URL: "http://minio:9000"
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9090"
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:17.4
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DATAPROTECTION__KEYSPATH=/root/.aspnet/DataProtection-Keys
+      - AllowedHosts=${ALLOWED_HOSTS}
+      - Cors__AllowedOrigins=http://localhost:5173;http://localhost:5174
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
+      - SMTP__Server=${SMTP__Server}
+      - SMTP__Port=${SMTP__Port}
+      - SMTP__Email=${SMTP__Email}
+      - SMTP__Password=${SMTP__Password}
+      - Minio__AccessKey=${MinIO__AccessKey}
+      - Minio__SecretKey=${MinIO__SecretKey}
+      - Minio__Endpoint=${MinIO__Endpoint}
+      - Minio__VideoBucket=${MinIO__VideoBucket}
+      - Minio__UserBucket=${MinIO__UserBucket}
+      - FFmpeg__ExecutablesPath=${FFmpeg__ExecutablesPath}
+    volumes:
+      - data-protection-keys:/root/.aspnet/DataProtection-Keys
+      - ./wait-for-it.sh:/wait-for-it.sh
+    entrypoint: /bin/sh
+    command: >
+      -c "chmod +x /wait-for-it.sh &&
+          /wait-for-it.sh postgres:5432 -- /wait-for-it.sh minio:9000 --
+          dotnet OurTube.Api.dll"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+
+
+
+  frontend:
+    build:
+      context: ../frontend/
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://${DOMAIN}/api
+        VITE_MINIO_BASE_URL: https://${DOMAIN}/storage
+    environment:
+      - DOMAIN=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  minio_data:
+  postgres_data:
+  data-protection-keys:

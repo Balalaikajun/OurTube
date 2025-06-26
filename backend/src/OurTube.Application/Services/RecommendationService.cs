@@ -78,6 +78,41 @@ public class RecommendationService : IRecomendationService
         };
     }
 
+    public async Task<PagedVideoDto> GetRecommendationsForVideoAsync(int videoId,
+        string? userId, string sessionId,
+        int limit, int after,
+        bool reload = false)
+    {
+        var result = await GetRecommendationsAsync(
+            userId,
+            sessionId,
+            limit,
+            after,
+            reload
+        );
+
+        if (result.Videos.Any(v => v.Id == videoId))
+        {
+            var oneMore = await GetRecommendationsAsync(
+                userId,
+                sessionId,
+                1,
+                result.NextAfter,
+                false
+            );
+
+            var videos = result.Videos.ToList();
+            videos.Remove(videos.First(v => v.Id == videoId));
+            var newVideo = oneMore.Videos.FirstOrDefault();
+            if(newVideo != null)
+                videos.Add(newVideo);
+            result.Videos = videos;
+            result.NextAfter = oneMore.NextAfter;
+        }
+        
+        return result;
+    }
+
     private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)
     {
         const double trendRecRatio = 0.4;

@@ -3,6 +3,5 @@
 public class VideoPreviewDto
 {
     public string FileName { get; set; }
-    public string FileDirInStorage { get; set; }
     public string Bucket { get; set; }
 }

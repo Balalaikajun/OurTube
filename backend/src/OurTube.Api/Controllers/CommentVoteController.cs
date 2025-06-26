@@ -5,7 +5,7 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
-[Route("api/Video/Comment/{commentId:int}/vote")]
+[Route("Video/Comment/{commentId:int}/vote")]
 [ApiController]
 public class CommentVoteController : ControllerBase
 {

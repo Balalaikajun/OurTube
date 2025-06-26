@@ -38,9 +38,6 @@ appsettings.Production.json
 appsettings.Staging.json
 secrets.json
 
-# Entity Framework
-**/Migrations/
-
 # Logs and debugging
 *.log
 *.tlog
@@ -79,3 +76,5 @@ yarn-error.log
 .idea/
 *.sln.iml
 /backend/src/OurTube.Api/appsettings.json
+/infrastructure/.env
+/frontend/.env

@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"  # MinIO API
+      - "9090:9090"  # MinIO Web UI
+    environment:
+      MINIO_ROOT_USER: ${MinIO__AccessKey}
+      MINIO_ROOT_PASSWORD: ${MinIO__SecretKey}
+      MINIO_SERVER_URL: "http://minio:9000"
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9090"
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:17.4
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  minio_data:
+  postgres_data:
+  data-protection-keys:

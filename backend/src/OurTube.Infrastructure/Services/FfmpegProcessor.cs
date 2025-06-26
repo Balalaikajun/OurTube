@@ -17,11 +17,12 @@ public class FfmpegProcessor : IVideoProcessor
         var segmentsFullUri = Path.Combine(segmentsUri, "segments/").Replace(@"\", @"/");
 
         Directory.CreateDirectory(Path.Combine(outputDir, "segments"));
-
+        
         await FFmpeg.Conversions.New()
             .AddStream(inputVideoMediaInfo.Streams)
-            .AddParameter($"-vf scale=-1:{videoHeight}") // Масштабируем видео
-            .AddParameter("-c:v h264_nvenc -preset p4") // Кодируем видео с x264
+            .AddParameter($"-vf scale=-2:{videoHeight}") // Масштабируем видео
+            .AddParameter("-pix_fmt yuv420p") // Масштабируем видео
+            .AddParameter("-c:v libx264 -preset medium") // Кодируем видео с x264
             .AddParameter("-cq 18") // Устанавливаем качество
             .AddParameter("-c:a aac -b:a 128k") // Кодируем аудио
             .AddParameter("-hls_time 10 -hls_list_size 0") // HLS настройким

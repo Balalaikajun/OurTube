@@ -13,7 +13,7 @@ namespace OurTube.Application.Services;
 
 public class VideoService : IVideoService
 {
-    private readonly IBlobService _blobService;
+    private readonly IStorageClient _storageClient;
     private readonly string _bucket;
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
@@ -28,13 +28,13 @@ public class VideoService : IVideoService
         IVideoProcessor videoProcessor,
         IConfiguration configuration,
         VideoValidator validator,
-        IBlobService blobService,
+        IStorageClient storageClient,
         ITagService tagService)
     {
         _dbContext = dbContext;
         _mapper = mapper;
         _videoProcessor = videoProcessor;
-        _blobService = blobService;
+        _storageClient = storageClient;
         _videoResolutions = configuration.GetSection("VideoSettings:Resolutions").Get<int[]>();
         _bucket = configuration.GetSection("Minio:VideoBucket").Get<string>();
         _validator = validator;
@@ -155,12 +155,12 @@ public class VideoService : IVideoService
 
 
                 //Отправка
-                await _blobService.UploadFileAsync(
+                await _storageClient.UploadFileAsync(
                     Path.Combine(tempVideoDir, resolution.ToString(), Path.GetFileName(playlist.FileName)),
                     playlist.FileName,
                     playlist.Bucket);
 
-                await _blobService.UploadFilesAsync(
+                await _storageClient.UploadFilesAsync(
                     Directory.GetFiles(Path.Combine(tempVideoDir, resolution.ToString(), "segments")),
                     playlist.Bucket,
                     Path.Combine(filePref, resolution.ToString(), "segments").Replace(@"\", @"/")
@@ -177,7 +177,7 @@ public class VideoService : IVideoService
                 Bucket = _bucket
             };
 
-            await _blobService.UploadFileAsync(
+            await _storageClient.UploadFileAsync(
                 tempPreviewPath,
                 preview.FileName,
                 preview.Bucket);
@@ -188,7 +188,7 @@ public class VideoService : IVideoService
                 FileName = Path.Combine(filePref, Path.GetFileName(tempSourcePath)).Replace(@"\", @"/"),
                 Bucket = _bucket
             };
-            await _blobService.UploadFileAsync(
+            await _storageClient.UploadFileAsync(
                 tempSourcePath,
                 source.FileName,
                 source.Bucket);
