@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace OurTube.Api.Controllers;
 
-[Route("identity")]
+[Route("api/identity")]
 [ApiController]
 public class IdentityController: ControllerBase
 {

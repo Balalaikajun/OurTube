@@ -6,7 +6,7 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
-[Route("Video/[Controller]")]
+[Route("api/Video/[Controller]")]
 [ApiController]
 public class CommentController : ControllerBase
 {

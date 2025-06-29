@@ -29,4 +29,8 @@
         <ProjectReference Include="..\OurTube.Infrastructure\OurTube.Infrastructure.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="wwwroot\" />
+    </ItemGroup>
+
 </Project>
