@@ -13,4 +13,10 @@ public class TestController : ControllerBase
         Console.WriteLine(Request.Cookies["SessionId"]);
         return Ok();
     }
+    
+    [HttpGet("/health")]
+    public async Task<ActionResult> Health()
+    {
+        return Ok("I`m healthy");
+    }
 }
