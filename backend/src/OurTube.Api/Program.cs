@@ -191,7 +191,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseCors("AllowFrontend");
-app.UseStaticFiles();
 
 
 app.UseAuthentication();
@@ -201,6 +200,11 @@ app.UseMiddleware<UniqueVisitorId>();
 
 app.MapControllers();
 
+app.UseStaticFiles();
+
 app.MapFallbackToFile("index.html");
+
+app.MapGroup("/identity")
+    .MapIdentityApi<IdentityUser>();
 
 app.Run();

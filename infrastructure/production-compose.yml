@@ -5,8 +5,8 @@ services:
     image: quay.io/minio/minio
     container_name: minio
     ports:
-      - "9000:9000"   # MinIO API
-      - "9090:9090"   # MinIO Web UI
+      - "9000:9000" # MinIO API
+      - "9090:9090" # MinIO Web UI
     environment:
       MINIO_ROOT_USER: ${MinIO__AccessKey}
       MINIO_ROOT_PASSWORD: ${MinIO__SecretKey}
@@ -46,7 +46,7 @@ services:
       dockerfile: ./infrastructure/Dockerfile
       args:
         VITE_API_BASE_URL: "/api"
-        VITE_MINIO_BASE_URL: "http://localhost:9000"
+        VITE_MINIO_BASE_URL: "http://${DOMAIN}:9000"
     container_name: ourtube
     ports:
       - "80:8080"
