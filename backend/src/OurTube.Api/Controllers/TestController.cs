@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace OurTube.Api.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class TestController : ControllerBase
 {

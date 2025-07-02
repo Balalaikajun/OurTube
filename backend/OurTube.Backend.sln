@@ -19,9 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		..\.gitignore = ..\.gitignore
 		..\infrastructure\.env = ..\infrastructure\.env
 		..\infrastructure\.env.example = ..\infrastructure\.env.example
+		Dockerfile = Dockerfile
 		..\infrastructure\develop-compose.yml = ..\infrastructure\develop-compose.yml
 		..\infrastructure\production-compose.yml = ..\infrastructure\production-compose.yml
-		..\infrastructure\Dockerfile = ..\infrastructure\Dockerfile
+		..\frontend\Dockerfile = ..\frontend\Dockerfile
+		..\frontend\nginx.conf = ..\frontend\nginx.conf
 	EndProjectSection
 EndProject
 Global

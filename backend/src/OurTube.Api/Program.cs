@@ -161,6 +161,8 @@ builder.Services.AddDataProtection()
 
 var app = builder.Build();
 
+app.UsePathBase("/api");
+
 using (var scope = app.Services.CreateScope())
 {
     var storageClient = scope.ServiceProvider.GetRequiredService<IStorageClient>();
@@ -191,8 +193,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseCors("AllowFrontend");
-app.UseStaticFiles();
-
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -201,6 +201,7 @@ app.UseMiddleware<UniqueVisitorId>();
 
 app.MapControllers();
 
-app.MapFallbackToFile("index.html");
+app.MapGroup("/identity")
+    .MapIdentityApi<IdentityUser>();
 
 app.Run();
