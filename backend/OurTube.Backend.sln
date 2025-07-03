@@ -23,7 +23,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		..\infrastructure\develop-compose.yml = ..\infrastructure\develop-compose.yml
 		..\infrastructure\production-compose.yml = ..\infrastructure\production-compose.yml
 		..\frontend\Dockerfile = ..\frontend\Dockerfile
-		..\frontend\nginx.conf = ..\frontend\nginx.conf
 	EndProjectSection
 EndProject
 Global

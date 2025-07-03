@@ -14,7 +14,7 @@ const api = axios.create({
 
 (async () => {
   try {
-    const resp = await api.get("/health");
+    const resp = await api.get("/Health");
     console.log(resp);
   } catch (error) {
     console.error(error);

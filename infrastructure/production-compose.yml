@@ -1,12 +1,12 @@
-version: "3.9"
+version: '3.9'
 
 services:
   minio:
     image: quay.io/minio/minio
     container_name: minio
     ports:
-      - "9000:9000" # MinIO API
-      - "9090:9090" # MinIO Web UI
+      - "9000:9000"
+      - "9090:9090"
     environment:
       MINIO_ROOT_USER: ${MinIO__AccessKey}
       MINIO_ROOT_PASSWORD: ${MinIO__SecretKey}
@@ -17,7 +17,7 @@ services:
       - minio_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,40 +35,39 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
+    container_name: backend
     build:
       context: ../backend/
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - DATAPROTECTION__KEYSPATH=/root/.aspnet/DataProtection-Keys
-      - AllowedHosts=${ALLOWED_HOSTS}
-      - Cors__AllowedOrigins=http://localhost:5173;http://localhost:5174
-      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
-      - SMTP__Server=${SMTP__Server}
-      - SMTP__Port=${SMTP__Port}
-      - SMTP__Email=${SMTP__Email}
-      - SMTP__Password=${SMTP__Password}
-      - Minio__AccessKey=${MinIO__AccessKey}
-      - Minio__SecretKey=${MinIO__SecretKey}
-      - Minio__Endpoint=${MinIO__Endpoint}
-      - Minio__VideoBucket=${MinIO__VideoBucket}
-      - Minio__UserBucket=${MinIO__UserBucket}
-      - FFmpeg__ExecutablesPath=${FFmpeg__ExecutablesPath}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      DATAPROTECTION__KEYSPATH: /root/.aspnet/DataProtection-Keys
+      AllowedHosts: ${ALLOWED_HOSTS}
+      Cors__AllowedOrigins: ${CORS__ALLOWEDORIGINS}
+      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING}
+      SMTP__Server: ${SMTP__SERVER}
+      SMTP__PORT: ${SMTP__Port}
+      SMTP__Email: ${SMTP__EMAIL}
+      SMTP__Password: ${SMTP__PASSWORD}
+      Minio__AccessKey: ${MINIO__ACCESSKEY}
+      Minio__SecretKey: ${MINIO__SECRETKEY}
+      Minio__Endpoint: ${MINIO__ENDPOINT}
+      FFmpeg__ExecutablesPath: ${FFMPEG__EXECUTABLESPATH}
     volumes:
       - data-protection-keys:/root/.aspnet/DataProtection-Keys
       - ./wait-for-it.sh:/wait-for-it.sh
     entrypoint: /bin/sh
     command: >
       -c "chmod +x /wait-for-it.sh &&
-          /wait-for-it.sh postgres:5432 -- /wait-for-it.sh minio:9000 --
+          /wait-for-it.sh postgres:5432 -- /wait-for-it.sh minio:9000 -- 
           dotnet OurTube.Api.dll"
     depends_on:
       postgres:
@@ -76,23 +75,29 @@ services:
       minio:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/Health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
+    container_name: frontend
     build:
       context: ../frontend/
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://${DOMAIN}/api
-        VITE_MINIO_BASE_URL: http://${DOMAIN}/storage
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_MINIO_BASE_URL: ${VITE_MINIO_BASE_URL}
     environment:
       - DOMAIN=${DOMAIN}
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
     ports:
       - "80:80"
-      - "443:443"
-    restart: unless-stopped
     depends_on:
       - backend
+    restart: unless-stopped
+    command: [ "-g", "daemon off;", "-c", "/etc/nginx/http.conf" ]
+
 
 volumes:
   minio_data:

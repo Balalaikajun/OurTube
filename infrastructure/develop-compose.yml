@@ -51,7 +51,7 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       DATAPROTECTION__KEYSPATH: /root/.aspnet/DataProtection-Keys
       AllowedHosts: ${ALLOWED_HOSTS}
-      Cors__AllowedOrigins: http://ourtube.space;https://ourtube.space
+      Cors__AllowedOrigins: http://${DOMAIN};http://ourtube.space
       ConnectionStrings__DefaultConnection: ${CONNECTION_STRING}
       SMTP__Server: ${SMTP__Server}
       SMTP__Port: ${SMTP__Port}
@@ -84,44 +84,19 @@ services:
       context: ../frontend/
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: https://${DOMAIN}/api
-        VITE_MINIO_BASE_URL: https://${DOMAIN}/storage
+        VITE_API_BASE_URL: http://${DOMAIN}/api
+        VITE_MINIO_BASE_URL: http://${DOMAIN}/storage
     environment:
       - DOMAIN=${DOMAIN}
-    volumes:
-      - webroot:/var/www/certbot          # для ACME challenge
-      - certs:/etc/letsencrypt
-      - webroot:/var/www/certbot# для сертификатов
     ports:
       - "80:80"
-      - "443:443"
     depends_on:
       - backend
     restart: unless-stopped
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: certbot
-    volumes:
-      - webroot:/var/www/certbot
-      - certs:/etc/letsencrypt
-    entrypoint: /bin/sh
-    command:
-      - -c
-      - |
-        certbot certonly --webroot -w /var/www/certbot \
-          --non-interactive --agree-tos \
-          --email ${LETSENCRYPT_EMAIL} \
-          -d ${DOMAIN} || true;
-        while true; do
-          sleep 12h;
-          certbot renew --webroot -w /var/www/certbot \
-            --deploy-hook 'nginx -s reload';
-        done
+    command: [ "-g", "daemon off;", "-c", "/etc/nginx/mycustom.conf" ]
+  
 
 volumes:
   minio_data:
   postgres_data:
   data-protection-keys:
-  webroot:
-  certs:
