@@ -47,6 +47,9 @@ const saveOpen = (videoId) => {
 </script>
 
 <template>
+  <div>
+    
+  </div>
   <MasterHead/>
   <PlaylistOverlay 
     ref="playlistRef" 

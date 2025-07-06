@@ -62,12 +62,12 @@ import PlaylistStroke from './PlaylistStroke.vue'
     const addToPlaylist = async (playlistId, isContained) => {
         if(isContained)
         {
-            const response = await api.post(`Playlist/${playlistId}/${videoId.value}`);
+            const response = await api.post(`api/Playlist/${playlistId}/${videoId.value}`);
             console.log("Добавление в плейлист")
         }
         else
         {
-            const response = await api.delete(`Playlist/${playlistId}/${videoId.value}`);
+            const response = await api.delete(`api/Playlist/${playlistId}/${videoId.value}`);
             console.log("Удаление из плейлиста")
         }
 
@@ -82,7 +82,7 @@ import PlaylistStroke from './PlaylistStroke.vue'
                 });
                 console.log(response.data.id)
                 if (response.data.id) {
-                    await api.post(`Playlist/${response.data.id}/${videoId.value}`);
+                    await api.post(`api/Playlist/${response.data.id}/${videoId.value}`);
                     await fetchPlaylists();
                 }
                 

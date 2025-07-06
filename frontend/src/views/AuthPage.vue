@@ -29,7 +29,7 @@ const email = ref("");
 
             router.push("/");
         } catch (error) {
-        handleAuthError(error);
+            handleAuthError(error);
         } finally {
             loading.value = false;
         }
@@ -131,6 +131,11 @@ const email = ref("");
         background: #100E0E;
     }
 
+    form label {
+        color: #100E0E;
+        background: #F3F0E9;
+    }
+
     .content button{
         margin-top: auto;
         text-decoration: none;
@@ -163,7 +168,7 @@ const email = ref("");
     }
     .main-page-block input:first-of-type {
         margin-top: auto;
-        margin-bottom: 11vh;
+        margin-bottom: 2vh;
     }
 
     .other-content {

@@ -5,6 +5,7 @@ import UserAvatar from './UserAvatar.vue'
 
 import { useRoute, useRouter } from 'vue-router'
 import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
+import api from '@/assets/utils/api.js'
 
 const router = useRouter();
     const route = useRoute();
@@ -15,21 +16,27 @@ const router = useRouter();
     const searchQuery = ref("");
     const isLoading = ref(false);
 
-    const logout = () => {
-        // Очищаем все куки (устанавливаем срок действия в прошлое)
-        document.cookie.split(";").forEach(cookie => {
-            const [name] = cookie.split("=");
-            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-        });
+    const logout = async () => {
+        try {
+            const response = await api.post(`/api/identity/logout`)
+            console.log(response.status)
+        }
+        catch (error) {
+            console.error('Ошибка разлогирования:', error)
+        }
+        finally
+        {
+            document.cookie.split(";").forEach(cookie => {
+                const [name] = cookie.split("=");
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            });
         
-        // Очищаем локальное хранилище
-        localStorage.removeItem('userData');
-        
-        // Закрываем меню
-        activeMenu.value = null;
-        
-        // Перенаправляем на главную страницу или страницу входа
-        router.push('/');
+            localStorage.removeItem('userData');
+            
+            activeMenu.value = null;
+            
+            router.push('/');
+        }
     };
 
     // const handleFocus = () => {
@@ -131,16 +138,28 @@ const router = useRouter();
       <MainMenu v-if="activeMenu === 'side'" class="side-menu" />
       
       <div v-if="activeMenu === 'account'" class="account-menu">
-        <div class="account-header">
-          <UserAvatar />
-          <p class="user-name">{{ userData?.userName }}</p>
+        <div v-auth="true" class="account-wrapper">
+            <div class="account-header">
+                <UserAvatar />
+                <p class="user-name">{{ userData?.userName }}</p>
+            </div>
+            
+            <span class="divider"></span>
+            
+            <div class="account-actions">                
+                <button class="control-button">Настройки аккаунта</button>
+                <button class="control-button" @click="logout">Выйти из аккаунта</button>
+            </div>
         </div>
-        
-        <span class="divider"></span>
-        
-        <div class="account-actions">                
-            <button class="control-button">Настройки аккаунта</button>
-            <button class="control-button" @click="logout">Выйти из аккаунта</button>
+        <div v-auth="false" class="account-wrapper">
+            <div class="account-actions">
+                <router-link to="/login" custom v-slot="{ navigate }">
+                    <button class="control-button" @click="navigate">Войти</button>
+                </router-link>             
+                <router-link to="/register" custom v-slot="{ navigate }">
+                    <button class="control-button" @click="navigate">Регистрация</button>
+                </router-link>
+            </div>
         </div>
       </div>
     </header>
@@ -309,23 +328,23 @@ const router = useRouter();
         gap: 10px;
     }
 
-    .account-menu div:nth-child(1) {
+    .account-wrapper div:nth-child(1) {
         gap: 20px;
     }
 
-    .account-menu div:nth-last-child(1) {
+    .account-wrapper div:nth-last-child(1) {
         flex-direction: column;
     }
 
-    .account-menu div:nth-last-child(1) button {
+    .account-wrapper div:nth-last-child(1) button {
         padding: 10px;
     }
 
-    .account-menu div:nth-last-child(1) button:hover {
+    .account-wrapper div:nth-last-child(1) button:hover {
         background: #100E0E;
     }
 
-    .account-menu div {
+    .account-wrapper div {
         display: flex;
         flex-direction: row;
         gap: 10px;

@@ -19,7 +19,7 @@ const props = defineProps({
 
     const { register, unregister } = injectFocusEngine();
 
-    const userData = computed(() => JSON.parse(localStorage.getItem('userData')));
+    const userData = computed(() => JSON.parse(localStorage.getItem('userData'))); //правки
     const isAuthenticated = computed(() => !!userData.value);
     const commentText = ref('');
     const textareaRef = ref(null);

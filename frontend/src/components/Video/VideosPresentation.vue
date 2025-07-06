@@ -109,7 +109,7 @@ const fetchMethods = {
     const limit = computedBlocksInRow.value * 4
 
     try {
-      const response = await api.get(`Recommendation`, {
+      const response = await api.get(`api/Recommendation`, {
         params: {
           limit: limit,
           after: after || 0
@@ -122,9 +122,9 @@ const fetchMethods = {
       }
     } catch (error) {
       console.error('Ошибка получения рекомендаций:', error)
-      if (error.response?.status === 401) {
-        router.push('/login')
-      }
+      // if (error.response?.status === 401) {
+      //   router.push('/login')
+      // }
       return { videos: [], nextAfter: 0 }
     }
   },
@@ -133,7 +133,7 @@ const fetchMethods = {
     if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 }
     const limit = computedBlocksInRow.value * 4
     try {
-      const response = await api.get(`Search`, {
+      const response = await api.get(`api/Search`, {
         params: {
           query: props.searchQuery,
           limit: limit,
@@ -147,9 +147,9 @@ const fetchMethods = {
       }
     } catch (error) {
       console.error('Ошибка при выполнении поиска:', error)
-      if (error.response?.status === 401) {
-        router.push('/login')
-      }
+      // if (error.response?.status === 401) {
+      //   router.push('/login')
+      // }
       return { videos: [], nextAfter: 0 }
     }
   },
@@ -157,7 +157,7 @@ const fetchMethods = {
   async history (after) {
     const limit = computedBlocksInRow.value * 4
     try {
-      const response = await api.get(`History`, {
+      const response = await api.get(`api/History`, {
         params: {
           query: props.searchQuery,
           limit: limit,
@@ -172,9 +172,9 @@ const fetchMethods = {
       }
     } catch (error) {
       console.error('Ошибка при получении истории:', error)
-      if (error.response?.status === 401) {
-        router.push('/login')
-      }
+      // if (error.response?.status === 401) {
+      //   router.push('/login')
+      // }
       return { videos: [], nextAfter: 0 }
     }
   },
@@ -186,7 +186,7 @@ const fetchMethods = {
     const limit = computedBlocksInRow.value * 4
 
     try {
-      const response = await api.get(`Playlist/${playlistId}`, {
+      const response = await api.get(`api/Playlist/${playlistId}`, {
         params: { limit, after: after || 0 }
       })
 

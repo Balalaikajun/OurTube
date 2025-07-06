@@ -100,6 +100,7 @@ services.AddScoped<VideoValidator>();
 // CORS
 var originsEnv = configuration["Cors:AllowedOrigins"];
 var allowedOrigins = originsEnv.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
 services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -107,7 +108,8 @@ services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials();
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Disposition"); // если нужно
     });
 });
 
