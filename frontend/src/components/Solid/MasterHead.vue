@@ -11,6 +11,8 @@ const router = useRouter();
     const route = useRoute();
     const { register, unregister } = injectFocusEngine();
 
+    const emit = defineEmits(['open-upload']);
+
     const userData = computed(() => JSON.parse(localStorage.getItem('userData')));
     const activeMenu = ref(null); // 'side' | 'account' | null
     const searchQuery = ref("");
@@ -129,7 +131,9 @@ const router = useRouter();
             <span v-else>Поиск</span>
           </button>
         </form>
-        
+        <button class="reusable-button fit" @click.stop="emit('open-upload')">
+            Создать
+        </button>
         <div class="user-avatar-container" @click="() => toggleMenu('account')">
           <UserAvatar />
         </div>
@@ -166,6 +170,15 @@ const router = useRouter();
   </template>
 
 <style scoped>
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: none; /* Убираем стандартный стиль */
+        height: 1em;
+        width: 1em;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F3F0E9"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>') no-repeat;
+        background-size: contain;
+        cursor: pointer;
+    }
+
     .top-head {
         position: fixed;
         top: 0;
@@ -303,6 +316,10 @@ const router = useRouter();
         background: #F3F0E9;
         margin-top: 10px;
         margin-bottom: 10px;
+    }
+
+    .reusable-button {
+        border: 1px dashed #F3F0E9;
     }
 
     .user-name {

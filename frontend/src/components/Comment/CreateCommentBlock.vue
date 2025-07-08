@@ -53,10 +53,9 @@ const props = defineProps({
         textareaRef.value.blur();
         textareaRef.value.style.height = 'auto';
         showButtons.value = false;
-        console.log(rootParentId)
         if (rootParentId != null)
         {
-            console.log('Закрытие', rootParentId);
+            handleBlur();
             emit('close');
         }
     };
@@ -131,15 +130,15 @@ const props = defineProps({
                 <button 
                     @click="handleCancel" 
                     @mousedown.prevent
-                    class="control-button comment-button"
+                    class="reusable-button fit"
                 >
                     Отмена
                 </button>
                 <button 
-                    class="control-button comment-button"
+                    class="reusable-button fit"
                     :class="{ 
-                        'disabled-button': !commentText.trim(), 
-                        'comment-isFilled': commentText.trim() 
+                        'disabled': !commentText.trim(), 
+                        'isFilled': commentText.trim() 
                     }"
                     :disabled="!commentText.trim()"
                     @click="handleComment" 
@@ -169,41 +168,12 @@ const props = defineProps({
         gap: 10px;
         flex-direction: row;
         justify-content: end;
-    }
-    .component-input {
-        width: 100%;
-        min-height: 20px;
-        color: #F3F0E9;
-        line-height: 20px; 
-        font-size: 14px; /* Размер шрифта */
-        overflow-wrap: break-word;
-        outline: none;
-        resize: none;
-        box-sizing: border-box;
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid #F3F0E9;
-    }
-    .component-input:focus::placeholder {
-        opacity: 0;
     }   
-    .comment-button {
-        box-sizing: border-box;
-        border-radius: 4px;
-        padding: 10px;
-        font-size: 0.875rem;
-    }
-    .disabled-button {
-        cursor: default !important;
-    }
+
     .functional-buttons-block button:first-child:hover {
         background-color: #4A4947;
     }
-    .comment-isFilled:hover {
-        cursor: pointer !important;
-        background-color: #F39E60;
-        color: #100E0E;
-    }
+
     .error-message {
         color: #ff4d4f;
         margin-top: 8px;

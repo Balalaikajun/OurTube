@@ -1,0 +1,37 @@
+.component-input {
+    width: 100%;
+    min-height: 20px;
+    color: #F3F0E9;
+    line-height: 20px; 
+    font-size: 14px; /* Размер шрифта */
+    overflow-wrap: break-word;
+    outline: none;
+    resize: none;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #F3F0E9;
+}
+.component-input:focus::placeholder {
+    opacity: 0;
+}
+
+.standart-input {
+    box-sizing: border-box;
+    padding: 8px;
+    overflow-y: hidden;
+    width: 100%;
+    min-height: 20px; /* Начальная высота */
+    max-height: 200px; /* Максимальная высота (если нужно ограничить) */
+    background: #100E0E;
+    color: #F3F0E9;
+    border: none;
+    resize: none;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.standart-input:focus {
+    outline: none;
+    border-color: #F3F0E9;;
+}

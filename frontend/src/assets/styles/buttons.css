@@ -49,3 +49,48 @@
     stroke: #f3f0e9; 
     stroke-width: 2;
 }
+
+
+
+.reusable-button {
+    box-sizing: border-box;
+    padding: 10px;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #F3F0E9;
+    background-color: #100E0E;
+    cursor: pointer;
+    transition: background 1s ease;
+    width: 100%;
+}
+
+.reusable-button.fit {
+    width: fit-content;
+}
+
+.reusable-button:hover {
+    color: #100E0E;
+    background-color: #F39E60;
+}
+
+.reusable-button span {
+    position: relative;
+    top: -2px;
+}
+
+.reusable-button.disabled:hover {
+    cursor: default !important;
+    color: #F3F0E9;
+    background-color: #100E0E !important;
+    border: 1px dotted #F3F0E9;
+}
+.reusable-button.isFilled:hover {
+    cursor: pointer !important;
+}
+
+.buttons-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 0 10px;
+}

@@ -40,7 +40,7 @@ import VideosPresentation from '@/components/Video/VideosPresentation.vue'
 </script>
 
 <template>
-    <MasterHead />
+    <!-- <MasterHead /> -->
     <PlaylistOverlay ref="playlistRef" 
     />
     <VideosPresentation

@@ -110,7 +110,7 @@ const playlistData = ref(null);
     });
 </script>
 <template>
-    <MasterHead/>
+    <!-- <MasterHead/> -->
     <PlaylistOverlay 
         ref="playlistRef" 
     />

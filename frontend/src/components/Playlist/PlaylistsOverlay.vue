@@ -1,20 +1,9 @@
 <script setup>
-import { nextTick, ref } from 'vue'
-import api from '@/assets/utils/api.js'
-import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
-import PlaylistStroke from './PlaylistStroke.vue'
+    import { nextTick, ref } from 'vue'
+    import api from '@/assets/utils/api.js'
+    import { createKeyboardTrap } from '@/assets/utils/keyTrap.js'
+    import PlaylistStroke from './PlaylistStroke.vue'
 
-// const props = defineProps(
-    //     {
-    //         videoId: {
-    //             type: Number,
-    //             required: true,
-    //             default: 0
-    //         }
-    //     }
-    // )
-
-    const { register, unregister } = injectFocusEngine();
 
     const videoId = ref(0);
 
@@ -25,31 +14,23 @@ import PlaylistStroke from './PlaylistStroke.vue'
     const newPlaylistName = ref('');
     const isMain = ref(true);
 
+    const keyboardTrap = createKeyboardTrap(overlayContentRef);
+
     const toggleMenu = async (id) => {
         videoId.value = id;
-        await nextTick(); // Ждём обновления реактивного значения
+        await nextTick();
         isOpen.value = !isOpen.value;
         isMain.value = true;
         newPlaylistName.value = '';
 
         if (isOpen.value) {
-            await fetchPlaylists(); // Загружаем плейлисты только после открытия и обновления ID
+            await fetchPlaylists();
             document.addEventListener('click', handleClickOutside);
+            keyboardTrap.setup(); // Активируем ловушку клавиатуры
         } else {
             document.removeEventListener('click', handleClickOutside);
+            keyboardTrap.teardown(); // Деактивируем ловушку клавиатуры
         }
-    };
-
-    const handleFocus = () => {
-        register('createOverlay');
-    };
-
-    const handleBlur = () => {
-        setTimeout(() => {
-            if (!document.activeElement?.closest('.overlay-content')) {
-                unregister('createOverlay');
-            }
-        }, 100);        
     };
 
     const handleClickOutside = (event) => {
@@ -153,7 +134,10 @@ import PlaylistStroke from './PlaylistStroke.vue'
                 </div>
 
                 <div class="bottom">
-                    <button @click.stop="createNewPlaylist" class="control-button comment-button">
+                    <button 
+                        @click.stop="createNewPlaylist" 
+                        class="reusable-button"
+                    >
                         Новый
                     </button>
                 </div>
@@ -164,7 +148,8 @@ import PlaylistStroke from './PlaylistStroke.vue'
                 </div>
 
                 <div class="playlist-title">
-                    <textarea 
+                    <textarea
+                        class="standart-input"
                         v-model="newPlaylistName"
                         @focus="handleFocus"
                         @blur="handleBlur"
@@ -178,17 +163,20 @@ import PlaylistStroke from './PlaylistStroke.vue'
 
                 <div class="bottom">
                     <button 
-                        class="control-button comment-button"
+                        class="reusable-button"
                         :class="{ 
-                            'disabled-button': !newPlaylistName.trim(), 
-                            'comment-isFilled': newPlaylistName.trim() 
+                            'disabled': !newPlaylistName.trim(), 
+                            'isFilled': newPlaylistName.trim() 
                         }"
                         :disabled="!newPlaylistName.trim()"
                         @click.stop="createNewPlaylist" 
                     >
                         Создать
                     </button>
-                    <button @click.stop="toggleMenu" class="control-button comment-button">
+                    <button 
+                        @click.stop="toggleMenu" 
+                        class="reusable-button"
+                    >
                         Отмена
                     </button>
                 </div>
@@ -283,50 +271,9 @@ import PlaylistStroke from './PlaylistStroke.vue'
 
     .playlist-title {
         width: 100%;
-        min-height: 60px; /* Начальная высота */
+        min-height: fit-content; /* Начальная высота */
         max-height: 200px; /* Максимальная высота (если нужно ограничить) */
         border: 1px solid #F3F0E9;
         border-radius: 4px;
-    }
-
-    .playlist-title textarea {
-        box-sizing: border-box;
-        padding: 8px;
-        overflow-y: hidden;
-        width: 300px;
-        min-height: 60px; /* Начальная высота */
-        max-height: 200px; /* Максимальная высота (если нужно ограничить) */
-        background: #252525;
-        color: #F3F0E9;
-        border: none;
-        resize: none;
-        font-family: inherit;
-        font-size: inherit;
-    }
-
-    .playlist-title textarea:focus {
-        outline: none;
-        border-color: #F3F0E9;;
-    }
-
-    .comment-button {
-        width: 100%;
-        align-self: center;
-        padding: 10px;
-        font-size: 0.875rem;
-        background-color: #252525;
-    }
-    .comment-button:hover{
-        background-color: #100E0E;
-    }
-
-    .disabled-button:hover {
-        cursor: default !important;
-        background-color: #252525;
-    }
-    .comment-isFilled:hover {
-        cursor: pointer !important;
-        background-color: #F39E60;
-        color: #100E0E;
     }
 </style>

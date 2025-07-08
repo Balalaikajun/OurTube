@@ -81,7 +81,7 @@ const router = useRouter();
     });
 </script>
 <template>
-    <MasterHead />
+    <!-- <MasterHead /> -->
     <PlaylistOverlay ref="playlistRef" 
     />
     <ConfirmPannel 

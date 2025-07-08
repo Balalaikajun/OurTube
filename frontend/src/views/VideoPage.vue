@@ -310,7 +310,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
 </script>
 
 <template ref="videoPage">
-  <MasterHead />
+  <!-- <MasterHead /> -->
   <ConfirmPannel 
     ref="confirmRef" 
     :action="confirmContext"

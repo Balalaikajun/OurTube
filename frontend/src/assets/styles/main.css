@@ -1,6 +1,7 @@
 @import './reset.css';
 @import './normalize.css';
 @import './buttons.css';
+@import './inputs.css';
 
 @font-face {
     font-family: "Corsa Grotesk";

@@ -5,7 +5,7 @@ const routes = [
         path: '/', 
         component: () => import('../views/MainPage.vue'),
         meta: { 
-          title: 'Главная' 
+          title: 'Главная'
         }
     },
     { 
@@ -28,17 +28,26 @@ const routes = [
     { 
         path: '/register', 
         component: () => import('../views/RegPage.vue'),
-        meta: { title: 'Регистрация' }
+        meta: { 
+            title: 'Регистрация',
+            hideHeader: true 
+        }
     },
     { 
         path: '/forgot-password', 
         component: () => import('../views/FogPassPage.vue'),
-        meta: { title: 'Восстановление пароля' }
+        meta: { 
+            title: 'Восстановление пароля',
+            hideHeader: true 
+        }
     },
     { 
         path: '/reset-password', 
         component: () => import('../views/ResetPasswordPage.vue'),
-        meta: { title: 'Сброс пароля' }
+        meta: { 
+            title: 'Сброс пароля',
+            hideHeader: true 
+        }
     },
     { 
         path: '/search', 

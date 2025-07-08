@@ -281,7 +281,7 @@ const getPreviewUrl = (fileName) => {
   }
   
   @container recommendations-container (max-width: 800px) {
-    .video-card .video-block{
+    .video-card.row-layout .video-block{
       width: 50%;
     }
     /* .video-title {

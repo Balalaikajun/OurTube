@@ -29,7 +29,7 @@ const confirmRef = ref(null);
     });
 </script>
 <template>
-    <MasterHead/>
+    <!-- <MasterHead/> -->
     <ConfirmPannel
         ref="confirmRef" 
         :action="confirmContext"

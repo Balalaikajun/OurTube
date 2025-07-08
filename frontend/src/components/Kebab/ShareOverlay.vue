@@ -1,7 +1,7 @@
 <script setup>
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 
-const props = defineProps({
+    const props = defineProps({
         videoId: {
             type: [String, Number],
             required: true
@@ -14,7 +14,6 @@ const props = defineProps({
 
     const openMenu = async () => {
         try {        
-            // Если меню уже открыто - сначала закрываем
             if (isOpen.value) {
                 await closeMenu();
             }
@@ -22,10 +21,8 @@ const props = defineProps({
             isOpen.value = true;
             // scroll.lock();
             
-            // Ждем рендера меню
             await nextTick();            
             
-            // Устанавливаем обработчики
             document.addEventListener('click', handleClickOutside);
         } catch (error) {
             console.error('Error opening menu:', error);
@@ -80,10 +77,10 @@ const props = defineProps({
             @click.stop>
             <p style="color: #F3F0E9;">Ссылка на видео:</p>
             <!-- <input type="text" :value="`https://localhost:5173/video/${videoId}`" readonly /> -->
-            <input type="text" :value="`localhost:5173/video/${videoId}`" readonly />
+            <input class="standart-input" type="text" :value="`localhost:5173/video/${videoId}`" readonly />
             <div class="buttons-wrapper">
-                <button class="control-button" @click.stop="copyLink"><span>Копировать ссылку</span></button>
-                <button class="control-button" @click.stop="closeMenu"><span>Закрыть</span></button>
+                <button class="reusable-button" @click.stop="copyLink"><span>Копировать</span></button>
+                <button class="reusable-button" @click.stop="closeMenu"><span>Закрыть</span></button>
             </div>
         </div>
     </div>
@@ -104,6 +101,9 @@ const props = defineProps({
     }
 
     .overlay-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
         width: 30%;
         background: #4A4947;
         padding: 20px;
@@ -112,7 +112,7 @@ const props = defineProps({
         text-align: center;
     }
 
-    .overlay-content input {
+    /* .overlay-content input {
         box-sizing: border-box;
         width: 100%;
         padding: 8px;
@@ -120,30 +120,5 @@ const props = defineProps({
         background: #100E0E;
         border: 1px solid #4A4947;
         color: #F3F0E9;
-    }
-
-    .overlay-content button {
-        padding: 8px 16px;
-        background: #100E0E;
-        border: none;
-        color: #F3F0E9;
-        cursor: pointer;
-        transition: background 1s ease;
-    }
-
-    .overlay-content button span {
-        position: relative;
-        top: -2px;
-    }
-
-    .overlay-content button:hover {
-        color: #100E0E;
-        background: #F39E60;
-    }
-
-    .buttons-wrapper {
-        display: flex;
-        justify-content: center;
-        gap: 0 10px;
-    }
+    } */
 </style>
