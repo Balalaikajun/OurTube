@@ -76,7 +76,7 @@ import PlaylistStroke from './PlaylistStroke.vue'
     const createNewPlaylist = async () => {
         if (!isMain.value && newPlaylistName.value.trim()) {
             try {
-                const response = await api.post('Playlist', {
+                const response = await api.post('api/Playlist', {
                     title: newPlaylistName.value.trim(),
                     description: "плейлист"
                 });
@@ -109,7 +109,7 @@ import PlaylistStroke from './PlaylistStroke.vue'
             error.value = null;
 
             // console.log(videoId.value)
-            const response = await api.get(`Playlist/video/${videoId.value}`);
+            const response = await api.get(`api/Playlist/video/${videoId.value}`);
             playlists.value = response.data;
             
 

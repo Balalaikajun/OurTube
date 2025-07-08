@@ -27,8 +27,12 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  videoId: {
+    type: Number,
+    default: 1
+  },
   playlistId: {
-    type: String,
+    type: Number,
     default: null
   },
   blocksInRow: {
@@ -109,12 +113,28 @@ const fetchMethods = {
     const limit = computedBlocksInRow.value * 4
 
     try {
-      const response = await api.get(`api/Recommendation`, {
-        params: {
-          limit: limit,
-          after: after || 0
-        }
-      })
+      let response = {};
+      if (props.context == 'aside-recomend')
+      {
+        console.log(props.videoId)
+        response = await api.get(`/api/Recommendation/video/${props.videoId}`, {          
+          params: {
+            limit: limit,
+            after: after || 0
+          }
+        })
+        console.log(response)
+      }
+      else
+      {
+        console.log(1715)
+        response = await api.get(`api/Recommendation`, {
+          params: {
+            limit: limit,
+            after: after || 0
+          }
+        })
+      }
       return {
         items: response.data.videos,
         nextAfter: response.data.nextAfter,
@@ -263,7 +283,7 @@ defineExpose({
 </script>
 
 <template>
-  <div>
+  <div style="width: 100%;">
     <KebabMenu
         ref="kebabMenuRef"
         @add-to-playlist="handleAddToPlaylist"
@@ -308,6 +328,7 @@ defineExpose({
   box-sizing: border-box !important;
   container-type: inline-size;
   container-name: recommendations-container;
+  width: 100%;
 }
 
 .container-wrapper.standart-recomend {

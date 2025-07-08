@@ -87,10 +87,10 @@ const props = defineProps(
     const { register, unregister } = injectFocusEngine();
 
     const userData = JSON.parse(localStorage.getItem('userData'));
-    const currentUserId = userData?.id;
+    const currentUserId = ref(userData?.id);
 
     const isCommentOwner = computed(() => {
-        return currentUserId === props.userInfo.id;
+        return currentUserId.value === props.userInfo.id;
     });
 
     const kebabMenuRef = ref(null);
@@ -110,6 +110,11 @@ const props = defineProps(
     const textareaRef = ref(null);
     const isEditing = ref(false);
     const editedText = ref('');
+    const avatar = ref(null);
+    const commentContainer = ref(null)
+    const childCommentPadding = computed(() => {
+        return (avatar.value?.$el?.offsetWidth || 40) + 10;
+    });
 
     provide('commentId', props.id);
 
@@ -194,7 +199,7 @@ const props = defineProps(
         isLoading.value = true;
         try {
             const response = await api.get(
-                `Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
+                `api/Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
             );
             
             const newComments = response.data?.comments || [];
@@ -249,8 +254,8 @@ const props = defineProps(
         @delete="handleDelete"
     />
     <div class="comment-wrapper" :class="{'inner-class': !isRootComment}">
-        <div class="comment-container">
-            <UserAvatar/>
+        <div class="comment-container" ref="commentContainer">
+            <UserAvatar ref="avatar"/>
             <div v-if="!isEditing" class="comment-center">
                 <div class="comment-header">
                     <p class="user-name">
@@ -349,7 +354,8 @@ const props = defineProps(
             />
         </div>
         <div class="childs-comments"
-            v-if="showChilds && childs && childs.length > 0"       
+            v-if="showChilds && childs && childs.length > 0"
+            :style="{ 'padding-left': `${childCommentPadding}px` }"
         >
             <CommentBlock
                 v-for="child in childs"
@@ -405,13 +411,14 @@ const props = defineProps(
     .comment-wrapper {
         display: flex;
         flex-direction: column;
+        container-type: inline-size;
         gap: 10px;
         width: 100%;
         --left-side: 40px;
     }
 
     .inner-class {
-        padding-left: calc(var(--left-side) + 1em) !important;
+        /* padding-left: calc(var(--left-side) + 1em) !important; */
         box-sizing: border-box;
     }
 

@@ -151,35 +151,29 @@ const getPreviewUrl = (fileName) => {
       height: auto;
       overflow: hidden;
       aspect-ratio: 16/9;
+      min-height: 0; /* Важно для корректного расчета flex-размеров */
   }
 
   
   .video-card.row-layout .video-block {
-    width: 10vw;
-    /* flex-shrink: 0; */
+      /* flex: 1 1 1; */
+      width: 40%;
+      min-width: 0;
+      min-height: 0;
   }
-
-  .video-card.row-layout .video-block {
-      /* flex-grow: 1;
-      flex-shrink: 2;
-      flex-basis: 30%; */
-      /* width: 50%; */
-      /* flex-shrink: 0; */
-  }
-
   
   .bottom-block {
       display: flex;
       justify-content: space-between;
       width: 100%;
+      min-height: 0; /* Важно для корректного расчета flex-размеров */
   }
 
   .video-card.row-layout .bottom-block {
-      /* flex-grow: 2;
-      flex-shrink: 1;
-      flex-basis: 70%; */
+      flex: 1;
       flex-direction: row;
-      width: 80%;
+      min-width: 0;
+      min-height: 0;
       justify-content: flex-start;
       gap: 10px;
   }
@@ -213,35 +207,27 @@ const getPreviewUrl = (fileName) => {
       overflow: hidden;
       word-wrap: break-word;
       white-space: normal;
+      min-height: 0;
   }
 
   .video-card.row-layout .video-info {
       width: 100%;
       margin-top: 0;
+      flex: 1;
+      min-height: 0;
   }
 
   .video-title,
   .channel-name {
-      /* margin: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
       display: -webkit-box;
       -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
-      line-height: 1.4;
-      max-height: calc(1 * 1.4em);
-      word-break: break-word; */
-
-      display: -webkit-box;
-      -webkit-line-clamp: 1; /* Ограничиваем одной строкой */
-      -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
-      
-      /* Дополнительные свойства для лучшего отображения */
       line-height: 1.4em;
-      max-height: 1.4em; /* Высота одной строки */
+      max-height: 1.4em;
       word-break: break-word;
+      min-height: 0;
   }
 
   .video-card.row-layout .video-title {
@@ -277,6 +263,36 @@ const getPreviewUrl = (fileName) => {
       height: 36px;
       border-radius: 50%;
       background: #4A4947;
+  }
+  @container recommendations-container (min-width: 1200px) {
+    .video-card.row-layout .video-block{
+      width: 20%;
+    }
+  }
+  /* @container recommendations-container (max-width: 1200px) {
+    .video-card.row-layout .video-block{
+      width: 20%;
+    }
+  } */
+  @container recommendations-container (max-width: 900px) {
+    .video-card.row-layout .video-block{
+      width: 40%;
+    }
+  }
+  
+  @container recommendations-container (max-width: 800px) {
+    .video-card .video-block{
+      width: 50%;
+    }
+    /* .video-title {
+      font-size: 14px;
+    } */
+  }
+
+  @container recommendations-container (max-width: 500px) {
+    .video-card.row-layout .video-block{
+      width: 60%;
+    }
   }
 
   @media (max-width: 480px) {

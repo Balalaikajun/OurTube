@@ -75,7 +75,7 @@ const props = defineProps({
         }
 
         try {
-            const response = await api.post('Video/Comment', {
+            const response = await api.post('api/Video/Comment', {
                 videoId: props.videoId,
                 text: commentText.value,
                 parentId: rootParentId
@@ -127,6 +127,7 @@ const props = defineProps({
                 rows="1"
             ></textarea>
             <div v-if="showButtons" class="functional-buttons-block">
+                <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
                 <button 
                     @click="handleCancel" 
                     @mousedown.prevent
@@ -146,7 +147,6 @@ const props = defineProps({
                     Комментировать
                 </button>
             </div>
-            <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         </div>
     </div>
     <div v-else class="auth-prompt">

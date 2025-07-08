@@ -40,6 +40,14 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
 
   const confirmContext = ref("")
 
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  const userVideoOwnerData = ref({});
+  const currentUserId = ref(userData?.id);
+
+  const isVideoOwner = computed(() => {
+    return videoData.value?.user?.id && currentUserId.value === videoData.value.user.id;
+  });
+
   provide('videoId', videoId);
 
   const showFullDescription = ref(false);
@@ -56,7 +64,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
   const addToHistory = async () => {
     try {
       console.log(videoId.value);
-      await api.post('History', {
+      await api.post('api/History', {
         videoId: videoId.value,
         endTime: "0"
       });
@@ -98,7 +106,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
 
     try {
       // console.log(videoId.value, 1)
-      const response = await api.get(`Video/${videoId.value}`);
+      const response = await api.get(`api/Video/${videoId.value}`);
       const data = response.data;
 
       console.log(data, "Информация о видео");
@@ -221,8 +229,6 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
     videoId.value = Number(route.params.id);
     console.log("Initial video ID:", videoId.value);
     
-    
-    const userData = JSON.parse(localStorage.getItem('userData') || 'null');
     if (!userData) {
         console.log("User not authenticated");
     }
@@ -317,9 +323,10 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
     v-if="videoId"
     ref="shareRef" 
     :video-id="videoId"
-  />
+  >
+  </ShareOverlay>
   <main class="video-page" ref="contentWrapper">
-    <LoadingState v-if="isLoading" />
+    <LoadingState v-if="isLoading"></LoadingState>
     
     <div v-else-if="error" class="error-message">
       {{ error }}
@@ -352,8 +359,10 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
                   <p>{{videoData.user?.userName}}</p>
                   <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
                 </div>
-                <button v-auth style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
-                {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}</button>
+                <button v-auth="true" v-if="!isVideoOwner"  style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
+                  {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}
+                </button>
+                <p style="color: aliceblue;">{{isVideoOwner}}</p>
               </div>
               <div class="actions-wrapper">
 
@@ -412,6 +421,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
           <VideoPresentation
             request="recomend"
             context="aside-recomend"
+            :video-id="Number(videoId)"
             @add-to-playlist="saveOpen"
             :row-layout=isRow
           />

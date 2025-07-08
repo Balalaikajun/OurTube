@@ -18,16 +18,10 @@ const username = ref("");
         try {
             // Запрос на бэкенд для регистрации
             // Эндпоинты менять не забывайте
+            console.log(email.value)
             const response = await api.post(`/identity/register`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    //username: username.value, //нельзя задать
-                    email: email.value,
-                    password: password.value,
-                }), 
+                email: email.value,
+                password: password.value,
             });
 
             if (!response.ok) {

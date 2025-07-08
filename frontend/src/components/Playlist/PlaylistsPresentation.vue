@@ -78,7 +78,7 @@ const retitlePlaylist = async (playlistTitle) => {
   try {
     console.log(playlistTitle)
     console.log(currentPlaylist.value)
-    await api.patch(`Playlist/${currentPlaylist.value.playlistId}`,
+    await api.patch(`api/Playlist/${currentPlaylist.value.playlistId}`,
         {
           'title': playlistTitle,
           'description': 'плейлист'
@@ -92,7 +92,7 @@ const retitlePlaylist = async (playlistTitle) => {
 
 const deletePlaylist = async (playlistId) => {
   try {
-    await api.delete(`Playlist/${playlistId}`)
+    await api.delete(`api/Playlist/${playlistId}`)
     await resetPlaylists()
   } catch (err) {
     error.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста'
@@ -225,7 +225,7 @@ defineExpose({
   flex-wrap: wrap;
   box-sizing: border-box !important;
   container-type: inline-size;
-  container-name: recommendations-container;
+  container-name: playlists-container;
 }
 
 .container-wrapper {

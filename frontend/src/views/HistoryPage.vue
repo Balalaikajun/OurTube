@@ -48,7 +48,7 @@ const router = useRouter();
     };
     const handleDeleteFromHistory = async (videoId) => {
         try {
-            await api.delete(`History/${videoId}`);
+            await api.delete(`api/History/${videoId}`);
             console.log(videoId)
         } catch (error) {
             console.error('History error:', error);
@@ -60,7 +60,7 @@ const router = useRouter();
 
     const clearHistory = async () => {
         try {
-            await api.delete('History');
+            await api.delete('api/History');
             console.log('Clear history');
         } catch (error) {
             console.error('History error:', error);
@@ -203,6 +203,7 @@ const router = useRouter();
     }
     .columns-wrapper {
         display: flex;
+        width: 100%;
         flex-direction: row;
         gap: 10vw;
     }

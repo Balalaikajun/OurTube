@@ -34,7 +34,7 @@ const playlistData = ref(null);
         isLoading.value = true;
         errorMessage.value = null;
         try {
-            const response = await api.get(`Playlist/${currentPlaylistId.value}`);
+            const response = await api.get(`api/Playlist/${currentPlaylistId.value}`);
             playlistData.value = response.data.playlist;
             console.log(playlistData.value.title)
         } catch (err) {
@@ -64,7 +64,7 @@ const playlistData = ref(null);
     const retitlePlaylist = async (playlist) => {
         try {
             console.log(playlist)
-            await api.patch(`Playlist/${currentPlaylistId.value}`,
+            await api.patch(`api/Playlist/${currentPlaylistId.value}`,
                 {
                     "title": playlist,
                     "description": "плейлист"
@@ -78,7 +78,7 @@ const playlistData = ref(null);
 
     const deletePlaylist = async () => {
         try {
-            await api.delete(`Playlist/${currentPlaylistId.value}`);
+            await api.delete(`api/Playlist/${currentPlaylistId.value}`);
             await videosRef.value.resetPlaylist();
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста';
@@ -88,7 +88,7 @@ const playlistData = ref(null);
     const handleDeleteFromPlaylist = async (videoId) => {
         try {
             console.log("Удаление", videoId, "из", currentPlaylistId.value )
-            await api.delete(`Playlist/${currentPlaylistId.value}/${videoId}`);
+            await api.delete(`api/Playlist/${currentPlaylistId.value}/${videoId}`);
             await videosRef.value.resetPlaylist();
         } catch (error) {
             console.error('Playlist error:', error);

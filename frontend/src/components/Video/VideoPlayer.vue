@@ -231,7 +231,6 @@ defineExpose({
 
 <template>
   <div ref="videoContainer" class="video-container" 
-    
     @click="togglePlay" @mousemove="showControlPannel">
     <video 
       ref="videoPlayerRef" 
@@ -248,7 +247,7 @@ defineExpose({
       {{ playerError }}
     </div>
 
-    <div v-if="true" class="controls-overlay" @click.stop>
+    <div v-if="controlPannerVisible || !isPlaying" class="controls-overlay" @click.stop >
       <div class="progress-bar-container">
         <input 
           class="seek-bar"
