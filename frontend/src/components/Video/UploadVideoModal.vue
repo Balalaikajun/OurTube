@@ -14,7 +14,7 @@ const previewFieldRef = ref(null);
 const uploadResult = ref();
 
 const videoTitle = ref("");
-const videoDescription = ref("");
+const videoDescription = ref(null);
 const videoFile = ref(null);
 const previewFile = ref(null);
 const isDraggingVideo = ref(false);
@@ -129,27 +129,35 @@ const triggerVideoInput = () => videoInputRef.value.click();
 const triggerPreviewInput = () => previewInputRef.value.click();
 
 const uploadFiles = async () => {
-  if (!videoFile.value || !videoTitle.value.trim()) return;
-
-  const formData = new FormData();
-  formData.append("Title", videoTitle.value);
-  formData.append("Description", videoDescription.value);
-  formData.append("VideoFile", videoFile.value);
-  if (previewFile.value) {
-    formData.append("PreviewFile", previewFile.value);
-  }
-
   try {
+    const formData = new FormData();
+    
+    // Добавляем текстовые поля
+    formData.append('VideoPostDto.Title', 'Тест');
+    formData.append('VideoPostDto.Description', 'Тест');
+    
+    // Добавляем видео файл с указанием типа
+    const videoBlob = new Blob([videoFile.value], { type: 'video/mp4' });
+    formData.append('VideoFile', videoBlob, 'video.mp4');
+    
+    // Добавляем превью файл с указанием типа
+    const previewBlob = new Blob([previewFile.value], { type: 'image/jpeg' });
+    formData.append('PreviewFile', previewBlob, 'preview.jpg');
+
     const response = await api.post('api/Video', formData, {
       headers: {
+        'accept': 'text/plain',
         'Content-Type': 'multipart/form-data'
       }
     });
-    uploadResult.value = "Видео загружено успешно.";
-    closeMenu();
+
+    if (response.status === 201) {
+      uploadResult.value = "Видео загружено успешно!";
+      closeMenu();
+    }
   } catch (error) {
-    console.error("Error uploading video:", error);
-    uploadResult.value = error.response?.data || error.message;
+    console.error('Upload error:', error);
+    uploadResult.value = `Ошибка: ${error.response?.data || error.message}`;
   }
 };
 
@@ -298,14 +306,14 @@ defineExpose({
 
 .files-wrapper {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
 }
 
 .load-field {
   border: 2px dashed #f3f0e9;
   box-sizing: border-box;
-  width: 50%;
+  width: 100%;
   height: 200px;
   padding: 15px;
   min-width: 0; /* Разрешаем сжатие */

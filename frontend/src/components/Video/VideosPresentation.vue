@@ -201,6 +201,7 @@ const fetchMethods = {
 
   async playlist (after) {
     const playlistId = route.params.id
+    console.log('$$Playlist id in fetch:',playlistId)
     if (!playlistId) return { items: [], nextAfter: 0, hasMore: false }
 
     const limit = computedBlocksInRow.value * 4
@@ -210,7 +211,7 @@ const fetchMethods = {
         params: { limit, after: after || 0 }
       })
 
-      const items = response.data.playlist.playlistElements.map(el => el.video)
+      const items = response.data.elements.map(el => el.video)
       return {
         items,
         nextAfter: response.data.nextAfter,

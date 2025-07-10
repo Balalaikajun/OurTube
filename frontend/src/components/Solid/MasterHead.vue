@@ -35,6 +35,9 @@ const router = useRouter();
         
             localStorage.removeItem('userData');
             
+            // Добавьте эту строку
+            window.dispatchEvent(new CustomEvent('auth-update'));
+            
             activeMenu.value = null;
             
             router.push('/');
@@ -131,7 +134,7 @@ const router = useRouter();
             <span v-else>Поиск</span>
           </button>
         </form>
-        <button class="reusable-button fit" @click.stop="emit('open-upload')">
+        <button v-auth="true" class="reusable-button fit" @click.stop="emit('open-upload')">
             Создать
         </button>
         <div class="user-avatar-container" @click="() => toggleMenu('account')">

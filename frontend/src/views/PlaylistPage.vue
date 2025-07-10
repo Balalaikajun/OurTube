@@ -1,16 +1,33 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import api from '@/assets/utils/api.js'
+    import { onMounted, ref, watch } from 'vue'
+    import { useRoute, useRouter } from 'vue-router'
+    import api from '@/assets/utils/api.js'
 
-import MasterHead from '../components/Solid/MasterHead.vue'
-import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
-import RenamePlaylistOverlay from '@/components/Playlist/RetitlePlaylistOverlay.vue'
-import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
-import LoadingState from '@/components/Solid/LoadingState.vue'
-import VideosPresentation from '@/components/Video/VideosPresentation.vue'
+    import MasterHead from '../components/Solid/MasterHead.vue'
+    import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
+    import RenamePlaylistOverlay from '@/components/Playlist/RetitlePlaylistOverlay.vue'
+    import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
+    import LoadingState from '@/components/Solid/LoadingState.vue'
+    import VideosPresentation from '@/components/Video/VideosPresentation.vue'
 
-const playlistData = ref(null);
+    const props = defineProps(
+        {
+            id: String,
+            title: String,
+            count: Number
+        }
+
+    );
+
+    const route = useRoute()
+    const router = useRouter()
+
+    const playlistData = ref({
+        id: props.id || route.params.id || '', // Берем id из props или route
+        title: props.title || 'Плейлист',
+        count: props.count || 0
+    })
+    const playlistPresentation = ref(null);
     const currentPlaylistId = ref(null);
     const playlistRef = ref(null);
     const confirmRef = ref(null);
@@ -28,22 +45,64 @@ const playlistData = ref(null);
     const isMobile = ref(false);
     const videosPlace = ref(null);
 
-    const route = useRoute();
+    const setDocumentTitle = (title) => {
+        document.title = `${title} | OurTube`
+    }
 
     const fetchPlaylistData = async () => {
-        isLoading.value = true;
-        errorMessage.value = null;
+        isLoading.value = true
+        errorMessage.value = null
+        
+        // Проверяем, есть ли данные в state навигации
         try {
-            const response = await api.get(`api/Playlist/${currentPlaylistId.value}`);
-            playlistData.value = response.data.playlist;
-            console.log(playlistData.value.title)
+            // Если есть props - обновляем данные
+            if (props.id || props.title || props.count) {
+                playlistData.value = {
+                id: props.id || playlistData.value.id,
+                title: props.title || playlistData.value.title,
+                count: props.count || playlistData.value.count
+                }
+                
+                if (props.title) {
+                    setDocumentTitle(props.title)
+                }
+            }
+            
+            // Всегда запрашиваем свежие данные с сервера
+            const response = await api.get(`api/Playlist/${playlistData.value.id}`)
+            if (response.data) {
+            Object.assign(playlistData.value, response.data)
+            setDocumentTitle(playlistData.value.title)
+            }
         } catch (err) {
-            errorMessage.value = err.response?.data?.message || err.message || 'Ошибка загрузки';
-            console.error('Ошибка:', err);
+            errorMessage.value = err.response?.data?.message || err.message || 'Ошибка загрузки'
+            console.error('Ошибка:', err)
+            setDocumentTitle('Плейлист')
         } finally {
-            isLoading.value = false;
+            isLoading.value = false
         }
-    };
+    }
+
+    const fetchPlaylistPresentation = async () => {
+        isLoading.value = true
+        errorMessage.value = null
+        
+        // Проверяем, есть ли данные в state навигации
+        console.log(router.currentRoute.value.state?.playlistData)
+        if (router.currentRoute.value.state?.playlistData) {
+            playlistData.value = router.currentRoute.value.state.playlistData
+        }
+        
+        try {
+            const response = await api.get(`api/Playlist/${currentPlaylistId.value}`)
+            playlistData.value = response.data
+        } catch (err) {
+            errorMessage.value = err.response?.data?.message || err.message || 'Ошибка загрузки'
+            console.error('Ошибка:', err)
+        } finally {
+            isLoading.value = false
+        }
+    }
 
     const saveOpen = (videoId) => {
         console.log("save")
@@ -97,17 +156,20 @@ const playlistData = ref(null);
 
     watch(
         () => route.params.id,
-        async (newId) => {
-            currentPlaylistId.value = newId;
-            await fetchPlaylistData();
+        (newId) => {
+            if (newId && newId !== playlistData.value.id) {
+            playlistData.value.id = newId
+            fetchPlaylistData()
+            }
         },
         { immediate: true }
-    );
+    )
 
     onMounted(async () => {
         currentPlaylistId.value = route.params.id;
-        await fetchPlaylistData();
-    });
+        console.log(currentPlaylistId.value, props.id, props.title, props.count)
+        await fetchPlaylistData()
+    })
 </script>
 <template>
     <!-- <MasterHead/> -->

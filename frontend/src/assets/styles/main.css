@@ -2,6 +2,7 @@
 @import './normalize.css';
 @import './buttons.css';
 @import './inputs.css';
+@import './sysmessage.css';
 
 @font-face {
     font-family: "Corsa Grotesk";

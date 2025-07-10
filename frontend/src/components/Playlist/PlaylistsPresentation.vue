@@ -1,42 +1,51 @@
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import api from '@/assets/utils/api.js'
+import {
+  computed,
+  nextTick,
+  onBeforeMount,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
+import { useRouter } from "vue-router";
+import api from "@/assets/utils/api.js";
 
-import KebabMenu from '../Kebab/KebabMenu.vue'
-import RenamePlaylistOverlay from './RetitlePlaylistOverlay.vue'
-import LoadingState from '@/components/Solid/LoadingState.vue'
-import PlaylistCard from './PlaylistCard.vue'
+import KebabMenu from "../Kebab/KebabMenu.vue";
+import RenamePlaylistOverlay from "./RetitlePlaylistOverlay.vue";
+import LoadingState from "@/components/Solid/LoadingState.vue";
+import PlaylistCard from "./PlaylistCard.vue";
 
-import useInfiniteScroll from '@/assets/utils/useInfiniteScroll.js'
+import useInfiniteScroll from "@/assets/utils/useInfiniteScroll.js";
 
 const props = defineProps({
   errorMessage: {
     type: String,
-    default: ''
+    default: "",
   },
   blocksInRow: {
     type: Number,
-    default: 4
+    default: 4,
   },
   isInfiniteScroll: {
     type: Boolean,
-    default: true
+    default: true,
   },
   scrollElement: {
     type: String,
-    default: 'window'
-  }
-})
+    default: "window",
+  },
+});
 
-const emit = defineEmits(['load-more', 'rename', 'delete'])
-const router = useRouter()
-const currentPlaylist = ref({})
-const parentWidth = ref(0)
-const kebabMenuRef = ref(null)
-const retitlePlaylistRef = ref(null)
-const shareRef = ref(null)
-const error = ref(null)
+const emit = defineEmits(["load-more", "rename", "delete"]);
+const isAuthorized = ref(false);
+const router = useRouter();
+const currentPlaylist = ref({});
+const parentWidth = ref(0);
+const kebabMenuRef = ref(null);
+const retitlePlaylistRef = ref(null);
+const shareRef = ref(null);
+const error = ref(null);
 
 const {
   data: playlists,
@@ -46,157 +55,196 @@ const {
   error: scrollError,
   container,
   loadMore,
-  reset: resetPlaylists
+  reset: resetPlaylists,
 } = useInfiniteScroll({
   fetchMethod: async (after) => {
-    const result = await fetchMethod(after)
+    const result = await fetchMethod(after);
     // emit('load-more');
-    return result
+    return result;
   },
   scrollElement: props.scrollElement,
   isEnabled: props.isInfiniteScroll,
-  initialLoad: true
-})
+  initialLoad: true,
+});
+
+onBeforeMount(async () => {
+  isAuthorized.value = Boolean(localStorage.getItem("userData"));
+  if (!isAuthorized.value) return;
+
+  await nextTick();
+  await adaptiveView();
+  window.addEventListener("resize", adaptiveView);
+});
 
 const handleKebabClick = ({ playlist, buttonElement }) => {
-  currentPlaylist.value = playlist
-  kebabMenuRef.value?.openMenu(buttonElement)
-}
+  currentPlaylist.value = playlist;
+  kebabMenuRef.value?.openMenu(buttonElement);
+};
 
 const handleRetitlePlaylist = (event) => {
-  event?.stopPropagation() // Добавьте проверку на существование event
-  console.log('handleRetitlePlaylist', currentPlaylist.value.playlistTitle)
-  retitlePlaylistRef.value?.toggleMenu(currentPlaylist.value.playlistTitle)
-}
+  event?.stopPropagation(); // Добавьте проверку на существование event
+  console.log("handleRetitlePlaylist", currentPlaylist.value.playlistTitle);
+  retitlePlaylistRef.value?.toggleMenu(currentPlaylist.value.playlistTitle);
+};
 
 const handleDeletePlaylist = (event) => {
-  event?.stopPropagation() // Добавьте проверку на существование event
-  emit('delete', currentPlaylist.value.playlistId)
-}
+  event?.stopPropagation(); // Добавьте проверку на существование event
+  emit("delete", currentPlaylist.value.playlistId);
+};
 
 const retitlePlaylist = async (playlistTitle) => {
   try {
-    console.log(playlistTitle)
-    console.log(currentPlaylist.value)
-    await api.patch(`api/Playlist/${currentPlaylist.value.playlistId}`,
-        {
-          'title': playlistTitle,
-          'description': 'плейлист'
-        }
-    )
-    await resetPlaylists()
+    console.log(playlistTitle);
+    console.log(currentPlaylist.value);
+    await api.patch(`api/Playlist/${currentPlaylist.value.playlistId}`, {
+      title: playlistTitle,
+      description: "плейлист",
+    });
+    await resetPlaylists();
   } catch (err) {
-    error.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста'
+    error.value =
+      err.response?.data?.message ||
+      err.message ||
+      "Ошибка при удалении плейлиста";
   }
-}
+};
 
 const deletePlaylist = async (playlistId) => {
   try {
-    await api.delete(`api/Playlist/${playlistId}`)
-    await resetPlaylists()
+    await api.delete(`api/Playlist/${playlistId}`);
+    await resetPlaylists();
   } catch (err) {
-    error.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста'
+    error.value =
+      err.response?.data?.message ||
+      err.message ||
+      "Ошибка при удалении плейлиста";
   }
-}
+};
 
 const navigateToPlaylist = (playlist) => {
-  router.push({
-    path: `/playlist/${playlist.id}`
-  })
+  console.log('$$Playlist data from navigate', playlist)
+  router.push({ 
+      name: 'PlaylistPage', 
+      params: { id: playlist.id }, 
+      query: { title: playlist.title, count: playlist.count }
+  });
 }
 
 const fetchMethod = async (after) => {
-  const limit = computedBlocksInRow.value * 4
+  // Проверяем авторизацию перед запросом
+  if (!isAuthorized.value) {
+    return { items: [], nextAfter: null, hasMore: false };
+  }
+
+  const limit = computedBlocksInRow.value * 4;
   try {
-    const response = await api.get(`Playlist`, {
+    const response = await api.get(`api/Playlist`, {
       params: {
         limit: limit,
-        after: after || 0
-      }
-    })
+        after: after || 0,
+      },
+    });
     return {
       items: response.data,
       nextAfter: response.data[response.data.length - 1]?.id || null,
-      hasMore: response.data.length === limit
-    }
+      hasMore: response.data.length === limit,
+    };
   } catch (error) {
-    console.error('Ошибка получения рекомендаций:', error)
+    console.error("Ошибка получения плейлистов:", error);
     if (error.response?.status === 401) {
-      router.push('/login')
+      localStorage.removeItem("userData");
+      window.dispatchEvent(new CustomEvent("auth-update"));
+      router.push("/login");
     }
-    return { playlists: [], nextAfter: 0 }
+    return { items: [], nextAfter: null, hasMore: false };
   }
-}
+};
 
 const updateDimensions = () => {
-  if (!container.value) return
-  const rect = container.value.getBoundingClientRect()
-  parentWidth.value = rect.width - 20
-}
+  if (!container.value) return;
+  const rect = container.value.getBoundingClientRect();
+  parentWidth.value = rect.width - 20;
+};
 
 const adaptiveView = async () => {
-  await nextTick()
-  updateDimensions()
+  await nextTick();
+  updateDimensions();
 
-  if (!container.value) return
+  if (!container.value) return;
 
-  const gap = computedBlocksInRow.value > 1
-      ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(computedBlockWidth.value) * computedBlocksInRow.value)) / (computedBlocksInRow.value - 1)))
-      : 0
+  const gap =
+    computedBlocksInRow.value > 1
+      ? Math.max(
+          10,
+          Math.floor(
+            (parentWidth.value -
+              parseFloat(computedBlockWidth.value) *
+                computedBlocksInRow.value) /
+              (computedBlocksInRow.value - 1)
+          )
+        )
+      : 0;
 
-  container.value.style.gap = `30px ${Math.floor(gap)}px`
-}
+  container.value.style.gap = `30px ${Math.floor(gap)}px`;
+};
 
 const computedBlocksInRow = computed(() => {
-  if (props.rowLayout || props.context === 'aside-recomend') return 1
-  if (parentWidth.value < 600) return 1
-  if (parentWidth.value < 800) return 2
-  if (parentWidth.value < 1200) return 3
-  if (parentWidth.value < 1920) return 5
-  return 5
-})
+  if (props.rowLayout || props.context === "aside-recomend") return 1;
+  if (parentWidth.value < 600) return 1;
+  if (parentWidth.value < 800) return 2;
+  if (parentWidth.value < 1200) return 3;
+  if (parentWidth.value < 1920) return 5;
+  return 5;
+});
 
 const computedBlockWidth = computed(() => {
-  if (props.rowLayout || props.context === 'aside-recomend') return '100%'
-  if (parentWidth.value < 600) return `${parentWidth.value}px`
-  if (parentWidth.value < 800) return `${Math.floor(parentWidth.value * 0.49)}px`
-  if (parentWidth.value < 1200) return `${Math.floor(parentWidth.value * 0.32)}px`
-  if (parentWidth.value < 1920) return `${Math.floor(parentWidth.value * 0.19)}px`
-  return `${Math.floor(parentWidth.value * 0.19)}px`
-})
+  if (props.rowLayout || props.context === "aside-recomend") return "100%";
+  if (parentWidth.value < 600) return `${parentWidth.value}px`;
+  if (parentWidth.value < 800)
+    return `${Math.floor(parentWidth.value * 0.49)}px`;
+  if (parentWidth.value < 1200)
+    return `${Math.floor(parentWidth.value * 0.32)}px`;
+  if (parentWidth.value < 1920)
+    return `${Math.floor(parentWidth.value * 0.19)}px`;
+  return `${Math.floor(parentWidth.value * 0.19)}px`;
+});
 
 onMounted(async () => {
-  await nextTick()
-  await adaptiveView()
-  window.addEventListener('resize', adaptiveView)
-  console.log('Request prop:', props.request)
-})
+  await nextTick();
+  await adaptiveView();
+  window.addEventListener("resize", adaptiveView);
+  console.log("Request prop:", props.request);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', adaptiveView)
-})
+  window.removeEventListener("resize", adaptiveView);
+});
 
-watch(() => props.request, () => loadMore(true))
-watch(() => props.searchQuery, (newVal, oldVal) => {
-  if (newVal !== oldVal) loadMore(true)
-}, { immediate: true })
+watch(
+  () => props.request,
+  () => loadMore(true)
+);
+watch(
+  () => props.searchQuery,
+  (newVal, oldVal) => {
+    if (newVal !== oldVal) loadMore(true);
+  },
+  { immediate: true }
+);
 
 defineExpose({
-  deletePlaylist
-})
+  deletePlaylist,
+});
 </script>
 <template>
   <KebabMenu
-      ref="kebabMenuRef"
-      :context="'playlist'"
-      @retitle="handleRetitlePlaylist"
-      @delete="handleDeletePlaylist"
+    ref="kebabMenuRef"
+    :context="'playlist'"
+    @retitle="handleRetitlePlaylist"
+    @delete="handleDeletePlaylist"
   />
-  <RenamePlaylistOverlay
-      ref="retitlePlaylistRef"
-      @retitle="retitlePlaylist"
-  />
-  <div class="container-wrapper">
+  <RenamePlaylistOverlay ref="retitlePlaylistRef" @retitle="retitlePlaylist" />
+  <div v-if="isAuthorized" v-auth="true" class="container-wrapper">
     <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
       <div v-if="playlists.length === 0" class="empty-results">
         Ничего не найдено
@@ -205,18 +253,31 @@ defineExpose({
     <div v-if="scrollError" class="error-state">
       {{ scrollError }}
     </div>
-    <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
+    <div
+      v-else
+      ref="container"
+      class="container"
+      style="width: 100%; color: aliceblue"
+    >
       <PlaylistCard
-          v-for="playlist in playlists"
-          :playlist="playlist"
-          :key="playlist.id"
-          @click="navigateToPlaylist(playlist)"
-          @kebab-click="handleKebabClick"
-          :style="{ width: computedBlockWidth }"
+        v-for="playlist in playlists"
+        :playlist="playlist"
+        :key="playlist.id"
+        @click="navigateToPlaylist(playlist)"
+        @kebab-click="handleKebabClick"
+        :style="{ width: computedBlockWidth }"
       />
-      <LoadingState v-if="isLoading"/>
-      <div ref="observerTarget" class="observer-target" v-if="isInfiniteScroll && hasMore"></div>
+      <LoadingState v-if="isLoading" />
+      <div
+        ref="observerTarget"
+        class="observer-target"
+        v-if="isInfiniteScroll && hasMore"
+      ></div>
     </div>
+  </div>
+
+  <div v-auth="false" class="unauthorized-message">
+    <p>Для просмотра плейлистов необходимо авторизоваться.</p>
   </div>
 </template>
 <style scoped>
@@ -278,4 +339,6 @@ defineExpose({
   padding: 0;
   background: #f39e60;
 }
+
+
 </style>

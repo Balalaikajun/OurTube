@@ -74,10 +74,16 @@ const routes = [
         meta: { title: 'Плейлисты' }
     }
     ,
-    { 
-        path: '/playlist/:id', 
+    {
+        path: '/playlist/:id',
+        name: 'PlaylistPage',
         component: () => import('../views/PlaylistPage.vue'),
-        meta: { title: 'Плейлист' }
+        meta: { title: 'Плейлист' },
+        props: route => ({
+            id: route.params.id,
+            title: route.query.title,
+            count: route.query.count
+        })
     }
 ];
 

@@ -1,0 +1,9 @@
+.unauthorized-message {
+  padding: 40px;
+  text-align: center;
+  margin-top: 70px;
+}
+.unauthorized-message p {
+  color: #f39e60;
+  font-size: 1.2rem;
+}
