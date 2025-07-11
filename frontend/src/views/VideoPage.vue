@@ -15,7 +15,7 @@ import UserAvatar from '@/components/Solid/UserAvatar.vue'
 import ReactionBlock from '@/components/Solid/ReactionBlock.vue'
 import formatter from '@/assets/utils/formatter.js'
 import { useFocusEngine } from '@/assets/utils/focusEngine.js'
-import useTextOverflow from '@/assets/utils/useTextOverflow'
+import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
 // const userStore = useUserStore();
 
@@ -25,7 +25,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
   const Player = ref(null);
   const addComment = ref(null);
   const videoData = ref(null);
-  const hlsUrl = ref("");
+  const hlsUrlFiles = ref([]);
   const isLoading = ref(true);
   const error = ref(null);
 
@@ -94,7 +94,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
     isLoading.value = true;
     error.value = null;
     videoData.value = null;
-    hlsUrl.value = "";
+    hlsUrlFiles.value = [];
 
     console.log("Fetching video data for ID:", videoId.value);
 
@@ -124,14 +124,17 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
       if (data.files?.length) {
         const file = data.files[0];
         if (file.fileName) {
-          hlsUrl.value = ensureHttpUrl(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${file.fileName}`);
-          console.log("HLS URL:", hlsUrl.value);
+          console.log()
+          // hlsUrlFiles.value = ensureHttpUrl(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${file.fileName}`);
+          hlsUrlFiles.value = data.files
+          console.log(hlsUrlFiles.value)
+          console.log("HLS URL:", hlsUrlFiles.value);
         } else {
           console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
-          hlsUrl.value = "";
+          hlsUrlFiles.value = [];
         }
       } else {
-        hlsUrl.value = "";
+        hlsUrlFiles.value = [];
       }
 
       document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
@@ -148,7 +151,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
         console.error("Ошибка при загрузке видео:", err);
       }
       videoData.value = null;
-      hlsUrl.value = "";
+      hlsUrlFiles.value = [];
     } finally {
       isLoading.value = false;
     }
@@ -277,7 +280,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
     }
 
     videoData.value = null;
-    hlsUrl.value = "";
+    hlsUrlFiles.value = [];
   });
   const commentsCount = computed(() => {
     console.log(videoData.value?.commentsCount || 0)
@@ -293,7 +296,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
       } else if (!newVideoId) {
           // Обработка случая, когда videoId становится пустым (например, при ошибке маршрутизации)
           videoData.value = null;
-          hlsUrl.value = "";
+          hlsUrlFiles.value = [];
           isLoading.value = false;
           error.value = "Идентификатор видео отсутствует.";
       }
@@ -338,10 +341,10 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
           <section>
             <VideoPlayer
               ref="Player"
-              v-if="hlsUrl" 
-              :video-src="hlsUrl" 
+              v-if="hlsUrlFiles.length" 
+              :video-files="hlsUrlFiles" 
               :poster="videoData?.thumbnailUrl"
-              :key="hlsUrl"
+              :key="hlsUrlFiles"
             />
             <div v-else class="no-video">
               Видео недоступно
@@ -362,7 +365,6 @@ import useTextOverflow from '@/assets/utils/useTextOverflow'
                 <button v-auth="true" v-if="!isVideoOwner"  style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
                   {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}
                 </button>
-                <p style="color: aliceblue;">{{isVideoOwner}}</p>
               </div>
               <div class="actions-wrapper">
 

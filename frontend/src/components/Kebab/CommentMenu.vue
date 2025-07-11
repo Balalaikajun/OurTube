@@ -1,9 +1,9 @@
 <script setup>
-import { nextTick, onBeforeUnmount, ref } from 'vue'
-import { useMenuManager } from '@/assets/utils/useMenuManager.js'
-import { onClickOutside } from '@vueuse/core'
+    import { nextTick, onBeforeUnmount, ref } from 'vue'
+    import { useMenuManager } from '@/assets/utils/useMenuManager.js'
+    import { onClickOutside } from '@vueuse/core'
 
-const emit = defineEmits(['delete', 'edit-click', 'share']);
+    const emit = defineEmits(['delete', 'edit-click', 'share']);
     const isOpen = ref(false);
     const position = ref({ top: '0px', left: '0px' });
     const menuRef = ref(null);

@@ -35,3 +35,41 @@
     outline: none;
     border-color: #F3F0E9;;
 }
+
+
+/* Инпут ввода звука/скорости */
+.user-set-bar {
+    width: 80px;
+    height: 5px;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.user-set-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #F39E60;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.seek-bar {
+  width: 100%;
+  height: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.seek-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #F39E60;
+  border-radius: 50%;
+  cursor: pointer;
+}
