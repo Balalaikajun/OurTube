@@ -67,7 +67,7 @@ export default function useInfiniteScroll(options) {
             
             const result = await fetchMethod(nextAfter.value);
 
-            console.log(result)
+            // console.log(result)
             
             if (result?.items) {
                 data.value = reset ? result.items : [...data.value, ...result.items];
@@ -83,7 +83,7 @@ export default function useInfiniteScroll(options) {
             // }
             
             if (onLoadMore) {
-                console.log(onLoadMore)
+                // console.log(onLoadMore)
                 onLoadMore();
             }
 
@@ -100,7 +100,7 @@ export default function useInfiniteScroll(options) {
 
     onMounted(() => {
         if (initialLoad) {
-            console.log(context)
+            // console.log(context)
             loadMore(true);
         }
     });

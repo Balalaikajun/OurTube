@@ -88,7 +88,7 @@
         errorMessage.value = null
         
         // Проверяем, есть ли данные в state навигации
-        console.log(router.currentRoute.value.state?.playlistData)
+        // console.log(router.currentRoute.value.state?.playlistData)
         if (router.currentRoute.value.state?.playlistData) {
             playlistData.value = router.currentRoute.value.state.playlistData
         }
@@ -105,13 +105,13 @@
     }
 
     const saveOpen = (videoId) => {
-        console.log("save")
+        // console.log("save")
         playlistRef.value.toggleMenu(videoId);
     }
 
     const handleRetitlePlaylist = (event) => {
         event?.stopPropagation(); // Добавьте проверку на существование event
-        console.log('handleRetitlePlaylist', playlistData.value);
+        // console.log('handleRetitlePlaylist', playlistData.value);
         retitlePlaylistRef.value?.toggleMenu(playlistData.value.title);
     };
 
@@ -122,7 +122,7 @@
 
     const retitlePlaylist = async (playlist) => {
         try {
-            console.log(playlist)
+            // console.log(playlist)
             await api.patch(`api/Playlist/${currentPlaylistId.value}`,
                 {
                     "title": playlist,
@@ -146,7 +146,7 @@
 
     const handleDeleteFromPlaylist = async (videoId) => {
         try {
-            console.log("Удаление", videoId, "из", currentPlaylistId.value )
+            // console.log("Удаление", videoId, "из", currentPlaylistId.value )
             await api.delete(`api/Playlist/${currentPlaylistId.value}/${videoId}`);
             await videosRef.value.resetPlaylist();
         } catch (error) {
@@ -167,7 +167,7 @@
 
     onMounted(async () => {
         currentPlaylistId.value = route.params.id;
-        console.log(currentPlaylistId.value, props.id, props.title, props.count)
+        // console.log(currentPlaylistId.value, props.id, props.title, props.count)
         await fetchPlaylistData()
     })
 </script>

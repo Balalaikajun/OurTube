@@ -32,7 +32,7 @@ const playlistRef = ref(null);
 // };
 
 const saveOpen = (videoId) => {
-    console.log("save")
+    // console.log("save")
     playlistRef.value.toggleMenu(videoId);
 }
 

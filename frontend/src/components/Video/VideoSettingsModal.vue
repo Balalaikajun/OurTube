@@ -40,7 +40,7 @@
     // };
 
     const openMenu = async (buttonElement) => {
-        console.log(props.videoResolution)
+        // console.log(props.videoResolution)
         try {
             if (!buttonElement?.getBoundingClientRect) {
                 console.error('Invalid button element');
@@ -109,15 +109,15 @@
         <div class="kebab-menu" ref="resolutionRef" v-if="currentMenu == 'resolution'">
             <button @click="handleToMain">< Качество</button>
             <span class="line"></span>
-                <button 
-                    v-for="res in videoResolution" 
-                    :key="res.resolution" 
-                    @click="videoStore.setResolution(res.resolution)"
-                    :value="res.resolution"
-                    :class="{ active: videoStore.resolution === res.resolution }"
-                    style="justify-content: end;"
-                >
-                <span v-if="videoStore.resolution === res.resolution">v</span>
+            <button 
+                v-for="res in videoResolution" 
+                :key="res.resolution" 
+                @click.stop="videoStore.setResolution(res.resolution)"
+                :value="res.resolution"
+                :class="{ active: videoStore.resolution == res.resolution }"
+                style="justify-content: end;"
+            >
+                <span v-if="videoStore.resolution == res.resolution">v</span>
                 {{ res.resolution }}p
             </button>
         </div>

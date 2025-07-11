@@ -34,7 +34,7 @@
     };
 
     const handleClickOutside = (event) => {
-        console.log("handleClickOutside")
+        // console.log("handleClickOutside")
         if (overlayContentRef.value && !overlayContentRef.value.contains(event.target)) {
             toggleMenu();
         }
@@ -44,12 +44,12 @@
         if(isContained)
         {
             const response = await api.post(`api/Playlist/${playlistId}/${videoId.value}`);
-            console.log("Добавление в плейлист")
+            // console.log("Добавление в плейлист")
         }
         else
         {
             const response = await api.delete(`api/Playlist/${playlistId}/${videoId.value}`);
-            console.log("Удаление из плейлиста")
+            // console.log("Удаление из плейлиста")
         }
 
     };
@@ -61,7 +61,7 @@
                     title: newPlaylistName.value.trim(),
                     description: "плейлист"
                 });
-                console.log(response.data.id)
+                // console.log(response.data.id)
                 if (response.data.id) {
                     await api.post(`api/Playlist/${response.data.id}/${videoId.value}`);
                     await fetchPlaylists();

@@ -92,7 +92,7 @@ const handleShortDelete = (videoId) => {
 }
 
 const handleAddToPlaylist = () => {
-  console.log('save', currentVideoId.value)
+  // console.log('save', currentVideoId.value)
   emit('add-to-playlist', currentVideoId.value)
 }
 
@@ -103,7 +103,7 @@ const handleShareClick = () => {
 }
 
 const navigateToVideo = (video) => {
-  console.log('to', video.id)
+  // console.log('to', video.id)
   router.push(`/video/${video.id}`)
 }
 
@@ -116,18 +116,18 @@ const fetchMethods = {
       let response = {};
       if (props.context == 'aside-recomend')
       {
-        console.log(props.videoId)
+        // console.log(props.videoId)
         response = await api.get(`/api/Recommendation/video/${props.videoId}`, {          
           params: {
             limit: limit,
             after: after || 0
           }
         })
-        console.log(response)
+        // console.log(response)
       }
       else
       {
-        console.log(1715)
+        // console.log(1715)
         response = await api.get(`api/Recommendation`, {
           params: {
             limit: limit,
@@ -184,7 +184,7 @@ const fetchMethods = {
           after: after || 0
         }
       })
-      console.log(response)
+      // console.log(response)
       return {
         items: response.data.videos,
         nextAfter: response.data.nextAfter,
@@ -201,7 +201,7 @@ const fetchMethods = {
 
   async playlist (after) {
     const playlistId = route.params.id
-    console.log('$$Playlist id in fetch:',playlistId)
+    // console.log('$$Playlist id in fetch:',playlistId)
     if (!playlistId) return { items: [], nextAfter: 0, hasMore: false }
 
     const limit = computedBlocksInRow.value * 4
@@ -266,7 +266,7 @@ onMounted(async () => {
   await nextTick()
   await adaptiveView()
   window.addEventListener('resize', adaptiveView)
-  console.log('Request prop:', props.request)
+  // console.log('Request prop:', props.request)
 })
 
 onUnmounted(() => {

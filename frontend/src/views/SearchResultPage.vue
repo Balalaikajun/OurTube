@@ -29,12 +29,12 @@ import VideosPresentation from '@/components/Video/VideosPresentation.vue'
     const playlistRef =ref(null);
 
     const saveOpen = (videoId) => {
-        console.log("save")
+        // console.log("save")
         playlistRef.value.toggleMenu(videoId);
     }
 
     watch(() => props.query, (newQuery) => {
-        console.log("смена запроса");
+        // console.log("смена запроса");
         searchQuery.value = newQuery || '';
     }, { immediate: true });
 </script>

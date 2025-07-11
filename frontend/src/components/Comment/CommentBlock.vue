@@ -140,7 +140,7 @@ const props = defineProps(
 
     const handleKebabButtonClick = (event) => {
         event.stopPropagation();
-        console.log("Нажатие в handleKebabButtonClick")
+        // console.log("Нажатие в handleKebabButtonClick")
 
         emit('kebab-click', {
             commentId: props.id
@@ -150,7 +150,7 @@ const props = defineProps(
     };
 
     const handleChildKebabButtonClick = (event) => {
-        console.log("Нажатие в handleChildKebabClick")
+        // console.log("Нажатие в handleChildKebabClick")
         // if (payload?.event) {
         //     payload.event.stopPropagation();
         // }
@@ -194,7 +194,7 @@ const props = defineProps(
 
     const fetchComments = async () => {
         if (!hasMore.value || isLoading.value) return;
-        console.log('Загрузка ответов')
+        // console.log('Загрузка ответов')
         
         isLoading.value = true;
         try {

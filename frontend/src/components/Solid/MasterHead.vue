@@ -21,7 +21,7 @@ const router = useRouter();
     const logout = async () => {
         try {
             const response = await api.post(`/api/identity/logout`)
-            console.log(response.status)
+            // console.log(response.status)
         }
         catch (error) {
             console.error('Ошибка разлогирования:', error)

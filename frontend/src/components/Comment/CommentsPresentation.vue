@@ -41,8 +41,8 @@ const props = defineProps({
                 const response = await api.get(
                     `api/Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
                 );
-                console.log(response)
-                console.log("response hasMore", response.data?.hasMore)
+                // console.log(response)
+                // console.log("response hasMore", response.data?.hasMore)
                 if(response.data?.hasMore)
                 {
                     

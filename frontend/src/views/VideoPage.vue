@@ -63,12 +63,12 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
   const addToHistory = async () => {
     try {
-      console.log(videoId.value);
+      // console.log(videoId.value);
       await api.post('api/History', {
         videoId: videoId.value,
         endTime: "0"
       });
-      console.log('Added to history');
+      // console.log('Added to history');
     } catch (error) {
       console.error('History error:', error);
     }
@@ -96,7 +96,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     videoData.value = null;
     hlsUrlFiles.value = [];
 
-    console.log("Fetching video data for ID:", videoId.value);
+    // console.log("Fetching video data for ID:", videoId.value);
 
     if (!videoId.value) {
       error.value = "Идентификатор видео не предоставлен.";
@@ -109,7 +109,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
       const response = await api.get(`api/Video/${videoId.value}`);
       const data = response.data;
 
-      console.log(data, "Информация о видео");
+      // console.log(data, "Информация о видео");
 
       if (!data) {
         throw new Error("Получены пустые данные видео");
@@ -124,11 +124,11 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
       if (data.files?.length) {
         const file = data.files[0];
         if (file.fileName) {
-          console.log()
+          // console.log()
           // hlsUrlFiles.value = ensureHttpUrl(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${file.fileName}`);
           hlsUrlFiles.value = data.files
-          console.log(hlsUrlFiles.value)
-          console.log("HLS URL:", hlsUrlFiles.value);
+          // console.log(hlsUrlFiles.value)
+          // console.log("HLS URL:", hlsUrlFiles.value);
         } else {
           console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
           hlsUrlFiles.value = [];
@@ -195,12 +195,12 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     }
     
     const width = contentWrapper.value.offsetWidth;
-    console.log("Current container width:", width);
+    // console.log("Current container width:", width);
     
     if (width !== lastWidth.value) {
       isRow.value = 1200 < width;
       lastWidth.value = width;
-      console.log("Layout changed. isRow:", isRow.value);
+      // console.log("Layout changed. isRow:", isRow.value);
     }
   }, 100);
 
@@ -227,13 +227,13 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   };
 
   onMounted(async () => {    
-    console.log('VideoPage mounted, route params:', route.params);
+    // console.log('VideoPage mounted, route params:', route.params);
   
     videoId.value = Number(route.params.id);
-    console.log("Initial video ID:", videoId.value);
+    // console.log("Initial video ID:", videoId.value);
     
     if (!userData) {
-        console.log("User not authenticated");
+        // console.log("User not authenticated");
     }
 
     // await fetchVideoData();
@@ -245,19 +245,19 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     await initResizeObserver();
   });
   onUnmounted( async () => {
-    console.log("Размонтирование VideoPage");
+    // console.log("Размонтирование VideoPage");
     await addToHistory();
     document.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
 
     if (Player.value) {
-      console.log("Player ref существует, попытка очистки");
+      // console.log("Player ref существует, попытка очистки");
       if (typeof Player.value.destroyPlayer === 'function') {
-        console.log("Вызов destroyPlayer");
+        // console.log("Вызов destroyPlayer");
         Player.value.destroyPlayer();
       }
       if (Player.value.videoPlayerRef) {
-          console.log("Ручная очистка video элемента");
+          // console.log("Ручная очистка video элемента");
           try {
               Player.value.videoPlayerRef.pause();
               // Важно: удаляем src, а не устанавливаем null или пустую строку,
@@ -269,7 +269,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
           }
       }
     } else {
-      console.log("Player ref уже null или недоступен, очистка не требуется");
+      // console.log("Player ref уже null или недоступен, очистка не требуется");
     }
     if (window.controlPanelTimeout) {
       clearTimeout(window.controlPanelTimeout);
@@ -283,13 +283,13 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     hlsUrlFiles.value = [];
   });
   const commentsCount = computed(() => {
-    console.log(videoData.value?.commentsCount || 0)
+    // console.log(videoData.value?.commentsCount || 0)
     return videoData.value?.commentsCount || 0;
   });
 
   // Добавляем watcher для videoId
   watch(videoId, (newVideoId, oldVideoId) => {
-      console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
+      // console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
       // Если новый videoId отличается от старого и не пустой, загружаем новые данные
       if (newVideoId && newVideoId !== oldVideoId) {
           fetchVideoData();

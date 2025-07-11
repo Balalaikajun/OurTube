@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import Hls from 'hls.js'
 import VideoSettingsModal from './VideoSettingsModal.vue';
 import { useVideoStore } from '@/assets/store/videoSettings';
@@ -36,72 +36,82 @@ const volumeBarStyle = computed(() => ({
   background: `linear-gradient(to right, #F39E60 ${seekBarInput.value * 100}%, #F3F0E9 ${seekBarInput.value * 100}%)`
 }));
 
-const initHls = () => {
-  if (!props.videoFiles) {
-    playerError.value = 'Источник видео не указан';
+const initHls = async () => {
+  console.log('$$Плеер', videoPlayerRef.value, 'hls', Hls.isSupported(), '&&', videoPlayerRef.value && Hls.isSupported());
+  
+  if (!Hls.isSupported()) {
+    console.error('HLS is not supported in this browser');
+    return;
+  }
+
+  if (!videoPlayerRef.value) {
+    console.error('Video element is not available');
     return;
   }
 
   try {
-    if (Hls.isSupported() && videoPlayerRef.value) {
-      hls.value = new Hls({
-        xhrSetup: function(xhr, url) {
-        // Проверяем, является ли URL относительным
-        if (!url.startsWith('http')) {
-          // Получаем базовый путь из videoFiles (удаляем имя файла)
-          const basePath = props.videoFiles.substring(0, props.videoFiles.lastIndexOf('/') + 1);
-          // Собираем полный URL
-          const fullUrl = `${basePath}${url}`;
-          console.log('Путь до видео', fullUrl)
-          xhr.open('GET', fullUrl, true);
-        } else {
-          xhr.open('GET', url, true);
-        }
-      }
-      });
-      hls.value.loadSource(props.videoFiles);
-      hls.value.attachMedia(videoPlayerRef.value);
+    console.log('Initializing HLS...');
+    
+    hls.value = new Hls({
+      enableWorker: true,
+      debug: true, // Включаем логирование
+    });
 
-      // ДОБАВЛЕНО: Обработчик для события загрузки метаданных
-      hls.value.on(Hls.Events.MANIFEST_PARSED, () => {
-        videoPlayerRef.value.addEventListener('loadedmetadata', () => {
-          // Обновляем длительность видео при загрузке метаданных
-          videoDuration.value = videoPlayerRef.value.duration;
-        });
-      });
+    // Обработчики событий
+    hls.value.on(Hls.Events.MEDIA_ATTACHED, () => {
+      console.log('Media attached');
+      loadCurrentResolution();
+    });
 
-      hls.value.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) {
-          switch(data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              playerError.value = 'Ошибка сети при загрузке видео';
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              playerError.value = 'Ошибка медиа-данных';
-              break;
-            default:
-              playerError.value = 'Неизвестная ошибка воспроизведения';
-              break;
-          }
-        }
-      });
-    } 
-    else if (videoPlayerRef.value?.canPlayType('application/vnd.apple.mpegurl')) {
-      // Для Safari
-      videoPlayerRef.value.src = props.videoFiles;
-      // ДОБАВЛЕНО: Обработчик метаданных для Safari
-      videoPlayerRef.value.addEventListener('loadedmetadata', () => {
-        videoDuration.value = videoPlayerRef.value.duration;
-      });
-    } 
-    else {
-      playerError.value = 'Ваш браузер не поддерживает воспроизведение HLS';
-    }
+    hls.value.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+      console.log('Manifest parsed, quality levels:', data.levels);
+      // Обновляем длительность при парсинге манифеста
+      videoDuration.value = videoPlayerRef.value.duration;
+    });
+
+    videoPlayerRef.value.addEventListener('loadedmetadata', () => {
+      videoDuration.value = videoPlayerRef.value.duration;
+    });
+
+    hls.value.on(Hls.Events.ERROR, (event, data) => {
+      console.error('HLS Error:', data);
+    });
+
+    console.log('Attaching media...');
+    hls.value.attachMedia(videoPlayerRef.value);
+    
   } catch (error) {
-    playerError.value = 'Ошибка инициализации плеера';
-    console.error('HLS init error:', error);
+    console.error('HLS initialization failed:', error);
   }
 };
+
+// В onMounted:
+onMounted(async () => {
+  await nextTick(); // Ждём обновления DOM
+  console.log('Component mounted, initializing HLS');
+  initHls();
+});
+
+const loadCurrentResolution = () => {
+  try {
+    const resolution = videoStore.resolution || props.videoFiles[0].resolution;
+    const videoFile = props.videoFiles.find(f => f.resolution === +resolution);
+    
+    if (!videoFile) throw new Error('Resolution not found');
+    
+    const fullUrl = `${import.meta.env.VITE_MINIO_BASE_URL}/${videoFile.bucket}/${videoFile.fileName}`;
+    console.log('Loading:', fullUrl);
+    
+    if (hls.value) {
+      hls.value.loadSource(fullUrl);
+    } else if (videoPlayerRef.value?.canPlayType('application/vnd.apple.mpegurl')) {
+      videoPlayerRef.value.src = fullUrl;
+    }
+  } catch (error) {
+    console.error('Error loading resolution:', error);
+  }
+};
+
 const showControlPannel = async () => {
   controlPannerVisible.value = true;
 
@@ -133,16 +143,19 @@ const toggleFullscreen = () => {
   }
 };
 
-const handleFullscreenChange = () => {
-  isFullscreen.value = !!document.fullscreenElement;
-};
+  const handleFullscreenChange = () => {
+    isFullscreen.value = !!document.fullscreenElement;
+  };
 
 
   // Выносим обработчик в отдельную функцию для последующего удаления
   const updateTime = () => {
-    // Добавляем проверку на существование videoPlayerRef
     if (videoPlayerRef.value) {
       currentTime.value = videoPlayerRef.value.currentTime;
+      // Также обновляем длительность на случай, если она изменилась
+      if (videoPlayerRef.value.duration !== videoDuration.value) {
+        videoDuration.value = videoPlayerRef.value.duration;
+      }
     }
   };
 
@@ -183,17 +196,17 @@ const changeUserInput = (event) => {
 
 const destroyPlayer = () => {
   try {
-    console.log("Destroying player...");
+    // console.log("Destroying player...");
     
     if (hls.value) {
-      console.log("Destroying HLS instance");
+      // console.log("Destroying HLS instance");
       hls.value.detachMedia();
       hls.value.destroy();
       hls.value = null;
     }
 
     if (videoPlayerRef.value) {
-      console.log("Cleaning up video element");
+      // console.log("Cleaning up video element");
       videoPlayerRef.value.pause();
       videoPlayerRef.value.removeAttribute('src');
       videoPlayerRef.value.load();
@@ -209,24 +222,29 @@ const handleSettingsButtonClick = (event) => {
     settingsMenu.value?.openMenu(event.currentTarget);
 };
 
+watch(() => videoStore.resolution, (newResolution) => {
+  loadCurrentResolution();
+});
+
+// Следим за изменением скорости
 watch(() => videoStore.speed, (newSpeed) => {
-    if (videoPlayerRef.value) {
-        videoPlayerRef.value.playbackRate = newSpeed;
-        console.log(videoPlayerRef.value.playbackRate)
-    }
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.playbackRate = newSpeed;
+  }
 });
 
 // ИЗМЕНЕНО: Полностью переработан хук onMounted
-onMounted(() => {
-  console.log(props.videoFiles)
-
-  initHls(); // HLS сам управляет источниками
+onMounted(async () => {
+  await nextTick();
+  initHls();
   
   if (videoPlayerRef.value) {
     videoPlayerRef.value.addEventListener('play', () => isPlaying.value = true);
     videoPlayerRef.value.addEventListener('pause', () => isPlaying.value = false);
     videoPlayerRef.value.addEventListener('timeupdate', updateTime);
-    // videoPlayerRef.value.addEventListener('loadedmetadata', updateVideoDimensions);
+    videoPlayerRef.value.addEventListener('durationchange', () => {
+      videoDuration.value = videoPlayerRef.value.duration;
+    });
   }
   
   document.addEventListener('fullscreenchange', handleFullscreenChange);

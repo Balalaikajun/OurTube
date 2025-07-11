@@ -11,7 +11,7 @@ const emit = defineEmits(['retitle']);
     const playlist = ref('');
 
     const toggleMenu = async (title) => {
-        console.log(title)
+        // console.log(title)
         playlist.value = title;
         await nextTick();
         isOpen.value = !isOpen.value;
@@ -47,7 +47,7 @@ const emit = defineEmits(['retitle']);
 
     const retitlePlaylist = async (event) => {
         event?.stopPropagation();
-        console.log(playlist.value)
+        // console.log(playlist.value)
         emit('retitle', playlist.value);
         isOpen.value = false;
         document.removeEventListener('mousedown', handleClickOutside);

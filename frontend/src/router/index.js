@@ -108,7 +108,7 @@ router.beforeEach((to, from, next) => {
 });
 
 router.afterEach((to, from) => {
-    console.log(`Navigated from ${from.path} to ${to.path}`);
+    // console.log(`Navigated from ${from.path} to ${to.path}`);
 });
 
 // router.beforeEach((to) => {

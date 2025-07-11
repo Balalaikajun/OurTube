@@ -23,7 +23,7 @@ const isInputFocused = ref(false);
 // Добавляем функцию adaptiveView
 const adaptiveView = async () => {
   // Ваша реализация адаптивного представления
-  console.log("Adaptive view logic here");
+  // console.log("Adaptive view logic here");
 };
 
 onMounted(async () => {

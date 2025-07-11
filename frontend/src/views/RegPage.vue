@@ -18,7 +18,7 @@ const username = ref("");
         try {
             // Запрос на бэкенд для регистрации
             // Эндпоинты менять не забывайте
-            console.log(email.value)
+            // console.log(email.value)
             const response = await api.post(`/identity/register`, {
                 email: email.value,
                 password: password.value,

@@ -22,7 +22,7 @@ const props = defineProps({
 
     const handleKebabButtonClick = (event) => {
         event.stopPropagation();
-        console.log(props.playlist.id, props.playlist.title)
+        // console.log(props.playlist.id, props.playlist.title)
         emit('kebab-click', {
             playlist: {
                 playlistId: props.playlist.id,
@@ -33,7 +33,7 @@ const props = defineProps({
     };
 
     onMounted(async () => {
-        console.log(props.playlist)
+        // console.log(props.playlist)
     });
 </script>
 <template>

@@ -16,8 +16,8 @@ const openUpload = () => {
 
 // Проверяем токен и загружаем данные при монтировании
     onMounted(async () => {
-        console.log(window.innerWidth);
-        console.log(window.devicePixelRatio);
+        // console.log(window.innerWidth);
+        // console.log(window.devicePixelRatio);
         await saveUserDataToLocalStorage();
     });
 </script>

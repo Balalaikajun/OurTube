@@ -83,7 +83,7 @@ const handleKebabClick = ({ playlist, buttonElement }) => {
 
 const handleRetitlePlaylist = (event) => {
   event?.stopPropagation(); // Добавьте проверку на существование event
-  console.log("handleRetitlePlaylist", currentPlaylist.value.playlistTitle);
+  // console.log("handleRetitlePlaylist", currentPlaylist.value.playlistTitle);
   retitlePlaylistRef.value?.toggleMenu(currentPlaylist.value.playlistTitle);
 };
 
@@ -94,8 +94,8 @@ const handleDeletePlaylist = (event) => {
 
 const retitlePlaylist = async (playlistTitle) => {
   try {
-    console.log(playlistTitle);
-    console.log(currentPlaylist.value);
+    // console.log(playlistTitle);
+    // console.log(currentPlaylist.value);
     await api.patch(`api/Playlist/${currentPlaylist.value.playlistId}`, {
       title: playlistTitle,
       description: "плейлист",
@@ -122,7 +122,7 @@ const deletePlaylist = async (playlistId) => {
 };
 
 const navigateToPlaylist = (playlist) => {
-  console.log('$$Playlist data from navigate', playlist)
+  // console.log('$$Playlist data from navigate', playlist)
   router.push({ 
       name: 'PlaylistPage', 
       params: { id: playlist.id }, 
@@ -213,7 +213,7 @@ onMounted(async () => {
   await nextTick();
   await adaptiveView();
   window.addEventListener("resize", adaptiveView);
-  console.log("Request prop:", props.request);
+  // console.log("Request prop:", props.request);
 });
 
 onUnmounted(() => {

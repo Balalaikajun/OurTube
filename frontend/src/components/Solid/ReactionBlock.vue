@@ -53,7 +53,7 @@ watch(() => props.dislikesCount, (newVal) => {
 // {
 //     if (isProcessing.value) return;
 //     isProcessing.value = true;
-//     console.log("Удаление")
+//     // console.log("Удаление")
 //     try
 //     {
 //         const response = await api.delete(`Video/${videoId.value}/vote`);
@@ -62,7 +62,7 @@ watch(() => props.dislikesCount, (newVal) => {
 //     catch (error) 
 //     {
 //         console.error('Reaction error:', error);
-//         console.log("В ошибке", localReaction.value)
+//         // console.log("В ошибке", localReaction.value)
 //         // Откатываем изменения при ошибке
 //         // localReaction.value = props.reactionStatus;
 //         // localLikesCount.value = props.likesCount;
@@ -85,7 +85,7 @@ const handleReaction = async (isLike) => {
             {
                 localLikesCount.value--;
                 localReaction.value = null
-                console.log("Удаление лайка", localReaction.value, commentId)
+                // console.log("Удаление лайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `api/Video/Comment/${commentId}/vote` : `api/Video/${videoId.value}/vote`;
                 const response = await api.delete(responseContext);
             }
@@ -97,7 +97,7 @@ const handleReaction = async (isLike) => {
                 }
                 localLikesCount.value++;
                 localReaction.value = true
-                console.log("Смена дизлайка на лайк или добавление лайка", localReaction.value, commentId)
+                // console.log("Смена дизлайка на лайк или добавление лайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `api/Video/Comment/${commentId}/vote` : `api/Video/${videoId.value}/vote`;
                 const response = await api.post(responseContext, 
                     true
@@ -109,7 +109,7 @@ const handleReaction = async (isLike) => {
             {
                 localDislikesCount.value--;
                 localReaction.value = null;
-                console.log("Удаление дизлайка", localReaction.value, commentId)
+                // console.log("Удаление дизлайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `api/Video/Comment/${commentId}/vote` : `api/Video/${videoId.value}/vote`;
                 const response = await api.delete(responseContext);
             }
@@ -122,7 +122,7 @@ const handleReaction = async (isLike) => {
                 
                 localDislikesCount.value++;
                 localReaction.value = false
-                console.log("Смена лайка на дизлайк или добавление дизлайка", localReaction.value, commentId)
+                // console.log("Смена лайка на дизлайк или добавление дизлайка", localReaction.value, commentId)
                 const responseContext = props.context == `comment` ? `api/Video/Comment/${commentId}/vote` : `api/Video/${videoId.value}/vote`;
                 const response = await api.post( responseContext, 
                     false
@@ -133,7 +133,7 @@ const handleReaction = async (isLike) => {
     }
   catch (error) {
     console.error('Reaction error:', error);
-    console.log("В ошибке", localReaction.value)
+    // console.log("В ошибке", localReaction.value)
     // Откатываем изменения при ошибке
     // localReaction.value = props.reactionStatus;
     // localLikesCount.value = props.likesCount;
