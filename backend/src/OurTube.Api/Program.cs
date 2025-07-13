@@ -33,8 +33,7 @@ services.AddMemoryCache();
 
 // Auth
 services.AddAuthorization();
-services.AddAuthentication()
-    .AddBearerToken(IdentityConstants.BearerScheme);
+services.AddAuthentication();
 
 services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
@@ -50,6 +49,23 @@ services.AddIdentity<IdentityUser, IdentityRole>(options =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.LoginPath = PathString.Empty;
+    options.AccessDeniedPath = PathString.Empty;
+    
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.Headers.Remove("Location");
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        context.Response.Headers.Remove("Location");
+        return Task.CompletedTask;
+    };
+
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Всегда ставить Secure
     options.Cookie.SameSite = SameSiteMode.None; // Говорим: можно в кросс-домен
@@ -100,7 +116,6 @@ services.AddScoped<VideoValidator>();
 // CORS
 var originsEnv = configuration["Cors:AllowedOrigins"];
 var allowedOrigins = originsEnv.Split(';', StringSplitOptions.RemoveEmptyEntries);
-
 services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -108,8 +123,7 @@ services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials()
-            .WithExposedHeaders("Content-Disposition"); // если нужно
+            .AllowCredentials();
     });
 });
 
@@ -150,11 +164,12 @@ if (builder.Environment.IsDevelopment())
         });
     });
 }
+
 services.AddControllers();
 
 // DataProtection directory
 var keysPath = builder.Configuration["DataProtection:KeysPath"]
-    ?? Path.Combine(builder.Environment.ContentRootPath, "DataProtection.Keys");
+               ?? Path.Combine(builder.Environment.ContentRootPath, "DataProtection.Keys");
 
 Directory.CreateDirectory(keysPath);
 
@@ -163,12 +178,14 @@ builder.Services.AddDataProtection()
 
 var app = builder.Build();
 
+app.UsePathBase("/api");
+
 using (var scope = app.Services.CreateScope())
 {
     var storageClient = scope.ServiceProvider.GetRequiredService<IStorageClient>();
     var videoBucket = configuration["MinIO:VideoBucket"];
     var userBucket = configuration["MinIO:UserBucket"];
-    await storageClient.EnsureBucketsExistAsync(videoBucket,userBucket);
+    await storageClient.EnsureBucketsExistAsync(videoBucket, userBucket);
 }
 
 // Migration
@@ -194,17 +211,12 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseCors("AllowFrontend");
 
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<UniqueVisitorId>();
 
 app.MapControllers();
-
-app.UseStaticFiles();
-
-app.MapFallbackToFile("index.html");
 
 app.MapGroup("/identity")
     .MapIdentityApi<IdentityUser>();

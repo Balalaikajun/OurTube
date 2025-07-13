@@ -39,10 +39,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
 
 volumes:
   minio_data:
   postgres_data:
   data-protection-keys:
-  webroot:
-  certs:

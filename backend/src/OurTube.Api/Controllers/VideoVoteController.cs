@@ -5,7 +5,7 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
-[Route("api/Video/{videoId:int}/vote")]
+[Route("Video/{videoId:int}/vote")]
 public class VideoVoteController : ControllerBase
 {
     private readonly IVideoVoteService _videoVoteVoteService;
