@@ -207,4 +207,18 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
         return playlist;
     }
+
+    public async Task<PlaylistMinGetDto> GetMinById(int id, string userId)
+    {
+        var playlist = await _dbContext.Playlists
+            .FirstOrDefaultAsync(p => p.Id == id);
+        
+        if (playlist == null)
+            throw new KeyNotFoundException("Playlist not found");
+        
+        if(playlist.ApplicationUserId != userId)
+            throw new UnauthorizedAccessException("Unauthorized access");
+        
+        return _mapper.Map<PlaylistMinGetDto>(playlist);
+    }
 }

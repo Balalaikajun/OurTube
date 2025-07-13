@@ -135,7 +135,7 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:int}/elements")]
     public async Task<ActionResult<PagedDto<PlaylistElementGetDto>>> GetByElements(
         int id,
         [FromQuery] int limit = 10,
@@ -149,6 +149,27 @@ public class PlaylistController : ControllerBase
                 limit,
                 after);
 
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    [Authorize]
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<PlaylistMinGetDto>> GetById(
+        int id)
+    {
+        try
+        {
+            var result = await _playlistQueryService.GetMinById(id, User.FindFirstValue(ClaimTypes.NameIdentifier));
+            
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
