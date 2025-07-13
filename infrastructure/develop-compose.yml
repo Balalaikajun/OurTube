@@ -39,61 +39,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  backend:
-    container_name: backend
-    build:
-      context: ../backend/
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
-      DATAPROTECTION__KEYSPATH: /root/.aspnet/DataProtection-Keys
-      AllowedHosts: ${ALLOWED_HOSTS}
-      Cors__AllowedOrigins: http://${DOMAIN};http://ourtube.space
-      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING}
-      SMTP__Server: ${SMTP__Server}
-      SMTP__Port: ${SMTP__Port}
-      SMTP__Email: ${SMTP__Email}
-      SMTP__Password: ${SMTP__Password}
-      Minio__AccessKey: ${MinIO__AccessKey}
-      Minio__SecretKey: ${MinIO__SecretKey}
-      Minio__Endpoint: ${MinIO__Endpoint}
-      Minio__VideoBucket: ${MinIO__VideoBucket}
-      Minio__UserBucket: ${MinIO__UserBucket}
-      FFmpeg__ExecutablesPath: ${FFmpeg__ExecutablesPath}
-    volumes:
-      - data-protection-keys:/root/.aspnet/DataProtection-Keys
-      - ./wait-for-it.sh:/wait-for-it.sh
-    entrypoint: /bin/sh
-    command: >
-      -c "chmod +x /wait-for-it.sh &&
-          /wait-for-it.sh postgres:5432 -- /wait-for-it.sh minio:9000 -- 
-          dotnet OurTube.Api.dll"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    restart: unless-stopped
-
-  frontend:
-    container_name: frontend
-    build:
-      context: ../frontend/
-      dockerfile: Dockerfile
-      args:
-        VITE_API_BASE_URL: http://${DOMAIN}/api
-        VITE_MINIO_BASE_URL: http://${DOMAIN}/storage
-    environment:
-      - DOMAIN=${DOMAIN}
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-    command: [ "-g", "daemon off;", "-c", "/etc/nginx/mycustom.conf" ]
   
 
 volumes:

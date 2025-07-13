@@ -78,3 +78,6 @@ yarn-error.log
 /backend/src/OurTube.Api/appsettings.json
 /infrastructure/.env
 /frontend/.env
+
+# Serts
+*.pem
