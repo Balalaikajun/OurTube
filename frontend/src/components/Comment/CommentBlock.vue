@@ -199,7 +199,7 @@ const props = defineProps(
         isLoading.value = true;
         try {
             const response = await api.get(
-                `api/Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
+                `Video/Comment/${props.videoId}?limit=10&after=${after.value}&parentId=${props.id}`
             );
             
             const newComments = response.data?.comments || [];

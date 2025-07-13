@@ -74,7 +74,7 @@ const props = defineProps({
         }
 
         try {
-            const response = await api.post('api/Video/Comment', {
+            const response = await api.post('Video/Comment', {
                 videoId: props.videoId,
                 text: commentText.value,
                 parentId: rootParentId

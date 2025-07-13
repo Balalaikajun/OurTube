@@ -64,7 +64,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   const addToHistory = async () => {
     try {
       // console.log(videoId.value);
-      await api.post('api/History', {
+      await api.post('History', {
         videoId: videoId.value,
         endTime: "0"
       });
@@ -106,7 +106,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
     try {
       // console.log(videoId.value, 1)
-      const response = await api.get(`api/Video/${videoId.value}`);
+      const response = await api.get(`Video/${videoId.value}`);
       const data = response.data;
 
       // console.log(data, "Информация о видео");

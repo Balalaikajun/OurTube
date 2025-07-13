@@ -117,7 +117,7 @@ const fetchMethods = {
       if (props.context == 'aside-recomend')
       {
         // console.log(props.videoId)
-        response = await api.get(`/api/Recommendation/video/${props.videoId}`, {          
+        response = await api.get(`Recommendation/video/${props.videoId}`, {
           params: {
             limit: limit,
             after: after || 0
@@ -128,7 +128,7 @@ const fetchMethods = {
       else
       {
         // console.log(1715)
-        response = await api.get(`api/Recommendation`, {
+        response = await api.get(`Recommendation`, {
           params: {
             limit: limit,
             after: after || 0
@@ -153,7 +153,7 @@ const fetchMethods = {
     if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 }
     const limit = computedBlocksInRow.value * 4
     try {
-      const response = await api.get(`api/Search`, {
+      const response = await api.get(`Search`, {
         params: {
           query: props.searchQuery,
           limit: limit,
@@ -177,7 +177,7 @@ const fetchMethods = {
   async history (after) {
     const limit = computedBlocksInRow.value * 4
     try {
-      const response = await api.get(`api/History`, {
+      const response = await api.get(`History`, {
         params: {
           query: props.searchQuery,
           limit: limit,
@@ -207,7 +207,7 @@ const fetchMethods = {
     const limit = computedBlocksInRow.value * 4
 
     try {
-      const response = await api.get(`api/Playlist/${playlistId}`, {
+      const response = await api.get(`Playlist/${playlistId}`, {
         params: { limit, after: after || 0 }
       })
 

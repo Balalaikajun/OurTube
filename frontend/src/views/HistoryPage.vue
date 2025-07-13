@@ -72,7 +72,7 @@ const handleDeleteFromHistory = async (videoId) => {
   if (!isAuthorized.value) return;
   
   try {
-    await api.delete(`api/History/${videoId}`);
+    await api.delete(`History/${videoId}`);
   } catch (error) {
     console.error("History error:", error);
   } finally {
@@ -84,7 +84,7 @@ const clearHistory = async () => {
   if (!isAuthorized.value) return;
   
   try {
-    await api.delete("api/History");
+    await api.delete("History");
   } catch (error) {
     console.error("History error:", error);
   } finally {

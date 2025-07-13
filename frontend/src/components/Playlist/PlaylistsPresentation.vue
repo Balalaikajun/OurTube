@@ -96,7 +96,7 @@ const retitlePlaylist = async (playlistTitle) => {
   try {
     // console.log(playlistTitle);
     // console.log(currentPlaylist.value);
-    await api.patch(`api/Playlist/${currentPlaylist.value.playlistId}`, {
+    await api.patch(`Playlist/${currentPlaylist.value.playlistId}`, {
       title: playlistTitle,
       description: "плейлист",
     });
@@ -111,7 +111,7 @@ const retitlePlaylist = async (playlistTitle) => {
 
 const deletePlaylist = async (playlistId) => {
   try {
-    await api.delete(`api/Playlist/${playlistId}`);
+    await api.delete(`Playlist/${playlistId}`);
     await resetPlaylists();
   } catch (err) {
     error.value =
@@ -138,7 +138,7 @@ const fetchMethod = async (after) => {
 
   const limit = computedBlocksInRow.value * 4;
   try {
-    const response = await api.get(`api/Playlist`, {
+    const response = await api.get(`Playlist`, {
       params: {
         limit: limit,
         after: after || 0,

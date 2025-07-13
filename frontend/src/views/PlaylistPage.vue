@@ -69,7 +69,7 @@
             }
             
             // Всегда запрашиваем свежие данные с сервера
-            const response = await api.get(`api/Playlist/${playlistData.value.id}`)
+            const response = await api.get(`Playlist/${playlistData.value.id}`)
             if (response.data) {
             Object.assign(playlistData.value, response.data)
             setDocumentTitle(playlistData.value.title)
@@ -94,7 +94,7 @@
         }
         
         try {
-            const response = await api.get(`api/Playlist/${currentPlaylistId.value}`)
+            const response = await api.get(`Playlist/${currentPlaylistId.value}`)
             playlistData.value = response.data
         } catch (err) {
             errorMessage.value = err.response?.data?.message || err.message || 'Ошибка загрузки'
@@ -123,7 +123,7 @@
     const retitlePlaylist = async (playlist) => {
         try {
             // console.log(playlist)
-            await api.patch(`api/Playlist/${currentPlaylistId.value}`,
+            await api.patch(`Playlist/${currentPlaylistId.value}`,
                 {
                     "title": playlist,
                     "description": "плейлист"
@@ -137,7 +137,7 @@
 
     const deletePlaylist = async () => {
         try {
-            await api.delete(`api/Playlist/${currentPlaylistId.value}`);
+            await api.delete(`Playlist/${currentPlaylistId.value}`);
             await videosRef.value.resetPlaylist();
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Ошибка при удалении плейлиста';
@@ -147,7 +147,7 @@
     const handleDeleteFromPlaylist = async (videoId) => {
         try {
             // console.log("Удаление", videoId, "из", currentPlaylistId.value )
-            await api.delete(`api/Playlist/${currentPlaylistId.value}/${videoId}`);
+            await api.delete(`Playlist/${currentPlaylistId.value}/${videoId}`);
             await videosRef.value.resetPlaylist();
         } catch (error) {
             console.error('Playlist error:', error);

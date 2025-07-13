@@ -20,7 +20,7 @@ const router = useRouter();
 
     const logout = async () => {
         try {
-            const response = await api.post(`/api/identity/logout`)
+            const response = await api.post(`identity/logout`)
             // console.log(response.status)
         }
         catch (error) {
