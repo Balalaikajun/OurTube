@@ -50,9 +50,7 @@ export default function useInfiniteScroll(options) {
     };
 
     const loadMore = async (reset = false) => {
-        
-        if (isLoading.value || (!reset && !hasMore.value))
-        {
+        if (isLoading.value || (!reset && !hasMore.value)) {
             return;
         }
         
@@ -66,29 +64,22 @@ export default function useInfiniteScroll(options) {
             }
             
             const result = await fetchMethod(nextAfter.value);
-
-            // console.log(result)
             
             if (result?.items) {
                 data.value = reset ? result.items : [...data.value, ...result.items];
                 nextAfter.value = result.nextAfter;
                 hasMore.value = result.hasMore !== undefined ? result.hasMore : true;
-            } 
-            // else {
-            //     // Совместимость со старым форматом
-            //     const items = result.videos || result.comments || result.playlists || result;
-            //     data.value = reset ? items : [...data.value, ...items];
-            //     nextAfter.value = result.nextAfter || (items[items.length - 1]?.id || null);
-            //     hasMore.value = result.hasMore !== undefined ? result.hasMore : true;
-            // }
+            }
             
             if (onLoadMore) {
-                // console.log(onLoadMore)
                 onLoadMore();
             }
 
-            await nextTick();
-            initIntersectionObserver();
+            // Инициализируем observer только если включен бесконечный скролл
+            if (isEnabled) {
+                await nextTick();
+                initIntersectionObserver();
+            }
         } catch (err) {
             error.value = err.message || 'Ошибка загрузки данных';
             console.error('Ошибка при загрузке:', err);

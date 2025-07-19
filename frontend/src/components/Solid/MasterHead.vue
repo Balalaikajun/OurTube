@@ -1,22 +1,28 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import MainMenu from './MainMenu.vue' // Импортируем компонент бокового меню
-import UserAvatar from './UserAvatar.vue'
+    import { computed, onMounted, onUnmounted, ref } from 'vue'
+    import MainMenu from './MainMenu.vue' // Импортируем компонент бокового меню
+    import UserAvatar from './UserAvatar.vue'
 
-import { useRoute, useRouter } from 'vue-router'
-import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
-import api from '@/assets/utils/api.js'
+    import { useRoute, useRouter } from 'vue-router'
+    import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
+    import api from '@/assets/utils/api.js'
 
-const router = useRouter();
+    const router = useRouter();
     const route = useRoute();
     const { register, unregister } = injectFocusEngine();
 
-    const emit = defineEmits(['open-upload']);
+    const emit = defineEmits(['open-upload', 'open-account']);
 
-    const userData = computed(() => JSON.parse(localStorage.getItem('userData')));
+    const userData = ref(JSON.parse(localStorage.getItem('userData'))); //правки
+
     const activeMenu = ref(null); // 'side' | 'account' | null
     const searchQuery = ref("");
     const isLoading = ref(false);
+
+    const account = async () => {
+        emit('open-account');
+        activeMenu.value = null;
+    };
 
     const logout = async () => {
         try {
@@ -89,9 +95,13 @@ const router = useRouter();
             await router.push({ path: '/search', query: { q: query } });
         }
     };
+    const handleStorageChange = () => {
+        userData.value = JSON.parse(localStorage.getItem('userData')) || {};
+    };
 
     onMounted(() => {
         document.addEventListener('click', handleClickOutside);
+        window.addEventListener('storage', handleStorageChange); // Изменили здесь
         if (route.path === '/search' && route.query.q) {
             searchQuery.value = route.query.q;
         }
@@ -99,6 +109,7 @@ const router = useRouter();
 
     onUnmounted(() => {
         document.removeEventListener('click', handleClickOutside);
+        window.removeEventListener('storage', handleStorageChange); // И здесь
     });
 </script>
 
@@ -138,37 +149,37 @@ const router = useRouter();
             Создать
         </button>
         <div class="user-avatar-container" @click="() => toggleMenu('account')">
-          <UserAvatar />
+          <UserAvatar :user-info="userData || {}" />
         </div>
       </div>
       
       <MainMenu v-if="activeMenu === 'side'" class="side-menu" />
       
-      <div v-if="activeMenu === 'account'" class="account-menu">
+    <div v-if="activeMenu === 'account'" class="account-menu" @click.stop>
         <div v-auth="true" class="account-wrapper">
             <div class="account-header">
-                <UserAvatar />
+                <UserAvatar :user-info="userData || {}" />
                 <p class="user-name">{{ userData?.userName }}</p>
             </div>
             
             <span class="divider"></span>
             
             <div class="account-actions">                
-                <button class="control-button">Настройки аккаунта</button>
-                <button class="control-button" @click="logout">Выйти из аккаунта</button>
+                <button class="control-button" @click.stop="account">Изменение данных</button>
+                <button class="control-button" @click.stop="logout">Выйти из аккаунта</button>
             </div>
         </div>
         <div v-auth="false" class="account-wrapper">
             <div class="account-actions">
                 <router-link to="/login" custom v-slot="{ navigate }">
-                    <button class="control-button" @click="navigate">Войти</button>
+                    <button class="control-button" @click.stop="navigate">Войти</button>
                 </router-link>             
                 <router-link to="/register" custom v-slot="{ navigate }">
-                    <button class="control-button" @click="navigate">Регистрация</button>
+                    <button class="control-button" @click.stop="navigate">Регистрация</button>
                 </router-link>
             </div>
         </div>
-      </div>
+    </div>
     </header>
   </template>
 
@@ -332,6 +343,7 @@ const router = useRouter();
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 150px;
+        line-height: normal;
     }
 
     .divider {

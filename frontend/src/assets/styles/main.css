@@ -29,21 +29,23 @@ html {
 /* main {
     padding: 20px 100px;
 } */
-  
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     html {
         font-size: 14px;
     }
-    /* main {
-        padding: 20px 25px;
-    } */
 }
   
-@media (max-width: 480px) {
+@media (max-width: 800px) {
     html {
         font-size: 12px;
     }
 }
+  
+/* @media (max-width: 480px) {
+    html {
+        font-size: 12px;
+    }
+} */
 
 body {
     background: #100E0E;

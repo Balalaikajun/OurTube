@@ -113,7 +113,7 @@ const props = defineProps({
 
 <template>
     <div class="comment-create" v-if="isAuthenticated">
-        <UserAvatar :user-avatar-path="userData?.userAvatar?.fileDirInStorage"/>
+        <UserAvatar :user-info="userData || {}" />
         <div class="comment-container">
             <textarea  
                 ref="textareaRef"

@@ -65,11 +65,14 @@ const handleShortDelete = (event) => {
 };
 
 const handleImageError = (event) => {
+  console.error(`Uncurrent src preview`)
   event.target.src = '/path/to/default-thumbnail.jpg';
 };
 
 const getPreviewUrl = (fileName) => {
+  console.log(fileName)
   if (!fileName) return '';
+  console.log(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${fileName}}`)
   return `${import.meta.env.VITE_MINIO_BASE_URL}/videos/${fileName}`;
 };
 
@@ -86,11 +89,11 @@ const getPreviewUrl = (fileName) => {
         <div class="badge-text">{{ formatter.formatDuration(video.duration) }}</div>
       </div>
       <img 
-        class="video-thumbnail" 
-        :src="getPreviewUrl(video.preview?.fileName)" 
-        :alt="video.title"
-        @error="handleImageError" 
-      />
+          class="video-thumbnail" 
+          :src="getPreviewUrl(video.preview?.fileName)" 
+          :alt="video.title"
+        />
+        <!-- @error="handleImageError"  -->
     </div>
     
     <div class="bottom-block">
@@ -103,7 +106,7 @@ const getPreviewUrl = (fileName) => {
         </div>
         
         <div v-if="rowLayout" class="channel-info">
-          <UserAvatar/>
+          <UserAvatar :user-info="video.user || {}" />
           <span class="channel-name">{{video.user.userName}}</span>
         </div>
         

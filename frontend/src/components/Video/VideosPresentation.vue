@@ -279,8 +279,10 @@ watch(() => props.searchQuery, (newVal, oldVal) => {
 }, { immediate: true })
 
 defineExpose({
-  resetPlaylist
-})
+  resetPlaylist,
+  loadMore,
+  hasMore
+});
 </script>
 
 <template>
@@ -294,7 +296,10 @@ defineExpose({
         ref="shareRef"
         :videoId="currentVideoId"
     />
-    <div class="container-wrapper" :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, { 'row-layout': rowLayout || context == 'aside-recomend' }]">
+    <div 
+      class="container-wrapper" 
+      :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, 
+      { 'row-layout': rowLayout || context == 'aside-recomend' }]">
       <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
         <div v-if="videos.length === 0" class="empty-results">
           Ничего не найдено
@@ -303,7 +308,7 @@ defineExpose({
       <div v-if="scrollError" class="error-state">
         {{ scrollError }}
       </div>
-      <div v-else ref="container" class="container" style="width: 100%; color: aliceblue;">
+      <div v-else ref="container" class="container" style="width: 100%; color: #F3F0E9;">
         <VideoCard
             v-for="video in videos"
             :video="video"

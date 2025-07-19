@@ -4,7 +4,6 @@ import { createKeyboardTrap } from "@/assets/utils/keyTrap.js";
 import { nextTick, onBeforeUnmount, ref, provide } from "vue";
 
 const isOpen = ref(false);
-const shareRef = ref(null);
 const overlayContentRef = ref(null);
 const videoInputRef = ref(null);
 const previewInputRef = ref(null);
@@ -133,8 +132,8 @@ const uploadFiles = async () => {
     const formData = new FormData();
     
     // Добавляем текстовые поля
-    formData.append('VideoPostDto.Title', 'Тест');
-    formData.append('VideoPostDto.Description', 'Тест');
+    formData.append('VideoPostDto.Title', videoTitle.value);
+    formData.append('VideoPostDto.Description', videoDescription.value);
     
     // Добавляем видео файл с указанием типа
     const videoBlob = new Blob([videoFile.value], { type: 'video/mp4' });
@@ -174,7 +173,7 @@ defineExpose({
 });
 </script>
 <template>
-  <div v-if="isOpen" ref="shareRef" class="overlay">
+  <div v-if="isOpen" class="overlay">
     <div ref="overlayContentRef" class="overlay-content" @click.stop>
       <h1 style="color: #f3f0e9; margin: 0; text-align: start; width: 100%">
         Загрузка видео
@@ -245,7 +244,6 @@ defineExpose({
       <textarea
         class="standart-input"
         ref="textareaRef"
-        @input="adjustHeight"
         v-model="videoTitle"
         placeholder="Заголовок"
         rows="1"
@@ -253,7 +251,6 @@ defineExpose({
       <textarea
         class="standart-input"
         ref="textareaRef"
-        @input="adjustHeight"
         v-model="videoDescription"
         placeholder="Описание (опционально)"
         rows="3"

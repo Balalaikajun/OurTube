@@ -29,6 +29,9 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   const isLoading = ref(true);
   const error = ref(null);
 
+  const desktopRecommendations = ref(null);
+  const mobileRecommendations = ref(null);
+  const isMobileLayout = ref(false);
   const isRow = ref(false);
   const contentWrapper = ref(null);
   const resizeObserver = ref(null);
@@ -195,12 +198,11 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     }
     
     const width = contentWrapper.value.offsetWidth;
-    // console.log("Current container width:", width);
     
     if (width !== lastWidth.value) {
-      isRow.value = 1200 < width;
+      isRow.value = width < 1200 && !isMobileLayout.value;
+      isMobileLayout.value = width < 1000; // Например, для экранов уже 768px
       lastWidth.value = width;
-      // console.log("Layout changed. isRow:", isRow.value);
     }
   }, 100);
 
@@ -357,7 +359,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
             <h1 class="video-title">{{ videoData.title }}</h1>
             <section class="channel-row">
               <div class="channel-block">
-                <UserAvatar :user-avatar-path="videoData.user?.userAvatar?.fileDirInStorage"/>
+                <UserAvatar :user-info="videoData.user" />
                 <div class="channel-data">
                   <p>{{videoData.user?.userName}}</p>
                   <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
@@ -410,6 +412,31 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
             <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
           </section>
 
+          <aside v-if="isMobileLayout">
+            <VideoPresentation
+              ref="mobileRecommendations"
+              request="recomend"
+              context="aside-recomend"
+              :video-id="Number(videoId)"
+              @add-to-playlist="saveOpen"
+              :row-layout="isRow"
+              :is-infinite-scroll="false"
+              style="
+                padding: 2rem 0;
+              "
+            />
+            <button 
+              v-if="isMobileLayout && mobileRecommendations?.hasMore" 
+              @click="mobileRecommendations.loadMore()"
+              class="reusable-button"
+              style="
+                background-color: #2D2D2D;
+              "
+            >
+              Загрузить еще
+            </button>
+          </aside>
+
           <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
           <CommentsPresentation
             v-if="commentsCount !== 0"
@@ -419,13 +446,15 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
           />
         </div>
          
-        <aside :class="{'side-recomendation': true}" >
+        <aside class="side-recomendation" v-if="!isMobileLayout">
           <VideoPresentation
+            ref="desktopRecommendations"
             request="recomend"
             context="aside-recomend"
             :video-id="Number(videoId)"
             @add-to-playlist="saveOpen"
-            :row-layout=isRow
+            :row-layout="isRow"
+            :is-infinite-scroll="true"
           />
         </aside>
       <!-- </div> -->
@@ -620,5 +649,48 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
 .show-more-button:hover {
   text-decoration: underline;
+}
+
+.load-more-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: #2D2D2D;
+  color: #f3f0e9;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.load-more-button:hover {
+  background: #4A4947;
+}
+
+@media (max-width: 1000px) {
+  .video-page {
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .content-wrapper, .side-recomendation, .mobile-recomendation {
+    width: 100% !important;
+  }
+  
+  .side-recomendation {
+    display: none;
+  }
+  
+  .mobile-recomendation {
+    display: block;
+    margin-top: 20px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-recomendation {
+    display: none;
+  }
 }
 </style>

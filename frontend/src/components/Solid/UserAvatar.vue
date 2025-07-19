@@ -1,73 +1,135 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 
-const props = defineProps(
-        {
-            userAvatarPath: String,
-            required: true,
+    const props = defineProps({
+        userAvatarPath: {
+            type: String,
             default: ""
+        },
+        userInfo: {
+            type: Object,
+            default: () => ({
+                id: "",
+                userAvatar: null
+            })
+        },
+        contextUse: {
+            type: String,
+            default: null
         }
-    )
+    })
 
-    const showImage = ref(false);
+    const avatarUrl = ref(null)
 
-    onMounted(() => {
-        showImage.value = !!props.userAvatarPath; // Показываем только если путь не пустой
-    });
+    const updateAvatarUrl = () => {
+        // Если передан явный путь - используем его
+        if (props.userAvatarPath) {
+            avatarUrl.value = props.userAvatarPath
+            return
+        }
+        
+        // Если есть userInfo и userAvatar
+        if (props.userInfo?.userAvatar) {
+            console.log('$$userInfo', props.userInfo)
+            avatarUrl.value = `${import.meta.env.VITE_MINIO_BASE_URL}/preview/${props.userInfo.userAvatar.fileName}`
+            return
+        }
+        
+        // В остальных случаях показываем заглушку
+        avatarUrl.value = null
+    }
+
+    // Следим за изменениями пропсов
+    watch(() => props.userInfo, updateAvatarUrl, { immediate: true, deep: true })
+    watch(() => props.userAvatarPath, updateAvatarUrl, { immediate: true })
+    const viewBox = computed(() => {
+    switch (props.contextUse) {
+        case 'small':
+            return '0 0 20 20'
+        case 'large':
+            return '0 0 60 60'
+        case 'profile':
+            return '0 0 80 80'
+        default:
+            return '0 0 40 40'
+    }
+})
+
+// Вычисляемые свойства для CSS переменных
+const avatarStyles = computed(() => {
+    switch (props.contextUse) {
+        case 'small':
+            return {
+                '--avatar-size': '20px',
+                '--avatar-radius': '2px'
+            }
+        case 'large':
+            return {
+                '--avatar-size': '60px',
+                '--avatar-radius': '8px'
+            }
+        case 'profile':
+            return {
+                '--avatar-size': '100px',
+                '--avatar-radius': '12px'
+            }
+        default:
+            return {
+                '--avatar-size': '40px',
+                '--avatar-radius': '4px'
+            }
+    }
+})
 </script>
 
 <template>
-    <div class="avatar-container">
+    <div class="avatar-container" :style="avatarStyles">
         <!-- Показываем изображение только если есть путь И не было ошибки -->
-        <img
-            v-if="showImage"
-            class="user-avatar"
-            :src="props.userAvatarPath"
-            alt="User avatar"
-        >
-
         <svg 
-            v-else
+            v-if="avatarUrl == null"
             class="user-avatar"
-            viewBox="0 0 40 40"
+            :viewBox="viewBox"
             style="fill: #F3F0E9"
         >
-        <circle cx="20" cy="20" r="5" fill="#100E0E"/>
-        <text x="20" y="20" text-anchor="middle" fill="#100E0E">?</text>
+            <circle cx="50%" cy="50%" r="10%" fill="#100E0E"/>
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#100E0E">?</text>
         </svg>
+        <img
+            v-else
+            class="user-avatar"
+            :src="avatarUrl"
+            alt="User avatar"
+        >
   </div>
 </template>
 
 <style scoped>
-    :root {
-        --avatar-size: 40px;
-        --avatar-radius: 4px;
-    }
     .avatar-container {
         display: inline-block;
-        border-radius: 4px;
-        /* overflow: hidden; */
+        border-radius: var(--avatar-radius, 4px);
         width: var(--avatar-size, 40px);
         height: var(--avatar-size, 40px);
         background: #F3F0E9;
     }
-
     
     @container (max-width: 500px) {
         .avatar-container {
-            --avatar-size: 30px;
+            --avatar-size: 30px !important;
         }
     }
+    
     @container (max-width: 300px) {
         .avatar-container {
-            --avatar-size: 20px;
+            --avatar-size: 20px !important;
         }
     }
 
     .user-avatar {
         width: 100%;
         height: 100%;
+        border-radius: var(--avatar-radius, 4px);
     }
+    
     img.user-avatar {
         display: block;
         object-fit: cover;
@@ -81,8 +143,6 @@ const props = defineProps(
         align-items: center;
         width: var(--avatar-size, 40px);
         height: var(--avatar-size, 40px);
-        border-radius: var(--avatar-radius);
-        /* background: #F3F0E9; */
         background: transparent;
     }
 </style>

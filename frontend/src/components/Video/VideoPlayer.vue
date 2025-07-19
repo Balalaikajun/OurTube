@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from 'vue'
 import Hls from 'hls.js'
-import VideoSettingsModal from './VideoSettingsModal.vue';
+import VideoSettingsMenu from './VideoSettingsMenu.vue';
 import { useVideoStore } from '@/assets/store/videoSettings';
 
 const props = defineProps({
@@ -289,7 +289,7 @@ defineExpose({
     </div>
 
     <div v-if="controlPannerVisible || !isPlaying" class="controls-overlay" @click.stop >
-      <VideoSettingsModal
+      <VideoSettingsMenu
         ref="settingsMenu"
         :video-resolution="props.videoFiles"
       />

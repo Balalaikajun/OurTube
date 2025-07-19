@@ -255,7 +255,7 @@ const props = defineProps(
     />
     <div class="comment-wrapper" :class="{'inner-class': !isRootComment}">
         <div class="comment-container" ref="commentContainer">
-            <UserAvatar ref="avatar"/>
+            <UserAvatar :user-info="userInfo || {}" />
             <div v-if="!isEditing" class="comment-center">
                 <div class="comment-header">
                     <p class="user-name">
