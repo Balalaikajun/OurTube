@@ -31,7 +31,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
   const desktopRecommendations = ref(null);
   const mobileRecommendations = ref(null);
-  const isMobileLayout = ref(false);
+  const isMobileLayout = ref(window.innerWidth < 1000);
   const isRow = ref(false);
   const contentWrapper = ref(null);
   const resizeObserver = ref(null);
@@ -229,16 +229,11 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   };
 
   onMounted(async () => {    
-    // console.log('VideoPage mounted, route params:', route.params);
+    isMobileLayout.value = window.innerWidth < 1000;
+    isRow.value = window.innerWidth < 1200 && !isMobileLayout.value;
   
     videoId.value = Number(route.params.id);
-    // console.log("Initial video ID:", videoId.value);
-    
-    if (!userData) {
-        // console.log("User not authenticated");
-    }
 
-    // await fetchVideoData();
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', () => {
       checkTextOverflow(descriptionElement.value, "Описание к видео");
@@ -369,7 +364,6 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
                 </button>
               </div>
               <div class="actions-wrapper">
-
                 <ReactionBlock
                   :context="'video'"
                   :reaction-status="videoData?.vote"
@@ -419,6 +413,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
               context="aside-recomend"
               :video-id="Number(videoId)"
               @add-to-playlist="saveOpen"
+              :is-mobile="isMobileLayout"
               :row-layout="isRow"
               :is-infinite-scroll="false"
               style="
@@ -453,6 +448,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
             context="aside-recomend"
             :video-id="Number(videoId)"
             @add-to-playlist="saveOpen"
+            :is-mobile="isMobileLayout"
             :row-layout="isRow"
             :is-infinite-scroll="true"
           />

@@ -105,7 +105,6 @@ const avatarStyles = computed(() => {
 
 <style scoped>
     .avatar-container {
-        display: inline-block;
         border-radius: var(--avatar-radius, 4px);
         width: var(--avatar-size, 40px);
         height: var(--avatar-size, 40px);

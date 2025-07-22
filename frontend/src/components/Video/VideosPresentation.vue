@@ -47,6 +47,10 @@ const props = defineProps({
     type: String,
     default: 'window'
   },
+  isMobile: {
+    type: Boolean,
+    default: false
+  },
   rowLayout: {
     type: Boolean,
     default: false
@@ -228,24 +232,24 @@ const fetchMethods = {
 const updateDimensions = () => {
   if (!container.value) return
   const rect = container.value.getBoundingClientRect()
-  parentWidth.value = rect.width - 20
+  parentWidth.value = rect.width
 }
 
 const adaptiveView = async () => {
-  await nextTick()
-  updateDimensions()
+  await nextTick();
+  updateDimensions();
 
-  if (!container.value) return
+  if (!container.value) return;
 
   const gap = computedBlocksInRow.value > 1
       ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(computedBlockWidth.value) * computedBlocksInRow.value)) / (computedBlocksInRow.value - 1)))
-      : 0
+      : 0;
 
-  container.value.style.gap = `30px ${Math.floor(gap)}px`
+  container.value.style.gap = `30px ${Math.floor(gap)}px`;
 }
 
 const computedBlocksInRow = computed(() => {
-  if (props.rowLayout || props.context === 'aside-recomend') return 1
+  if (props.rowLayout) return 1
   if (parentWidth.value < 600) return 1
   if (parentWidth.value < 800) return 2
   if (parentWidth.value < 1200) return 3
@@ -254,7 +258,7 @@ const computedBlocksInRow = computed(() => {
 })
 
 const computedBlockWidth = computed(() => {
-  if (props.rowLayout || props.context === 'aside-recomend') return '100%'
+  if (props.rowLayout) return '100%'
   if (parentWidth.value < 600) return `${parentWidth.value}px`
   if (parentWidth.value < 800) return `${Math.floor(parentWidth.value * 0.49)}px`
   if (parentWidth.value < 1200) return `${Math.floor(parentWidth.value * 0.32)}px`
@@ -263,10 +267,9 @@ const computedBlockWidth = computed(() => {
 })
 
 onMounted(async () => {
-  await nextTick()
-  await adaptiveView()
+  await nextTick();
+  await adaptiveView();
   window.addEventListener('resize', adaptiveView)
-  // console.log('Request prop:', props.request)
 })
 
 onUnmounted(() => {

@@ -103,7 +103,7 @@
         console.log(newAvatarFile.value)
         if (newAvatarFile.value !== null)
         {
-            postAvatar()
+            postAvatar();
         }
 
         if (newAlias.value !== alias.value)

@@ -145,11 +145,14 @@
             <span v-else>Поиск</span>
           </button>
         </form>
-        <button v-auth="true" class="reusable-button fit" @click.stop="emit('open-upload')">
+        <button id="create-video-btn" v-auth="true" class="reusable-button fit" @click.stop="emit('open-upload')">
             Создать
         </button>
-        <div class="user-avatar-container" @click="() => toggleMenu('account')">
-          <UserAvatar :user-info="userData || {}" />
+        <div class="user-avatar-container">
+          <UserAvatar
+            @click = "toggleMenu('account')"
+            :user-info="userData || {}" 
+          />
         </div>
       </div>
       
@@ -400,5 +403,10 @@
     .logo-text {
         font-size: 1.2rem;
     }
+    }
+    @media (max-width: 500px) {
+        #create-video-btn {
+            display: none;
+        }
     }
 </style>

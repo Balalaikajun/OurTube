@@ -272,11 +272,7 @@ const getPreviewUrl = (fileName) => {
       width: 20%;
     }
   }
-  /* @container recommendations-container (max-width: 1200px) {
-    .video-card.row-layout .video-block{
-      width: 20%;
-    }
-  } */
+
   @container recommendations-container (max-width: 900px) {
     .video-card.row-layout .video-block{
       width: 40%;
@@ -287,9 +283,6 @@ const getPreviewUrl = (fileName) => {
     .video-card.row-layout .video-block{
       width: 50%;
     }
-    /* .video-title {
-      font-size: 14px;
-    } */
   }
 
   @container recommendations-container (max-width: 500px) {
