@@ -17,7 +17,7 @@
 
 ## Стек технологий и архитектура
 - ASP.NET 8.0
-- Vue.js (указать версию)
+- Vue.js 3.5.17
 - PostgreSQL
 - MinIO
 - Git/GitHub

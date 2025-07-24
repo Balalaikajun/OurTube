@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/assets/utils/api.js'
-import { saveUserDataToLocalStorage } from '@/assets/utils/userServiсe.js'
+import { saveUserDataToLocalStorage } from '@/assets/store/userServiсe.js'
 
 const email = ref("");
     const password = ref("");

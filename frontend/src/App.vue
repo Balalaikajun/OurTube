@@ -4,7 +4,7 @@
     import MasterHead from './components/Solid/MasterHead.vue'
     import UploadVideoModal from './components/Video/UploadVideoModal.vue'
     import AccountModal from './components/Account/AccountModal.vue'
-    import { saveUserDataToLocalStorage } from '@/assets/utils/userServiсe.js'
+    import { saveUserDataToLocalStorage } from '@/assets/store/userServiсe.js'
 
     const route = useRoute()
     const showHeader = computed(() => !route.meta.hideHeader)

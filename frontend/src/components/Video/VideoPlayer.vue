@@ -94,6 +94,7 @@ onMounted(async () => {
 
 const loadCurrentResolution = () => {
   try {
+    console.log(videoStore.resolution, props.videoFiles[0].resolution)
     const resolution = videoStore.resolution || props.videoFiles[0].resolution;
     const videoFile = props.videoFiles.find(f => f.resolution === +resolution);
     
