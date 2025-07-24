@@ -4,54 +4,86 @@ using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
 
-namespace OurTube.Api.Controllers;
-
-[Route("[controller]")]
-[ApiController]
-public class VideoController : ControllerBase
+namespace OurTube.Api.Controllers
 {
-    private readonly IVideoService _videoService;
-
-    public VideoController(IVideoService videoService)
+    /// <summary>
+    /// Работа с видео
+    /// </summary>
+    [Route("[controller]")]
+    [ApiController]
+    public class VideoController : ControllerBase
     {
-        _videoService = videoService;
-    }
+        private readonly IVideoService _videoService;
 
-    [Authorize]
-    [HttpPost]
-    [Consumes("multipart/form-data")]
-    public async Task<ActionResult<VideoMinGetDto>> Post(
-        [FromForm] VideoUploadDto videoUploadDto,
-        [FromServices] IConfiguration configuration)
-    {
-        try
+        /// <summary>
+        /// Конструктор контроллера VideoController.
+        /// </summary>
+        /// <param name="videoService">Сервис для работы с видео.</param>
+        public VideoController(IVideoService videoService)
         {
-            var result = await _videoService.PostVideo(
-                videoUploadDto,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
-            return CreatedAtAction(
-                nameof(Get),
-                new { videoId = result.Id },
-                result);
+            _videoService = videoService;
         }
-        catch (FormatException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
 
-    [HttpGet("{videoId:int}")]
-    public async Task<ActionResult<VideoGetDto>> Get(int videoId)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        /// <summary>
+        /// Загрузить новое видео.
+        /// </summary>
+        /// <param name="videoUploadDto">Модель с данными для загрузки видео (multipart/form-data).</param>
+        /// <param name="configuration">Сервис конфигурации приложения.</param>
+        /// <returns>Минимальные данные загруженного видео.</returns>
+        /// <response code="201">Видео успешно создано и возвращены его минимальные данные.</response>
+        /// <response code="400">Неверный формат входных данных.</response>
+        /// <response code="401">Пользователь не авторизован.</response>
+        [Authorize]
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(VideoMinGetDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<VideoMinGetDto>> Post(
+            [FromForm] VideoUploadDto videoUploadDto,
+            [FromServices] IConfiguration configuration)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var result = await _videoService.PostVideo(
+                    videoUploadDto,
+                    userId);
 
-        try
-        {
-            return Ok(await _videoService.GetVideoByIdAsync(videoId, userId));
+                return CreatedAtAction(
+                    nameof(Get),
+                    new { videoId = result.Id },
+                    result);
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-        catch (InvalidOperationException ex)
+
+        /// <summary>
+        /// Получает подробную информацию о видео по его идентификатору.
+        /// </summary>
+        /// <param name="videoId">Идентификатор видео.</param>
+        /// <returns>Полные данные видео.</returns>
+        /// <response code="200">Видео найдено и возвращены его данные.</response>
+        /// <response code="404">Видео с указанным идентификатором не найдено.</response>
+        [HttpGet("{videoId:int}")]
+        [ProducesResponseType(typeof(VideoGetDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<VideoGetDto>> Get(int videoId)
         {
-            return NotFound(ex.Message);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            try
+            {
+                var video = await _videoService.GetVideoByIdAsync(videoId, userId);
+                return Ok(video);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
@@ -150,30 +151,14 @@ if (builder.Environment.IsDevelopment())
 {
     services.AddSwaggerGen(c =>
     {
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+        
+        var xmlDtoPath = Path.Combine(AppContext.BaseDirectory, "OurTube.Application.xml");
+        c.IncludeXmlComments(xmlDtoPath);
+        
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
-        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "Введите: Bearer {токен}"
-        });
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
     });
 }
 
@@ -189,8 +174,6 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
 var app = builder.Build();
-
-app.UsePathBase("/api");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -217,6 +200,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
         c.OAuthClientId("swagger-client-id");
         c.OAuthAppName("Swagger UI");
+        c.RoutePrefix = string.Empty; 
     });
 }
 
@@ -231,6 +215,7 @@ app.UseMiddleware<UniqueVisitorId>();
 app.MapControllers();
 
 app.MapGroup("/identity")
-    .MapIdentityApi<IdentityUser>();
+    .MapIdentityApi<IdentityUser>()
+    .WithTags("Identity");
 
 app.Run();
