@@ -1,4 +1,6 @@
 ﻿using OurTube.Application.Interfaces;
+using SharpCompress.Archives;
+using SharpCompress.Common;
 using Xabe.FFmpeg;
 
 namespace OurTube.Infrastructure.Other;
@@ -36,5 +38,40 @@ public class FfmpegProcessor : IVideoProcessor
     {
         var mediaInfo = await FFmpeg.GetMediaInfo(filePath);
         return mediaInfo.Duration;
+    }
+    
+    public static async Task DownloadAndExtractFFmpegAsync(string destinationDir)
+    {
+        var FFmpegZipUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
+        
+        Directory.CreateDirectory(destinationDir);
+
+        var tempZipPath = Path.Combine(Path.GetTempPath(), "ffmpeg.zip");
+
+        using (var client = new HttpClient())
+        {
+            Console.WriteLine("Скачивание FFmpeg...");
+            var data = await client.GetByteArrayAsync(FFmpegZipUrl);
+            await File.WriteAllBytesAsync(tempZipPath, data);
+        }
+
+        Console.WriteLine("Распаковка FFmpeg...");
+        
+        using (var archive = ArchiveFactory.Open(tempZipPath))
+        {
+            foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+            {
+                if (entry.Key.EndsWith("ffmpeg.exe") || entry.Key.EndsWith("ffprobe.exe"))
+                {
+                    var fileName = Path.GetFileName(entry.Key);
+                    var outputPath = Path.Combine(destinationDir, fileName);
+                    entry.WriteToFile(outputPath, new ExtractionOptions() { Overwrite = true });
+                    Console.WriteLine($"Извлечён: {fileName}");
+                }
+            }
+        }
+
+        File.Delete(tempZipPath);
+        Console.WriteLine("FFmpeg готов к использованию.");
     }
 }

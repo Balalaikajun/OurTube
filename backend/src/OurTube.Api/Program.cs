@@ -21,7 +21,21 @@ builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 // Infrastructure
+var ffmpegPath = configuration["FFmpeg:ExecutablesPath"];
+if (!File.Exists(ffmpegPath + "/ffmpeg.exe"))
+{
+    if(configuration.GetValue<bool>("FFmpeg:AutoDownload"))
+    {
+        Console.WriteLine("Исполняемые файлы ffmpeg не найдены");
+        await FfmpegProcessor.DownloadAndExtractFFmpegAsync(ffmpegPath);
+    }
+    else
+    {
+        throw new FileNotFoundException("ffmpeg.exe not found");
+    }
+}
 FFmpeg.SetExecutablesPath(configuration["FFmpeg:ExecutablesPath"]);
+
 
 // DB
 var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -77,9 +91,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 services.AddTransient<IEmailSender, EmailSender>();
 
 // AutoMapper
-services.AddAutoMapper(typeof(VideoProfile).Assembly);
-services.AddAutoMapper(typeof(UserProfile).Assembly);
-services.AddAutoMapper(typeof(UserProfile).Assembly);
+services.AddAutoMapper(cfg => { }, typeof(VideoProfile).Assembly);
 
 
 // MediatR

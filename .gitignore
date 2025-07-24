@@ -32,10 +32,6 @@ project.assets.json
 global.json
 
 # ASP.NET-specific
-appsettings.Development.json
-appsettings.Local.json
-appsettings.Production.json
-appsettings.Staging.json
 secrets.json
 
 # Logs and debugging
