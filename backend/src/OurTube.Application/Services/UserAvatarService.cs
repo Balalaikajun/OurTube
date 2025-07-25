@@ -80,7 +80,7 @@ public class UserAvatarService : IUserAvatarService
 
         await _storageClient.DeleteFileAsync(userAvatar.Bucket, userAvatar.FileName);
 
-        _dbContext.UserAvatars.Remove(userAvatar);
+        userAvatar.Delete();
 
         await _dbContext.SaveChangesAsync();
     }

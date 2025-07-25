@@ -53,7 +53,7 @@ public class VideoVoteService : IVideoVoteService
 
         vote.RemoveEvent();
 
-        _dbContext.VideoVotes.Remove(vote);
+        vote.Delete();
 
         await _dbContext.SaveChangesAsync();
     }

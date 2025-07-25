@@ -91,7 +91,7 @@ public class CommentVoteService : ICommentVoteService
         else
             comment.DislikesCount--;
 
-        _dbContext.CommentVotes.Remove(vote);
+        vote.Delete();
 
         await _dbContext.SaveChangesAsync();
     }

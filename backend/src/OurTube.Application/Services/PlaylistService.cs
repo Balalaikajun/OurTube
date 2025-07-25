@@ -68,7 +68,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
             throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
 
-        _dbContext.Playlists.Remove(playlist);
+        playlist.Delete();
 
         await _dbContext.SaveChangesAsync();
     }
@@ -125,7 +125,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
                     playlist.ApplicationUserId, 
                     playlistElement.VideoId));
 
-        _dbContext.PlaylistElements.Remove(playlistElement);
+        playlistElement.Delete();
         playlist.Count--;
 
         await _dbContext.SaveChangesAsync();

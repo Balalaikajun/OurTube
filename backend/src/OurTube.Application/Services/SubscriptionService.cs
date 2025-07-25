@@ -66,7 +66,7 @@ public class SubscriptionService : ISubscriptionService
         if (subscription == null)
             return;
 
-        _dbContext.Subscriptions.Remove(subscription);
+        subscription.Delete();
 
         user.SubscribedToCount--;
         userTo.SubscribersCount--;

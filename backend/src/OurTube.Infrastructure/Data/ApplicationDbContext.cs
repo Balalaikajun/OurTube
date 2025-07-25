@@ -44,6 +44,12 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser, IdentityRole
             .Select(be => be.Entity)
             .ToList();
 
+        foreach (var entity in ChangeTracker.Entries<Base>())
+        {
+            if(entity.State == EntityState.Modified)
+                entity.Entity.Update();
+        }
+        
         var domainEvents = domainEntities.SelectMany(be => be.DomainEvents).ToList();
 
         var result = await base.SaveChangesAsync(cancellationToken);

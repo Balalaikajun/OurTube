@@ -66,7 +66,7 @@ public class ViewService : IViewService
         if (view == null)
             return;
 
-        _dbContext.Views.Remove(view);
+        view.Delete();
 
         await _dbContext.SaveChangesAsync();
     }
@@ -82,7 +82,10 @@ public class ViewService : IViewService
             .Where(vv => vv.ApplicationUserId == applicationUser.Id)
             .ToListAsync();
 
-        _dbContext.Views.RemoveRange(views);
+        foreach (var view in views)
+        {
+            view.Delete();
+        }
 
         await _dbContext.SaveChangesAsync();
     }
