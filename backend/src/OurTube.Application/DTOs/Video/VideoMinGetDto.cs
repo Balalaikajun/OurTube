@@ -5,7 +5,7 @@ namespace OurTube.Application.DTOs.Video;
 
 public class VideoMinGetDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string Title { get; set; }
     public int ViewsCount { get; set; }
     public bool? Vote { get; set; }

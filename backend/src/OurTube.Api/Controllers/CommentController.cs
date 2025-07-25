@@ -28,8 +28,10 @@ public class CommentController : ControllerBase
     {
         try
         {
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            
             var result = await _commentCrudService.CreateAsync(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userId,
                 postDto);
             return Created(
                 string.Empty,
@@ -48,8 +50,10 @@ public class CommentController : ControllerBase
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            
             await _commentCrudService.UpdateAsync(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userId,
                 postDto);
             return Created();
         }
@@ -64,15 +68,16 @@ public class CommentController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("{commentId:int}")]
-    public async Task<ActionResult> Delete(
-        int commentId)
+    [HttpDelete("{commentId:guid}")]
+    public async Task<ActionResult> Delete(Guid commentId)
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _commentCrudService.DeleteAsync(
                 commentId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                userId);
             return Created();
         }
         catch (InvalidOperationException ex)
@@ -85,15 +90,15 @@ public class CommentController : ControllerBase
         }
     }
 
-    [HttpGet("{videoId:int}")]
+    [HttpGet("{videoId:guid}")]
     public async Task<ActionResult<PagedCommentDto>> GetWithLimit(
-        int videoId,
+        Guid videoId,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
-        [FromQuery] int? parentId = null)
+        [FromQuery] Guid? parentId = null)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var sessionId = Request.Cookies["SessionId"];
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         try
         {

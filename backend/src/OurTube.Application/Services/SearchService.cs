@@ -25,14 +25,14 @@ public class SearchService : ISearchService
 
     public async Task<PagedVideoDto> SearchVideos(
         string searchQuery,
-        string? userId, string sessionId,
+        Guid? userId, Guid sessionId,
         int limit = 10, int after = 0,
         bool reload = true)
     {
         var cacheKey = GetCacheKey(sessionId);
 
 
-        if (!_cache.TryGetValue(cacheKey, out List<int> cachePull))
+        if (!_cache.TryGetValue(cacheKey, out List<Guid> cachePull))
         {
             cachePull = [];
 
@@ -60,24 +60,24 @@ public class SearchService : ISearchService
         };
     }
 
-    private async Task<IEnumerable<int>> SearchMoreVideos(string searchQuery, string sessionId,
+    private async Task<IEnumerable<Guid>> SearchMoreVideos(string searchQuery, Guid sessionId,
         int limit = 10)
     {
-        _cache.TryGetValue(GetCacheKey(sessionId), out List<int> viewedIds);
+        _cache.TryGetValue(GetCacheKey(sessionId), out List<Guid> viewedIds);
 
         var targetDate = DateTime.UtcNow.AddDays(-7);
 
         return await _dbContext.Videos
             .Where(v => EF.Functions.Like(v.Title, $"%{searchQuery}%"))
             .Where(v => !viewedIds.Contains(v.Id))
-            .OrderBy(v => v.Views.Count(v => v.DateTime >= targetDate))
+            .OrderBy(v => v.Views.Count(v => v.UpdatedDate >= targetDate))
             .Take(limit)
             .Select(x => x.Id)
             .ToListAsync();
     }
 
-    private static string GetCacheKey(string sessionId)
+    private static string GetCacheKey(Guid sessionId)
     {
-        return $"SearchService:{sessionId}";
+        return $"SearchService:{sessionId.ToString()}";
     }
 }

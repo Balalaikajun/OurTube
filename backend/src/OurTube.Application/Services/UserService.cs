@@ -15,7 +15,7 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
+    public async Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, Guid userId)
     {
         var aUser = await _dbContext.ApplicationUsers.FindAsync(userId);
 
@@ -38,7 +38,7 @@ public class UserService : IUserService
         return _mapper.Map<ApplicationUserDto>(aUser);
     }
 
-    public async Task<ApplicationUserDto> GetUserAsync(string userId)
+    public async Task<ApplicationUserDto> GetUserAsync(Guid userId)
     {
         return _mapper.Map<ApplicationUserDto>(await _dbContext.ApplicationUsers.FindAsync(userId));
     }

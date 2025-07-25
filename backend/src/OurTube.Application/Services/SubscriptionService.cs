@@ -13,7 +13,7 @@ public class SubscriptionService : ISubscriptionService
         _dbContext = dbContext;
     }
 
-    public async Task SubscribeAsync(string userId, string userToId)
+    public async Task SubscribeAsync(Guid userId, Guid userToId)
     {
         if (userId == userToId)
             throw new InvalidOperationException("Id подписчика и канала совпадают");
@@ -46,7 +46,7 @@ public class SubscriptionService : ISubscriptionService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task UnSubscribeAsync(string userId, string userToId)
+    public async Task UnSubscribeAsync(Guid userId, Guid userToId)
     {
         if (userId == userToId)
             throw new InvalidOperationException("Id подписчика и канала совпадают");
@@ -74,7 +74,7 @@ public class SubscriptionService : ISubscriptionService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<bool> IsSubscribeAsync(string userId, string userToId)
+    public async Task<bool> IsSubscribeAsync(Guid userId, Guid userToId)
     {
         return await _dbContext.Subscriptions
             .AnyAsync(s => s.SubscribedToId == userId && s.SubscriberId == userToId);

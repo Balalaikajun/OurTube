@@ -7,6 +7,7 @@ using OurTube.Application.DTOs.PlaylistElement;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
+using OurTube.Domain.Events.PlaylistElement;
 
 namespace OurTube.Application.Services;
 
@@ -14,16 +15,14 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IMapper _mapper;
-    private readonly IVideoService _videoService;
 
-    public PlaylistService(IApplicationDbContext dbContext, IVideoService videoService, IMapper mapper)
+    public PlaylistService(IApplicationDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
-        _videoService = videoService;
         _mapper = mapper;
     }
 
-    public async Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, string userId)
+    public async Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, Guid userId)
     {
         var playlist = new Playlist
         {
@@ -39,7 +38,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         return _mapper.Map<PlaylistMinGetDto>(playlist);
     }
 
-    public async Task UpdateAsync(PlaylistPatchDto patchDto, int playlistId, string userId)
+    public async Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId, Guid userId)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
 
@@ -58,7 +57,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int playlistId, string userId)
+    public async Task DeleteAsync(Guid playlistId, Guid userId)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
 
@@ -74,7 +73,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddVideoAsync(int playlistId, int videoId, string userId)
+    public async Task AddVideoAsync(Guid playlistId, Guid videoId, Guid userId)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
 
@@ -89,7 +88,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         if (element != null)
             return;
 
-        element = new PlaylistElement(playlistId, playlist.Title, playlist.IsSystem, videoId, userId);
+        element = new PlaylistElement(playlist, videoId, userId);
 
         _dbContext.PlaylistElements.Add(element);
 
@@ -99,9 +98,9 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
     }
 
     public async Task RemoveVideoAsync(
-        int playlistId,
-        int videoId,
-        string userId,
+        Guid playlistId,
+        Guid videoId,
+        Guid userId,
         bool suppressDomainEvent = false)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
@@ -117,7 +116,14 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         if (playlistElement == null)
             return;
 
-        if (!suppressDomainEvent) playlistElement.InitializeDeleteEvent(userId);
+        if (!suppressDomainEvent) 
+            playlistElement.AddDomainEvent(
+                new PlaylistElementDeleteEvent(
+                    playlist.Id,
+                    playlist.Title,
+                    playlist.IsSystem,
+                    playlist.ApplicationUserId, 
+                    playlistElement.VideoId));
 
         _dbContext.PlaylistElements.Remove(playlistElement);
         playlist.Count--;
@@ -125,7 +131,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedDto<PlaylistElementGetDto>> GetElements(int playlistId, string userId, int limit, int after)
+    public async Task<PagedDto<PlaylistElementGetDto>> GetElements(Guid playlistId, Guid userId, int limit, int after)
     {
         var playlist = await _dbContext.Playlists
             .FirstOrDefaultAsync(x => x.Id == playlistId);
@@ -138,7 +144,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         
         var playlistElements = await _dbContext.PlaylistElements
             .Where(x => x.PlaylistId == playlistId)
-            .OrderBy(x => x.AddedAt)
+            .OrderBy(x => x.CreatedDate)
             .Skip(after)
             .Take(limit + 1)
             .ToListAsync();
@@ -156,7 +162,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         var elementsDto = playlistElements.Select(x => new PlaylistElementGetDto
         {
             Video = videos[x.VideoId],
-            AddedAt = x.AddedAt
+            AddedAt = x.CreatedDate
         });
 
         return new PagedDto<PlaylistElementGetDto>()
@@ -167,7 +173,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         };
     }
 
-    public async Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(string userId)
+    public async Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(Guid userId)
     {
         return await _dbContext.Playlists
             .Where(p => p.ApplicationUserId == userId)
@@ -175,7 +181,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(string userId, int videoId)
+    public async Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(Guid userId, Guid videoId)
     {
         return await _dbContext.Playlists
             .Where(p => p.ApplicationUserId == userId)
@@ -189,7 +195,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
             .ToListAsync();
     }
 
-    public async Task<PlaylistMinGetDto> GetLikedPlaylistAsync(string userId)
+    public async Task<PlaylistMinGetDto> GetLikedPlaylistAsync(Guid userId)
     {
         var playlist = await _dbContext.Playlists
             .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся" && p.IsSystem == true)
@@ -208,7 +214,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         return playlist;
     }
 
-    public async Task<PlaylistMinGetDto> GetMinById(int id, string userId)
+    public async Task<PlaylistMinGetDto> GetMinById(Guid id, Guid userId)
     {
         var playlist = await _dbContext.Playlists
             .FirstOrDefaultAsync(p => p.Id == id);

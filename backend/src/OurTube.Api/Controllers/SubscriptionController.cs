@@ -5,6 +5,9 @@ using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
+/// <summary>
+/// Работа с подписками пользователей.
+/// </summary>
 [Route("[controller]")]
 [ApiController]
 public class SubscriptionController : ControllerBase
@@ -20,17 +23,23 @@ public class SubscriptionController : ControllerBase
     [Authorize]
     [HttpPost]
     public async Task<ActionResult> Subscribe(
-        string userToId)
+        Guid userToId)
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _subscriptionService.SubscribeAsync(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userId,
                 userToId);
 
             return Created();
         }
         catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
@@ -39,12 +48,14 @@ public class SubscriptionController : ControllerBase
     [Authorize]
     [HttpDelete]
     public async Task<ActionResult> UnSubscribe(
-        string userToId)
+        Guid userToId)
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _subscriptionService.UnSubscribeAsync(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userToId,
                 userToId);
 
             return Created();

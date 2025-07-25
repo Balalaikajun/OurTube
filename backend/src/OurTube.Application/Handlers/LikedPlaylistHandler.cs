@@ -10,7 +10,6 @@ public class LikedPlaylistHandler :
 {
     private readonly IVideoVoteService _videoVoteService;
 
-
     public LikedPlaylistHandler(IVideoVoteService videoVoteService)
     {
         _videoVoteService = videoVoteService;

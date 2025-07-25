@@ -5,7 +5,7 @@ namespace OurTube.Application.DTOs.ApplicationUser;
 
 public class ApplicationUserDto
 {
-    [Required] public string Id { get; set; }
+    [Required] public Guid Id { get; set; }
 
     [Required] public string UserName { get; set; }
 

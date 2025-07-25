@@ -31,7 +31,7 @@ public class UserAvatarService : IUserAvatarService
         _bucket = configuration.GetSection("Minio:UserBucket").Get<string>();
     }
 
-    public async Task<UserAvatarDto> CreateOrUpdateUserAvatarAsync(IFormFile image, string userId)
+    public async Task<UserAvatarDto> CreateOrUpdateUserAvatarAsync(IFormFile image, Guid userId)
     {
         if (!_dbContext.ApplicationUsers.Any(x => x.Id == userId))
             throw new InvalidOperationException($"User with id {userId} not found");
@@ -52,7 +52,7 @@ public class UserAvatarService : IUserAvatarService
             userAvatar = new UserAvatar
             {
                 UserId = userId,
-                FileName = Path.Combine(userId, "avatar" + FileExtensions[image.ContentType]).Replace(@"\", @"/"),
+                FileName = Path.Combine(userId.ToString(), "avatar" + FileExtensions[image.ContentType]).Replace(@"\", @"/"),
                 Bucket = _bucket
             };
 
@@ -68,7 +68,7 @@ public class UserAvatarService : IUserAvatarService
         return _mapper.Map<UserAvatarDto>(userAvatar);
     }
 
-    public async Task DeleteUserAvatarAsync(string userId)
+    public async Task DeleteUserAvatarAsync(Guid userId)
     {
         if (!_dbContext.ApplicationUsers.Any(x => x.Id == userId))
             throw new InvalidOperationException($"User with id {userId} not found");

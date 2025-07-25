@@ -21,6 +21,6 @@ public class VideoPreviewConfiguration : IEntityTypeConfiguration<VideoPreview>
         builder.HasOne(vp => vp.Video)
             .WithOne(v => v.Preview)
             .HasForeignKey<VideoPreview>(vp => vp.VideoId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

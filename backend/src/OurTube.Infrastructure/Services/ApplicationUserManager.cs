@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
+using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
 namespace OurTube.Infrastructure.Other;
 
@@ -38,16 +39,24 @@ public class ApplicationUserManager : UserManager<IdentityUser>
         ApplicationDbContext.ApplicationUsers.Add(new ApplicationUser
         {
             Id = user.Id,
-            UserName = user.UserName,
-            Playlists =
-            [
-                new Playlist
-                {
-                    Title = "Понравившееся",
-                    IsSystem = true
-                }
-            ]
+            UserName = user.UserName
         });
+
+        ApplicationDbContext.Playlists.Add(
+            new Playlist
+            {
+                ApplicationUserId = user.Id,
+                Title = "Понравившееся",
+                IsSystem = true
+            });
+        
+        ApplicationDbContext.Playlists.Add(
+            new Playlist
+            {
+                ApplicationUserId = user.Id,
+                Title = "Смотреть позже",
+                IsSystem = true
+            });
 
         try
         {

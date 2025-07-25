@@ -22,9 +22,12 @@ public class RecommendationController : ControllerBase
         [FromQuery] int after = 0,
         [FromQuery] bool reload = false)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
+        
         var result = await _recommendationService.GetRecommendationsAsync(
-            User.FindFirstValue(ClaimTypes.NameIdentifier),
-            Request.Cookies["SessionId"],
+            userId,
+            sessionId,
             limit,
             after,
             reload
@@ -33,17 +36,20 @@ public class RecommendationController : ControllerBase
         return Ok(result);
     }
     
-    [HttpGet("video/{videoId:int}")]
+    [HttpGet("video/{videoId:guid}")]
     public async Task<ActionResult<PagedVideoDto>> GetForVideo(
-        int videoId,
+        Guid videoId,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
         [FromQuery] bool reload = false)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
+        
         var result = await _recommendationService.GetRecommendationsForVideoAsync(
             videoId,
-            User.FindFirstValue(ClaimTypes.NameIdentifier),
-            Request.Cookies["SessionId"],
+            userId,
+            sessionId,
             limit,
             after,
             reload

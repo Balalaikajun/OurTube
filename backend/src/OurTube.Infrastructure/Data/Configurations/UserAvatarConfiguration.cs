@@ -21,6 +21,6 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
         builder.HasOne(ua => ua.ApplicationUser)
             .WithOne(ua => ua.UserAvatar)
             .HasForeignKey<UserAvatar>(ua => ua.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

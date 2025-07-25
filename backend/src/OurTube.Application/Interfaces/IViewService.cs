@@ -5,8 +5,8 @@ namespace OurTube.Application.Interfaces;
 
 public interface IViewService
 {
-    Task AddVideoAsync(ViewPostDto dto, string userId);
-    Task RemoveVideoAsync(int videoId, string userId);
-    Task ClearHistoryAsync(string userId);
-    Task<PagedVideoDto> GetWithLimitAsync(string userId, int limit, int after, string? query);
+    Task AddVideoAsync(ViewPostDto dto, Guid userId);
+    Task RemoveVideoAsync(Guid videoId, Guid userId);
+    Task ClearHistoryAsync(Guid userId);
+    Task<PagedVideoDto> GetWithLimitAsync(Guid userId, int limit, int after, string? query);
 }

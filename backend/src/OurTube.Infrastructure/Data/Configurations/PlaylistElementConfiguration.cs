@@ -8,19 +8,18 @@ public class PlaylistElementConfiguration : IEntityTypeConfiguration<PlaylistEle
 {
     public void Configure(EntityTypeBuilder<PlaylistElement> builder)
     {
-        builder.HasKey(pe => new { pe.PlaylistId, pe.VideoId });
-
-        builder.Property(pe => pe.AddedAt)
-            .IsRequired();
-
         builder.HasOne(pe => pe.Playlist)
             .WithMany(p => p.PlaylistElements)
             .HasForeignKey(pe => pe.PlaylistId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(pe => pe.Video)
             .WithMany()
             .HasForeignKey(pe => pe.VideoId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(pe => new { pe.PlaylistId, pe.VideoId })
+            .HasFilter("\"IsDeleted\" = false")
+            .IsUnique();
     }
 }

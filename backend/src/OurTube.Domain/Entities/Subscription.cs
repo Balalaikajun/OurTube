@@ -1,11 +1,10 @@
 ﻿namespace OurTube.Domain.Entities;
 
-public class Subscription
+public class Subscription : Base
 {
-    public string SubscribedToId { get; set; }
-    public string SubscriberId { get; set; }
-    public DateTime Created { get; set; } = DateTime.UtcNow;
-
+    public Guid SubscribedToId { get; set; }
+    public Guid SubscriberId { get; set; }
+    
     //Navigation
     public ApplicationUser SubscribedTo { get; set; }
     public ApplicationUser Subscriber { get; set; }

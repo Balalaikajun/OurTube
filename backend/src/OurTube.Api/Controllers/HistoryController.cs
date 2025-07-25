@@ -25,9 +25,11 @@ public class HistoryController : ControllerBase
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _viewService.AddVideoAsync(
                 postDto,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                userId);
 
             return Created();
         }
@@ -38,15 +40,17 @@ public class HistoryController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("{videoId:int}")]
+    [HttpDelete("{videoId:guid}")]
     public async Task<ActionResult> RemoveVideo(
-        int videoId)
+        Guid videoId)
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _viewService.RemoveVideoAsync(
                 videoId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                userId);
 
             return Ok();
         }
@@ -62,8 +66,10 @@ public class HistoryController : ControllerBase
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _viewService.ClearHistoryAsync(
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                userId);
 
             return Ok();
         }
@@ -82,8 +88,10 @@ public class HistoryController : ControllerBase
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            
             var result = await _viewService.GetWithLimitAsync(
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userId,
                 limit,
                 after,
                 query);

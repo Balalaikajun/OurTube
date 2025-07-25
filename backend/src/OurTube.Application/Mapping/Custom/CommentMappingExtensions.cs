@@ -7,17 +7,17 @@ namespace OurTube.Application.Services;
 
 public static class CommentMappingExtensions
 {
-    public static IQueryable<CommentGetDto> ProjectToDto(this IQueryable<Comment> query, IMapper mapper, string? userId)
+    public static IQueryable<CommentGetDto> ProjectToDto(this IQueryable<Comment> query, IMapper mapper, Guid? userId)
     {
         return query.Select(c => new CommentGetDto
         {
             Id = c.Id,
             Text = c.IsDeleted ? "" : c.Text,
-            Created = c.Created,
-            Updated = c.Updated,
-            Deleted = c.Deleted,
+            Created = c.CreatedDate,
+            Updated = c.CreatedDate,
+            Deleted = c.CreatedDate,
             ParentId = c.ParentId,
-            IsEdited = c.IsEdited,
+            IsEdited = c.IsUpdated,
             IsDeleted = c.IsDeleted,
             Vote = userId != null
                 ? c.Votes

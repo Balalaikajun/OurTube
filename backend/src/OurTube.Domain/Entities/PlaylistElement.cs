@@ -2,46 +2,34 @@
 
 namespace OurTube.Domain.Entities;
 
-public class PlaylistElement : BaseEntity
+public class PlaylistElement : Base
 {
     public PlaylistElement()
     {
     }
 
-    public PlaylistElement(int playlistId, string playlistTitle, bool isSystem, int videoId, string userId)
+    public PlaylistElement(Playlist playlist, Guid videoId, Guid userId)
     {
-        PlaylistId = playlistId;
+        PlaylistId = playlist.Id;
         VideoId = videoId;
 
         AddDomainEvent(new PlaylistElementCreateEvent(
-            playlistId,
-            playlistTitle,
-            videoId,
-            isSystem,
+            PlaylistId,
+            playlist.Title,
+            playlist.IsSystem,
             userId,
-            AddedAt));
+            videoId));
     }
 
-
-    public int PlaylistId { get; }
-    public int VideoId { get; }
-    public DateTime AddedAt { get; } = DateTime.UtcNow;
+    public Guid PlaylistId { get; }
+    public Guid VideoId { get; }
 
     //Navigation
     public Playlist Playlist { get; }
     public Video Video { get; }
-
-    public void InitializeDeleteEvent(string userId)
+    
+    public override void Delete()
     {
-        if (Playlist == null)
-            throw new InvalidOperationException("Playlist must be loaded before initializing the event.");
-
-        AddDomainEvent(new PlaylistElementDeleteEvent(
-            PlaylistId,
-            Playlist.Title,
-            VideoId,
-            Playlist.IsSystem,
-            userId,
-            AddedAt));
+        base.Delete();
     }
 }

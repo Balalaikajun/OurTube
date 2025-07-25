@@ -5,8 +5,8 @@ namespace OurTube.Application.Interfaces;
 public interface ICommentRecommendationService
 {
     Task<PagedCommentDto> GetCommentsWithLimitAsync(
-        int videoId, int limit, int after,
-        string sessionId, string? userId,
-        int? parentId = null,
+        Guid videoId, int limit, int after,
+        Guid sessionId, Guid? userId,
+        Guid? parentId = null,
         bool reload = false);
 }

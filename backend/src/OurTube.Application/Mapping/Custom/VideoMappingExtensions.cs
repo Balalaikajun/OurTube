@@ -11,7 +11,7 @@ public static class VideoMappingExtensions
     public static IQueryable<VideoMinGetDto> ProjectToMinDto(
         this IQueryable<Video> query,
         IMapper mapper,
-        string? userId)
+        Guid? userId)
     {
         return query.Select(v => new VideoMinGetDto
         {
@@ -19,7 +19,7 @@ public static class VideoMappingExtensions
             Title = v.Title,
             ViewsCount = v.ViewsCount,
             Duration = v.Duration,
-            Created = v.Created,
+            Created = v.CreatedDate,
             Vote = userId != null
                 ? v.Votes
                     .Where(vv => vv.ApplicationUserId == userId)

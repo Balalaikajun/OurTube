@@ -2,7 +2,7 @@ namespace OurTube.Application.Interfaces;
 
 public interface ISubscriptionService
 {
-    Task SubscribeAsync(string userId, string userToId);
-    Task UnSubscribeAsync(string userId, string userToId);
-    Task<bool> IsSubscribeAsync(string userId, string userToId);
+    Task SubscribeAsync(Guid userId, Guid userToId);
+    Task UnSubscribeAsync(Guid userId, Guid userToId);
+    Task<bool> IsSubscribeAsync(Guid userId, Guid userToId);
 }

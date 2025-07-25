@@ -41,7 +41,7 @@ public class VideoService : IVideoService
         _tagService = tagService;
     }
 
-    public async Task<VideoGetDto> GetVideoByIdAsync(int videoId)
+    public async Task<VideoGetDto> GetVideoByIdAsync(Guid videoId)
     {
         var video = await _dbContext.Videos
             .ProjectTo<VideoGetDto>(_mapper.ConfigurationProvider)
@@ -53,7 +53,7 @@ public class VideoService : IVideoService
         return video;
     }
 
-    public async Task<VideoGetDto> GetVideoByIdAsync(int videoId, string userId)
+    public async Task<VideoGetDto> GetVideoByIdAsync(Guid videoId, Guid userId)
     {
         var videoDto = await GetVideoByIdAsync(videoId);
 
@@ -74,7 +74,7 @@ public class VideoService : IVideoService
         return videoDto;
     }
 
-    public async Task<VideoMinGetDto> GetMinVideoByIdAsync(int videoId, string? userId)
+    public async Task<VideoMinGetDto> GetMinVideoByIdAsync(Guid videoId, Guid? userId)
     {
         var dto = await _dbContext.Videos
             .Where(v => v.Id == videoId)
@@ -87,8 +87,8 @@ public class VideoService : IVideoService
         return dto;
     }
 
-    public async Task<IEnumerable<VideoMinGetDto>> GetVideosByIdAsync(IReadOnlyList<int> videoIds,
-        string? userId = null)
+    public async Task<IEnumerable<VideoMinGetDto>> GetVideosByIdAsync(IReadOnlyList<Guid> videoIds,
+        Guid? userId = null)
     {
         var videos = await _dbContext.Videos
             .Where(v => videoIds.Contains(v.Id))
@@ -102,7 +102,7 @@ public class VideoService : IVideoService
 
     public async Task<VideoMinGetDto> PostVideo(
         VideoUploadDto videoUploadDto,
-        string userId)
+        Guid userId)
     {
         // Валидация
         _validator.ValidateVideo(videoUploadDto);
@@ -201,7 +201,7 @@ public class VideoService : IVideoService
             {
                 var tag = await _tagService.GetOrCreate(tagName);
 
-                tags.Add(new VideoTags(tag.Id));
+                tags.Add(new VideoTags{TagId = tag.Id});
             }
 
             var duration = await _videoProcessor.GetVideoDuration(tempSourcePath);

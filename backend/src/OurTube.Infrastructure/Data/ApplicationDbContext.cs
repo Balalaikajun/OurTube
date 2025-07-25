@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
+using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
 namespace OurTube.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IApplicationDbContext
+public class ApplicationDbContext : IdentityDbContext<IdentityUser, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
     private readonly IMediator _mediator;
 
@@ -38,7 +39,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IApplicatio
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())
     {
-        var domainEntities = ChangeTracker.Entries<BaseEntity>()
+        var domainEntities = ChangeTracker.Entries<Base>()
             .Where(be => be.Entity.DomainEvents.Count != 0)
             .Select(be => be.Entity)
             .ToList();

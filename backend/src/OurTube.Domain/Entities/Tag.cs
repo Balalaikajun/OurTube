@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace OurTube.Domain.Entities;
 
-public class Tag
+public class Tag : Base
 {
     private const string Patern = @"^#[a-z0-9_]+$";
 
@@ -15,8 +15,6 @@ public class Tag
     {
         SetName(name);
     }
-
-    public int Id { get; }
 
     [MaxLength(50)] public string Name { get; private set; }
 

@@ -13,7 +13,7 @@ public class CommentVoteService : ICommentVoteService
         _dbContext = dbContext;
     }
 
-    public async Task SetAsync(int commentId, string userId, bool type)
+    public async Task SetAsync(Guid commentId, Guid userId, bool type)
     {
         var comment = await _dbContext.Comments
             .FindAsync(commentId);
@@ -66,7 +66,7 @@ public class CommentVoteService : ICommentVoteService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int commentId, string userId)
+    public async Task DeleteAsync(Guid commentId, Guid userId)
     {
         var comment = await _dbContext.Comments
             .FindAsync(commentId);

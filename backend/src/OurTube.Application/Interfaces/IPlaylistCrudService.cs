@@ -4,14 +4,14 @@ namespace OurTube.Application.Interfaces;
 
 public interface IPlaylistCrudService
 {
-    Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, string userId);
-    Task UpdateAsync(PlaylistPatchDto patchDto, int playlistId, string userId);
-    Task DeleteAsync(int playlistId, string userId);
-    Task AddVideoAsync(int playlistId, int videoId, string userId);
+    Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, Guid userId);
+    Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId, Guid userId);
+    Task DeleteAsync(Guid playlistId, Guid userId);
+    Task AddVideoAsync(Guid playlistId, Guid videoId, Guid userId);
 
     Task RemoveVideoAsync(
-        int playlistId,
-        int videoId,
-        string userId,
+        Guid playlistId,
+        Guid videoId,
+        Guid userId,
         bool suppressDomainEvent = false);
 }

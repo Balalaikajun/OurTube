@@ -6,9 +6,9 @@ namespace OurTube.Application.Interfaces;
 
 public interface IPlaylistQueryService
 {
-    Task<PlaylistMinGetDto> GetMinById(int id, string userId);
-    Task<PagedDto<PlaylistElementGetDto>> GetElements(int playlistId, string userId, int limit, int after);
-    Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(string userId);
-    Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(string userId, int videoId);
-    Task<PlaylistMinGetDto> GetLikedPlaylistAsync(string userId);
+    Task<PlaylistMinGetDto> GetMinById(Guid id, Guid userId);
+    Task<PagedDto<PlaylistElementGetDto>> GetElements(Guid playlistId, Guid userId, int limit, int after);
+    Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(Guid userId);
+    Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(Guid userId, Guid videoId);
+    Task<PlaylistMinGetDto> GetLikedPlaylistAsync(Guid userId);
 }

@@ -8,19 +8,18 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
 {
     public void Configure(EntityTypeBuilder<Subscription> builder)
     {
-        builder.HasKey(s => new { s.SubscriberId, s.SubscribedToId }); // Установка составного ключа
-
-        builder.Property(s => s.Created)
-            .IsRequired();
-
         builder.HasOne(s => s.Subscriber)
             .WithMany(u => u.SubscribedTo)
             .HasForeignKey(s => s.SubscriberId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(s => s.SubscribedTo)
             .WithMany(u => u.Subscribers)
             .HasForeignKey(s => s.SubscribedToId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(s => new { s.SubscribedToId, s.SubscriberId })
+            .HasFilter("\"IsDeleted\" = false")
+            .IsUnique();
     }
 }

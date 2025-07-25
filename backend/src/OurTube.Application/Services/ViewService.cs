@@ -21,7 +21,7 @@ public class ViewService : IViewService
         _mapper = mapper;
     }
 
-    public async Task AddVideoAsync(ViewPostDto dto, string userId)
+    public async Task AddVideoAsync(ViewPostDto dto, Guid userId)
     {
         if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
             throw new InvalidOperationException("Пользователь не найден");
@@ -35,7 +35,6 @@ public class ViewService : IViewService
 
         if (view != null)
         {
-            view.DateTime = DateTime.UtcNow;
             view.EndTime = dto.EndTime;
         }
         else
@@ -45,7 +44,6 @@ public class ViewService : IViewService
                 ApplicationUserId = userId,
                 VideoId = dto.VideoId,
                 EndTime = dto.EndTime,
-                DateTime = DateTime.UtcNow
             };
 
             _dbContext.Views.Add(view);
@@ -55,7 +53,7 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task RemoveVideoAsync(int videoId, string userId)
+    public async Task RemoveVideoAsync(Guid videoId, Guid userId)
     {
         if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
             throw new InvalidOperationException("Пользователь не найден");
@@ -73,7 +71,7 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task ClearHistoryAsync(string userId)
+    public async Task ClearHistoryAsync(Guid userId)
     {
         var applicationUser = await _dbContext.ApplicationUsers.FindAsync(userId);
 
@@ -89,7 +87,7 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedVideoDto> GetWithLimitAsync(string userId, int limit, int after, string? query)
+    public async Task<PagedVideoDto> GetWithLimitAsync(Guid userId, int limit, int after, string? query)
     {
         if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
             throw new InvalidOperationException("Пользователь не найден");
@@ -100,7 +98,7 @@ public class ViewService : IViewService
         if (!string.IsNullOrEmpty(query))
             queryable = queryable.Where(v =>EF.Functions.Like(v.Video.Title, $"%{query}%"));
 
-        queryable = queryable.OrderByDescending(v => v.DateTime)
+        queryable = queryable.OrderByDescending(v => v.UpdatedDate)
             .Skip(after)
             .Take(limit + 1);
         

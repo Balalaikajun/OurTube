@@ -16,7 +16,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
@@ -30,7 +30,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "IdentityUser",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -55,9 +55,12 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "Tags",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,7 +73,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RoleId = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
                     ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
@@ -89,11 +92,14 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "ApplicationUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    SubscribersCount = table.Column<int>(type: "integer", nullable: false),
-                    SubscribedToCount = table.Column<int>(type: "integer", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    SubscribersCount = table.Column<long>(type: "bigint", nullable: false),
+                    SubscribedToCount = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -103,7 +109,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.Id,
                         principalTable: "IdentityUser",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -112,7 +118,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     ClaimType = table.Column<string>(type: "text", nullable: true),
                     ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
@@ -134,7 +140,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     ProviderKey = table.Column<string>(type: "text", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -151,8 +157,8 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    RoleId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -175,7 +181,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Value = table.Column<string>(type: "text", nullable: true)
@@ -195,13 +201,16 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "Playlists",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
-                    Count = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
-                    IsSystem = table.Column<bool>(type: "boolean", nullable: false)
+                    Count = table.Column<long>(type: "bigint", nullable: false),
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsSystem = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -211,41 +220,50 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.ApplicationUserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Subscriptions",
                 columns: table => new
                 {
-                    SubscribedToId = table.Column<string>(type: "text", nullable: false),
-                    SubscriberId = table.Column<string>(type: "text", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubscribedToId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubscriberId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Subscriptions", x => new { x.SubscriberId, x.SubscribedToId });
+                    table.PrimaryKey("PK_Subscriptions", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Subscriptions_ApplicationUsers_SubscribedToId",
                         column: x => x.SubscribedToId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Subscriptions_ApplicationUsers_SubscriberId",
                         column: x => x.SubscriberId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "UserAvatars",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     FileName = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false)
+                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -255,24 +273,26 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.UserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Videos",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
                     LikesCount = table.Column<int>(type: "integer", nullable: false),
                     DislikesCount = table.Column<int>(type: "integer", nullable: false),
                     CommentsCount = table.Column<int>(type: "integer", nullable: false),
                     ViewsCount = table.Column<int>(type: "integer", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
-                    Duration = table.Column<TimeSpan>(type: "interval", nullable: false)
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Duration = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -282,27 +302,25 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.ApplicationUserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Comments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Text = table.Column<string>(type: "character varying(1500)", maxLength: 1500, nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Deleted = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ParentId = table.Column<int>(type: "integer", nullable: true),
-                    IsEdited = table.Column<bool>(type: "boolean", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    LikesCount = table.Column<int>(type: "integer", nullable: false),
-                    ChildsCount = table.Column<int>(type: "integer", nullable: false),
-                    DislikesCount = table.Column<int>(type: "integer", nullable: false)
+                    ParentId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LikesCount = table.Column<long>(type: "bigint", nullable: false),
+                    ChildsCount = table.Column<long>(type: "bigint", nullable: false),
+                    DislikesCount = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -312,38 +330,42 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.ApplicationUserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Comments_Comments_ParentId",
                         column: x => x.ParentId,
                         principalTable: "Comments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Comments_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "PlaylistElements",
                 columns: table => new
                 {
-                    PlaylistId = table.Column<int>(type: "integer", nullable: false),
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    AddedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PlaylistId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlaylistElements", x => new { x.PlaylistId, x.VideoId });
+                    table.PrimaryKey("PK_PlaylistElements", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PlaylistElements_Playlists_PlaylistId",
                         column: x => x.PlaylistId,
                         principalTable: "Playlists",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_PlaylistElements_Videos_VideoId",
                         column: x => x.VideoId,
@@ -356,29 +378,39 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "VideoPlaylist",
                 columns: table => new
                 {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
                     Resolution = table.Column<int>(type: "integer", nullable: false),
                     FileName = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false)
+                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VideoPlaylist", x => new { x.VideoId, x.Resolution });
+                    table.PrimaryKey("PK_VideoPlaylist", x => x.Id);
                     table.ForeignKey(
                         name: "FK_VideoPlaylist_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "VideoPreview",
                 columns: table => new
                 {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
                     FileName = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false)
+                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -388,16 +420,21 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "VideoSource",
                 columns: table => new
                 {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
                     FileName = table.Column<string>(type: "character varying(125)", maxLength: 125, nullable: false),
-                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false)
+                    Bucket = table.Column<string>(type: "character varying(25)", maxLength: 25, nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -407,94 +444,111 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "VideoTags",
                 columns: table => new
                 {
-                    TagId = table.Column<int>(type: "integer", nullable: false),
-                    VideoId = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TagId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VideoTags", x => new { x.VideoId, x.TagId });
+                    table.PrimaryKey("PK_VideoTags", x => x.Id);
                     table.ForeignKey(
                         name: "FK_VideoTags_Tags_TagId",
                         column: x => x.TagId,
                         principalTable: "Tags",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_VideoTags_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "VideoVotes",
                 columns: table => new
                 {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Type = table.Column<bool>(type: "boolean", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VideoVotes", x => new { x.VideoId, x.ApplicationUserId });
+                    table.PrimaryKey("PK_VideoVotes", x => x.Id);
                     table.ForeignKey(
                         name: "FK_VideoVotes_ApplicationUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_VideoVotes_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Views",
                 columns: table => new
                 {
-                    VideoId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     EndTime = table.Column<TimeSpan>(type: "interval", nullable: false),
                     WhatchTime = table.Column<TimeSpan>(type: "interval", nullable: true),
-                    DateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Views", x => new { x.VideoId, x.ApplicationUserId });
+                    table.PrimaryKey("PK_Views", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Views_ApplicationUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Views_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "CommentVotes",
                 columns: table => new
                 {
-                    CommentId = table.Column<int>(type: "integer", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    CommentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Type = table.Column<bool>(type: "boolean", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -504,13 +558,13 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                         column: x => x.ApplicationUserId,
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_CommentVotes_Comments_CommentId",
                         column: x => x.CommentId,
                         principalTable: "Comments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -571,6 +625,13 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlaylistElements_PlaylistId_VideoId",
+                table: "PlaylistElements",
+                columns: new[] { "PlaylistId", "VideoId" },
+                unique: true,
+                filter: "\"IsDeleted\" = false");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PlaylistElements_VideoId",
                 table: "PlaylistElements",
                 column: "VideoId");
@@ -581,15 +642,30 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Subscriptions_SubscribedToId",
+                name: "IX_Subscriptions_SubscribedToId_SubscriberId",
                 table: "Subscriptions",
-                column: "SubscribedToId");
+                columns: new[] { "SubscribedToId", "SubscriberId" },
+                unique: true,
+                filter: "\"IsDeleted\" = false");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Subscriptions_SubscriberId",
+                table: "Subscriptions",
+                column: "SubscriberId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tags_Name",
                 table: "Tags",
                 column: "Name",
-                unique: true);
+                unique: true,
+                filter: "\"IsDeleted\" = false");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VideoPlaylist_VideoId_Resolution",
+                table: "VideoPlaylist",
+                columns: new[] { "VideoId", "Resolution" },
+                unique: true,
+                filter: "\"IsDeleted\" = false");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Videos_ApplicationUserId",
@@ -602,14 +678,42 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VideoTags_VideoId_TagId",
+                table: "VideoTags",
+                columns: new[] { "VideoId", "TagId" },
+                unique: true,
+                filter: "\"IsDeleted\" = false");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VideoVotes_ApplicationUserId",
                 table: "VideoVotes",
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VideoVotes_VideoId_ApplicationUserId",
+                table: "VideoVotes",
+                columns: new[] { "VideoId", "ApplicationUserId" },
+                unique: true,
+                filter: "\"IsDeleted\" = false");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Views_ApplicationUserId",
                 table: "Views",
                 column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Views_UpdatedDate",
+                table: "Views",
+                column: "UpdatedDate",
+                unique: true,
+                filter: "\"IsDeleted\" = false");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Views_VideoId_ApplicationUserId",
+                table: "Views",
+                columns: new[] { "VideoId", "ApplicationUserId" },
+                unique: true,
+                filter: "\"IsDeleted\" = false");
         }
 
         /// <inheritdoc />

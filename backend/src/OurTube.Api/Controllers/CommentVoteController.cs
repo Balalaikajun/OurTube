@@ -19,14 +19,16 @@ public class CommentVoteController : ControllerBase
     [Authorize]
     [HttpPost("")]
     public async Task<ActionResult> PostVote(
-        int commentId,
+        Guid commentId,
         [FromBody] bool type)
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _commentVoteService.SetAsync(
                 commentId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
+                userId,
                 type);
             return Created();
         }
@@ -40,13 +42,15 @@ public class CommentVoteController : ControllerBase
     [Authorize]
     [HttpDelete("")]
     public async Task<ActionResult> DeleteVote(
-        int commentId)
+        Guid commentId)
     {
         try
         {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             await _commentVoteService.DeleteAsync(
                 commentId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
+                userId);
             return Created();
         }
         catch (InvalidOperationException ex)

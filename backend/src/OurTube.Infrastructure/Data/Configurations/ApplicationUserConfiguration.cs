@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OurTube.Domain.Entities;
+using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
 namespace OurTube.Infrastructure.Data.Configurations;
 
@@ -9,8 +9,6 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.HasKey(u => u.Id);
-
         builder.Property(u => u.UserName)
             .IsRequired()
             .HasMaxLength(256);
@@ -21,12 +19,9 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(u => u.SubscribedToCount)
             .IsRequired();
 
-        builder.Property(u => u.Created)
-            .IsRequired();
-
         builder.HasOne<IdentityUser>()
             .WithOne()
             .HasForeignKey<ApplicationUser>(a => a.Id)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -8,11 +8,6 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
 {
     public void Configure(EntityTypeBuilder<Video> builder)
     {
-        builder.HasKey(v => v.Id);
-
-        builder.Property(v => v.Id)
-            .ValueGeneratedOnAdd();
-
         builder.Property(v => v.Title)
             .HasMaxLength(150)
             .IsRequired();
@@ -33,9 +28,6 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.Property(v => v.ViewsCount)
             .IsRequired();
 
-        builder.Property(v => v.Created)
-            .IsRequired();
-
         builder.Property(v => v.Duration)
             .HasColumnType("interval")
             .IsRequired();
@@ -43,7 +35,7 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.HasOne(v => v.User)
             .WithMany()
             .HasForeignKey(v => v.ApplicationUserId)
-            .OnDelete(DeleteBehavior.Cascade)
+            .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
     }
 }

@@ -50,7 +50,7 @@ services.AddMemoryCache();
 services.AddAuthorization();
 services.AddAuthentication();
 
-services.AddIdentity<IdentityUser, IdentityRole>(options =>
+services.AddIdentity<OurTube.Domain.Entities.IdentityUser, IdentityRole<Guid>>(options =>
     {
         options.Password.RequireDigit = true;
         options.Password.RequiredLength = 6;

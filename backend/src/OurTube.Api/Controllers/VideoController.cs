@@ -45,7 +45,7 @@ namespace OurTube.Api.Controllers
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var result = await _videoService.PostVideo(
                     videoUploadDto,
                     userId);
@@ -68,12 +68,12 @@ namespace OurTube.Api.Controllers
         /// <returns>Полные данные видео.</returns>
         /// <response code="200">Видео найдено и возвращены его данные.</response>
         /// <response code="404">Видео с указанным идентификатором не найдено.</response>
-        [HttpGet("{videoId:int}")]
+        [HttpGet("{videoId:guid}")]
         [ProducesResponseType(typeof(VideoGetDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<VideoGetDto>> Get(int videoId)
+        public async Task<ActionResult<VideoGetDto>> Get(Guid videoId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             try
             {

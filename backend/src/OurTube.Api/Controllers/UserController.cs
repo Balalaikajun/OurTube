@@ -3,31 +3,49 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.DTOs.UserAvatar;
+using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
 
 namespace OurTube.Api.Controllers;
 
+/// <summary>
+/// Работа с пользователем
+/// </summary>
 [Route("[controller]")]
 [ApiController]
 public class UserController : ControllerBase
 {
     private readonly IUserAvatarService _userAvatarService;
     private readonly IUserService _userService;
-
+    
     public UserController(IUserService userService, IUserAvatarService userAvatarService)
     {
         _userService = userService;
         _userAvatarService = userAvatarService;
     }
 
+    /// <summary>
+    /// Обновить данные пользователя.
+    /// </summary>
+    /// <param name="patchDto">Запрос на обновление данных пользователя.</param>
+    /// <returns>Минимальные данные обновлённого аккаунта.</returns>
+    /// <response code="201">Данные пользователя успешно обновлены и возвращены его минимальные данные.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Пользователь с такими данными не найден.</response>
     [Authorize]
     [HttpPatch]
-    public async Task<ActionResult> Patch(
+    [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApplicationUserDto>> Patch(
         [FromBody] ApplicationUserPatchDto patchDto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         try
         {
+            var userId = Guid.Parse((ReadOnlySpan<char>)User.FindFirstValue(ClaimTypes.NameIdentifier));
+            
             var result = await _userService.UpdateUserAsync(patchDto, userId);
             return Created(
                 string.Empty,
@@ -37,32 +55,97 @@ public class UserController : ControllerBase
         {
             return NotFound(ex.Message);
         }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
-
+    
+    /// <summary>
+    /// Получить данные пользователя.
+    /// </summary>
+    /// <returns>Данные пользователя.</returns>
+    /// <remarks>Для корректной работы требуется наличие идентификатора пользователя в запросе.</remarks>
+    /// <response code="200">Пользователь найден, его данные возвращены.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
     [Authorize]
     [HttpGet]
+    [ProducesResponseType(typeof(ApplicationUserDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApplicationUserDto>> Get()
     {
-        return await _userService.GetUserAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            return Ok(await _userService.GetUserAsync(userId));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
+    /// <summary>
+    /// Обновить аватар пользователя.
+    /// </summary>
+    /// <param name="dto">Запрос на обновление аватара пользователя.</param>
+    /// <returns>Данные обновлённого аватара пользователя.</returns>
+    /// <response code="200">Пользователь найден, его данные возвращены.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
     [Authorize]
     [HttpPost("avatar")]
     [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(VideoMinGetDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserAvatarDto>> CreateOrUpdateAvatar([FromForm] UserAvatarPostDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await _userAvatarService.CreateOrUpdateUserAvatarAsync(dto.Image, userId);
-        return Created(string.Empty, result);
+        try
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _userAvatarService.CreateOrUpdateUserAvatarAsync(dto.Image, userId);
+            return Created(string.Empty, result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
-
+    /// <summary>
+    /// Удалить аватар пользователя.
+    /// </summary>
+    /// <response code="204">Аватар пользователя успешно удалён.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Контент не найден.</response>
     [Authorize]
     [HttpDelete("avatar")]
+    [ProducesResponseType(typeof(VideoMinGetDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteAvatar()
     {
-        await _userAvatarService.DeleteUserAvatarAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        try
+        {
+            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-        return NoContent();
+            await _userAvatarService.DeleteUserAvatarAsync(userId);
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

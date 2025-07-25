@@ -6,7 +6,7 @@ namespace OurTube.Application.DTOs.Video;
 
 public class VideoGetDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
     public int LikesCount { get; set; }

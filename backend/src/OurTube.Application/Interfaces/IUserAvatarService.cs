@@ -5,6 +5,6 @@ namespace OurTube.Application.Interfaces;
 
 public interface IUserAvatarService
 {
-    Task<UserAvatarDto> CreateOrUpdateUserAvatarAsync(IFormFile image, string userId);
-    Task DeleteUserAvatarAsync(string userId);
+    Task<UserAvatarDto> CreateOrUpdateUserAvatarAsync(IFormFile image, Guid userId);
+    Task DeleteUserAvatarAsync(Guid userId);
 }

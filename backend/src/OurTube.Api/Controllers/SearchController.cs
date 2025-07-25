@@ -23,10 +23,13 @@ public class SearchController : ControllerBase
         [FromQuery] int after = 0,
         [FromQuery] bool reload = true)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
+        
         var result = await _searchService.SearchVideos(
             query,
-            User.FindFirstValue(ClaimTypes.NameIdentifier),
-            Request.Cookies["SessionId"],
+            userId,
+            sessionId,
             limit,
             after,
             reload);

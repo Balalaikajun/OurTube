@@ -21,6 +21,6 @@ public class VideoSourceConfiguration : IEntityTypeConfiguration<VideoSource>
         builder.HasOne(vs => vs.Video)
             .WithOne(v => v.Source)
             .HasForeignKey<VideoSource>(vs => vs.VideoId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

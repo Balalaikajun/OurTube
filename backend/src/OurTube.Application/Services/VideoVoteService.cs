@@ -13,7 +13,7 @@ public class VideoVoteService : IVideoVoteService
         _dbContext = dbContext;
     }
 
-    public async Task SetAsync(int videoId, string userId, bool type)
+    public async Task SetAsync(Guid videoId, Guid userId, bool type)
     {
         var video = await _dbContext.Videos.FindAsync(videoId);
         if (video == null)
@@ -35,7 +35,7 @@ public class VideoVoteService : IVideoVoteService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int videoId, string userId)
+    public async Task DeleteAsync(Guid videoId, Guid userId)
     {
         var video = await _dbContext.Videos.FindAsync(videoId);
 
