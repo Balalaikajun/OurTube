@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OurTube.Application.DTOs.Video;
 using OurTube.Application.DTOs.Views;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
@@ -23,13 +24,11 @@ public class ViewService : IViewService
 
     public async Task AddVideoAsync(ViewPostDto dto, Guid userId)
     {
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
-        var video = await _dbContext.Videos.FindAsync(dto.VideoId);
-
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
+        var video = await _dbContext.Videos
+            .GetByIdAsync(dto.VideoId, true);
 
         var view = await _dbContext.Views.FindAsync(dto.VideoId, userId);
 
@@ -55,16 +54,14 @@ public class ViewService : IViewService
 
     public async Task RemoveVideoAsync(Guid videoId, Guid userId)
     {
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
-        if (!await _dbContext.Videos.AnyAsync(v => v.Id == videoId))
-            throw new InvalidOperationException("Видео не найдено");
+        await _dbContext.Videos
+            .EnsureExistAsync(videoId);
 
-        var view = await _dbContext.Views.FindAsync(videoId, userId);
-
-        if (view == null)
-            return;
+        var view = await _dbContext.Views
+            .GetAsync(vv => vv.VideoId==videoId && vv.ApplicationUserId == userId, true);
 
         view.Delete();
 
@@ -73,13 +70,11 @@ public class ViewService : IViewService
 
     public async Task ClearHistoryAsync(Guid userId)
     {
-        var applicationUser = await _dbContext.ApplicationUsers.FindAsync(userId);
-
-        if (applicationUser == null)
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
         var views = await _dbContext.Views
-            .Where(vv => vv.ApplicationUserId == applicationUser.Id)
+            .Where(vv => vv.ApplicationUserId == userId)
             .ToListAsync();
 
         foreach (var view in views)
@@ -92,8 +87,8 @@ public class ViewService : IViewService
 
     public async Task<PagedVideoDto> GetWithLimitAsync(Guid userId, int limit, int after, string? query)
     {
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
         var queryable = _dbContext.Views
             .Where(v => v.ApplicationUserId == userId);

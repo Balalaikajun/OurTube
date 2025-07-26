@@ -137,6 +137,7 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
+    [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
     [HttpGet("{playlistId:guid}/elements")]
     public async Task<ActionResult<PagedDto<PlaylistElementGetDto>>> GetByElements(
         Guid playlistId,
@@ -166,14 +167,13 @@ public class PlaylistController : ControllerBase
     }
     
     [Authorize]
+    [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
     [HttpGet("{playlistId:int}")]
     public async Task<ActionResult<PlaylistMinGetDto>> GetById(Guid playlistId)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            var result = await _playlistQueryService.GetMinById(playlistId, userId);
+            var result = await _playlistQueryService.GetMinById(playlistId);
             
             return Ok(result);
         }

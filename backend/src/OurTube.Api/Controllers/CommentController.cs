@@ -31,7 +31,7 @@ public class CommentController : ControllerBase
         try
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            
+
             var result = await _commentCrudService.CreateAsync(
                 userId,
                 postDto);
@@ -91,21 +91,24 @@ public class CommentController : ControllerBase
         Guid videoId,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
-        [FromQuery] Guid? parentId = null)
+        [FromQuery] Guid? parentId = null,
+        [FromQuery] bool reload = false)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         try
         {
-            var result = await _commentRecommendationService.GetCommentsWithLimitAsync(
+            var result = await _commentRecommendationService.GetCommentsWithLimitAsync(new GetCommentsRequest
+            (
                 videoId,
                 limit,
                 after,
                 sessionId,
                 userId,
-                parentId);
-
+                parentId,
+                reload
+            ));
 
             return Ok(result);
         }

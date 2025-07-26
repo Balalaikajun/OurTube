@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using OurTube.Application.DTOs.ApplicationUser;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
+using OurTube.Domain.Entities;
+using OurTube.Domain.Exceptions;
 
 namespace OurTube.Application.Services;
 
@@ -17,15 +20,13 @@ public class UserService : IUserService
 
     public async Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, Guid userId)
     {
-        var aUser = await _dbContext.ApplicationUsers.FindAsync(userId);
-
-        if (aUser == null)
-            throw new KeyNotFoundException("Пользователь не найден");
+        var aUser = await _dbContext.ApplicationUsers
+            .GetByIdAsync(userId,true);
 
         var iUser = await _dbContext.IdentityUsers.FindAsync(userId);
 
         if (iUser == null)
-            throw new KeyNotFoundException("Пользователь не найден");
+            throw new NotFoundException(typeof(IdentityUser), userId);
 
         if (patchDto.UserName != null)
         {
@@ -40,6 +41,6 @@ public class UserService : IUserService
 
     public async Task<ApplicationUserDto> GetUserAsync(Guid userId)
     {
-        return _mapper.Map<ApplicationUserDto>(await _dbContext.ApplicationUsers.FindAsync(userId));
+        return _mapper.Map<ApplicationUserDto>(await _dbContext.ApplicationUsers.GetByIdAsync(userId));
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 
@@ -18,21 +19,16 @@ public class SubscriptionService : ISubscriptionService
         if (userId == userToId)
             throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-        var user = await _dbContext.ApplicationUsers.FindAsync(userId);
+        var user = await _dbContext.ApplicationUsers
+            .GetByIdAsync(userId, true);
 
-        if (user == null)
-            throw new InvalidOperationException("Пользователь не найден");
+        var userTo = await _dbContext.ApplicationUsers
+            .GetByIdAsync(userToId, true);
 
-        var userTo = await _dbContext.ApplicationUsers.FindAsync(userToId);
+        await _dbContext.Subscriptions
+            .EnsureExistAsync(s => s.SubscriberId == userToId && s.SubscribedToId == userToId);
 
-        if (userTo == null)
-            throw new InvalidOperationException("Канал не найден");
-
-        var subscription = await _dbContext.Subscriptions.FindAsync(userId, userToId);
-        if (subscription != null)
-            return;
-
-        subscription = new Subscription
+        var subscription = new Subscription
         {
             SubscriberId = userId,
             SubscribedToId = userToId
@@ -51,20 +47,14 @@ public class SubscriptionService : ISubscriptionService
         if (userId == userToId)
             throw new InvalidOperationException("Id подписчика и канала совпадают");
 
-        var user = await _dbContext.ApplicationUsers.FindAsync(userId);
+        var user = await _dbContext.ApplicationUsers
+            .GetByIdAsync(userId, true);
 
-        if (user == null)
-            throw new InvalidOperationException("Пользователь не найден");
+        var userTo = await _dbContext.ApplicationUsers
+            .GetByIdAsync(userToId, true);
 
-        var userTo = await _dbContext.ApplicationUsers.FindAsync(userToId);
-
-        if (userTo == null)
-            throw new InvalidOperationException("Канал не найден");
-
-        var subscription = await _dbContext.Subscriptions.FindAsync(userId, userToId);
-
-        if (subscription == null)
-            return;
+        var subscription = await _dbContext.Subscriptions
+            .GetAsync(s => s.SubscriberId == userId && s.SubscribedToId == userToId, true);
 
         subscription.Delete();
 

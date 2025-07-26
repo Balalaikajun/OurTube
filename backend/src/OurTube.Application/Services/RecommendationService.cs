@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using OurTube.Application.DTOs.Video;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 
 namespace OurTube.Application.Services;
@@ -27,9 +28,6 @@ public class RecommendationService : IRecomendationService
         int limit, int after,
         bool reload = false)
     {
-        if (!string.IsNullOrEmpty(userId.ToString()) && !await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
-            throw new InvalidOperationException("Пользователь не найдет");
-
         var cacheKey = GetRecommendationsCacheKey(sessionId);
 
         if (reload)
@@ -115,6 +113,9 @@ public class RecommendationService : IRecomendationService
 
     private async Task<IEnumerable<Guid>> LoadAuthorizedRecommendationsAsync(Guid userId, Guid sessionId, int limit)
     {
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
+        
         const double trendRecRatio = 0.4;
         const double popRecRatio = 0.2;
         const double tagsRecRatio = 0.2;

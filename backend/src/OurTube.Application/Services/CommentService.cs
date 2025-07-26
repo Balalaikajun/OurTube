@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using OurTube.Application.DTOs.Comment;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 
@@ -23,10 +24,7 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
 
     public async Task<CommentGetDto> CreateAsync(Guid userId, CommentPostDto postDto)
     {
-        var video = await _dbContext.Videos.FindAsync(postDto.VideoId);
-
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
+        var video = await _dbContext.Videos.GetByIdAsync(postDto.VideoId, true);
 
         var parent = await _dbContext.Comments.FindAsync(postDto.ParentId);
 
@@ -43,9 +41,9 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
 
         _dbContext.Comments.Add(comment);
         video.CommentsCount++;
+
         if (parent != null)
             parent.ChildsCount++;
-
 
         await _dbContext.SaveChangesAsync();
 
@@ -54,59 +52,31 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
 
     public async Task UpdateAsync(CommentPatchDto postDto)
     {
-        var comment = await _dbContext.Comments
-            .FindAsync(postDto.Id);
+        if (string.IsNullOrWhiteSpace(postDto.Text))
+            return;
 
-        if (comment == null)
-            throw new InvalidOperationException("Комментарий не найден");
+        var comment = await _dbContext.Comments.GetByIdAsync(postDto.Id, true);
+        
+        comment.Text = postDto.Text;
 
-        if (comment.IsDeleted)
-            throw new InvalidOperationException("Комментарий удалён");
-
-        if (postDto.Text != "")
-        {
-            comment.Text = postDto.Text;
-
-            await _dbContext.SaveChangesAsync();
-        }
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid commentId)
     {
         var comment = await _dbContext.Comments
-            .FindAsync(commentId);
-
-        if (comment == null)
-            throw new InvalidOperationException("Комментарий не найден");
-
-        var video = await _dbContext.Videos.FindAsync(comment.VideoId);
-
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
-
+            .GetByIdAsync(commentId, true);
+        
         comment.Delete();
 
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedCommentDto> GetCommentsWithLimitAsync(Guid videoId, int limit, int after,
-        Guid sessionId,
-        Guid? userId,
-        Guid? parentId = null,
-        bool reload = false)
+    public async Task<PagedCommentDto> GetCommentsWithLimitAsync(GetCommentsRequest request)
     {
-        if (!string.IsNullOrEmpty(userId.ToString()) && !await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
-            throw new InvalidOperationException("Пользователь не найдет");
+        var cacheKey = GetCacheKey(request.SessionId, request.VideoId, request.ParentId);
 
-        if (!await _dbContext.Videos.AnyAsync(v => v.Id == videoId))
-            throw new InvalidOperationException("Видео не найдено");
-
-        if (parentId != null && !await _dbContext.Comments.AnyAsync(p => p.Id == parentId))
-            throw new InvalidOperationException("Комментарий не найден");
-
-        var cacheKey = GetCacheKey(sessionId, videoId, parentId);
-
-        if (reload)
+        if (request.Reload)
             _cache.Remove(cacheKey);
 
         if (!_cache.TryGetValue(cacheKey, out List<Guid> cachedRecommendations))
@@ -119,47 +89,45 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
             });
         }
 
-        if (cachedRecommendations.Count <= after + limit)
-            cachedRecommendations.AddRange(await GetMoreIds(videoId, CommentPull, sessionId, userId, parentId));
+        if (cachedRecommendations.Count <= request.After + request.Limit)
+            cachedRecommendations.AddRange(await GetMoreIds(request));
 
-        var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
+        var resultIds = cachedRecommendations.Skip(request.After).Take(request.Limit).ToList();
 
         var commentsDict = await _dbContext.Comments
             .Where(c => resultIds.Contains(c.Id))
-            .ProjectToDto(_mapper, userId)
+            .ProjectToDto(_mapper, request.UserId)
             .ToDictionaryAsync(c => c.Id);
 
         var comments = resultIds
             .Select(id => commentsDict[id]);
 
-        var hasMore = cachedRecommendations.Count > after + limit;
+        var nextAfter = request.After + request.Limit;
+        var hasMore = cachedRecommendations.Count > nextAfter;
 
         return new PagedCommentDto
         {
             Comments = comments,
-            NextAfter = limit + after,
+            NextAfter = nextAfter,
             HasMore = hasMore
         };
     }
 
-    private async Task<IEnumerable<Guid>> GetMoreIds(Guid videoId, int limit,
-        Guid sessionId,
-        Guid? userId,
-        Guid? parentId = null)
+    private async Task<IEnumerable<Guid>> GetMoreIds(GetCommentsRequest request)
     {
-        if (!await _dbContext.Videos.AnyAsync(v => v.Id == videoId))
-            throw new InvalidOperationException("Видео не найдено");
+        await _dbContext.ApplicationUsers.EnsureExistAsync(request.UserId);
 
-        if (parentId != null && !await _dbContext.Comments.AnyAsync(p => p.Id == parentId))
-            throw new InvalidOperationException("Комментарий не найден");
+        await _dbContext.Videos.EnsureExistAsync(request.VideoId);
 
-        _cache.TryGetValue(GetCacheKey(sessionId, videoId, parentId), out List<Guid> usedId);
+        await _dbContext.Comments.EnsureExistAsync(request.ParentId);
+
+        _cache.TryGetValue(GetCacheKey(request.SessionId, request.VideoId, request.ParentId), out List<Guid> usedId);
 
         var result = await _dbContext.Comments
-            .Where(c => c.VideoId == videoId && c.ParentId == parentId)
+            .Where(c => c.VideoId == request.VideoId && c.ParentId == request.ParentId)
             .Where(c => !usedId.Contains(c.Id))
             .OrderByDescending(c => c.LikesCount)
-            .Take(limit)
+            .Take(request.Limit)
             .Select(c => c.Id)
             .ToListAsync();
 

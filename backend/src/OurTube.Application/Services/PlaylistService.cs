@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OurTube.Application.DTOs.Common;
 using OurTube.Application.DTOs.Playlist;
 using OurTube.Application.DTOs.PlaylistElement;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
 using OurTube.Domain.Entities;
@@ -24,6 +25,9 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
     public async Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, Guid userId)
     {
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
+        
         var playlist = new Playlist
         {
             Title = playlistDto.Title,
@@ -40,15 +44,13 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
     public async Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId)
     {
-        var playlist = await _dbContext.Playlists.FindAsync(playlistId);
+        var playlist = await _dbContext.Playlists
+            .GetByIdAsync(playlistId, true);
 
-        if (playlist == null)
-            throw new KeyNotFoundException("Плейлист не найден");
-
-        if (patchDto.Title != null)
+        if (!string.IsNullOrWhiteSpace(patchDto.Title))
             playlist.Title = patchDto.Title;
 
-        if (patchDto.Description != null)
+        if (!string.IsNullOrWhiteSpace(patchDto.Description))
             playlist.Description = patchDto.Description;
 
         await _dbContext.SaveChangesAsync();
@@ -56,10 +58,8 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
     public async Task DeleteAsync(Guid id)
     {
-        var playlist = await _dbContext.Playlists.FindAsync(id);
-
-        if (playlist == null)
-            throw new KeyNotFoundException("Плейлист не найден");
+        var playlist = await _dbContext.Playlists
+            .GetByIdAsync(id,true);
 
         playlist.Delete();
 
@@ -68,17 +68,13 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
     public async Task AddVideoAsync(Guid playlistId, Guid videoId)
     {
-        var playlist = await _dbContext.Playlists.FindAsync(playlistId);
+        var playlist = await _dbContext.Playlists
+            .GetByIdAsync(playlistId, true);
+        
+        await _dbContext.PlaylistElements
+            .EnsureExistAsync(x => x.PlaylistId == playlistId && x.VideoId == videoId);
 
-        if (playlist == null)
-            throw new KeyNotFoundException("Плейлист не найден");
-
-        var element = await _dbContext.PlaylistElements.FindAsync(playlistId, videoId);
-
-        if (element != null)
-            return;
-
-        element = new PlaylistElement(playlist, videoId, playlist.ApplicationUserId);
+        var element = new PlaylistElement(playlist, videoId, playlist.ApplicationUserId);
 
         _dbContext.PlaylistElements.Add(element);
 
@@ -92,15 +88,11 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         Guid videoId,
         bool suppressDomainEvent = false)
     {
-        var playlist = await _dbContext.Playlists.FindAsync(playlistId);
+        var playlist = await _dbContext.Playlists
+            .GetByIdAsync(playlistId, true);
 
-        if (playlist == null)
-            throw new KeyNotFoundException("Плейлист не найден");
-
-        var playlistElement = await _dbContext.PlaylistElements.FindAsync(playlistId, videoId);
-
-        if (playlistElement == null)
-            return;
+        var playlistElement = await _dbContext.PlaylistElements
+            .GetAsync(pe => pe.PlaylistId == playlistId && pe.VideoId == videoId, true);
 
         if (!suppressDomainEvent) 
             playlistElement.AddDomainEvent(
@@ -119,14 +111,8 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
     public async Task<PagedDto<PlaylistElementGetDto>> GetElements(Guid playlistId, Guid userId, int limit, int after)
     {
-        var playlist = await _dbContext.Playlists
-            .FirstOrDefaultAsync(x => x.Id == playlistId);
-
-        if (playlist == null)
-            throw new KeyNotFoundException("Плейлист не найден");
-
-        if (playlist.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
+        await _dbContext.PlaylistElements
+            .EnsureExistAsync(playlistId);
         
         var playlistElements = await _dbContext.PlaylistElements
             .Where(x => x.PlaylistId == playlistId)
@@ -200,16 +186,10 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         return playlist;
     }
 
-    public async Task<PlaylistMinGetDto> GetMinById(Guid id, Guid userId)
+    public async Task<PlaylistMinGetDto> GetMinById(Guid id)
     {
         var playlist = await _dbContext.Playlists
-            .FirstOrDefaultAsync(p => p.Id == id);
-        
-        if (playlist == null)
-            throw new KeyNotFoundException("Playlist not found");
-        
-        if(playlist.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Unauthorized access");
+            .GetByIdAsync(id);
         
         return _mapper.Map<PlaylistMinGetDto>(playlist);
     }

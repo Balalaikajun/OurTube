@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using OurTube.Application.DTOs.UserAvatar;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 
@@ -33,8 +34,8 @@ public class UserAvatarService : IUserAvatarService
 
     public async Task<UserAvatarDto> CreateOrUpdateUserAvatarAsync(IFormFile image, Guid userId)
     {
-        if (!_dbContext.ApplicationUsers.Any(x => x.Id == userId))
-            throw new InvalidOperationException($"User with id {userId} not found");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
         if (image.Length == 0)
             throw new ArgumentException("Avatar cannot be empty");
@@ -70,15 +71,11 @@ public class UserAvatarService : IUserAvatarService
 
     public async Task DeleteUserAvatarAsync(Guid userId)
     {
-        if (!_dbContext.ApplicationUsers.Any(x => x.Id == userId))
-            throw new InvalidOperationException($"User with id {userId} not found");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
-        var userAvatar = await _dbContext.UserAvatars.FindAsync(userId);
-
-        if (userAvatar == null)
-            throw new InvalidOperationException($"User with id {userId} not found");
-
-        await _storageClient.DeleteFileAsync(userAvatar.Bucket, userAvatar.FileName);
+        var userAvatar = await _dbContext.UserAvatars
+            .GetAsync(ua => ua.UserId == userId, true);
 
         userAvatar.Delete();
 
