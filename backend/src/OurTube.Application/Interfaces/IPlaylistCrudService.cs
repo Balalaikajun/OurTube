@@ -1,11 +1,12 @@
-using OurTube.Application.DTOs.Playlist;
+using OurTube.Application.Replies.Playlist;
+using OurTube.Application.Requests.Playlist;
 
 namespace OurTube.Application.Interfaces;
 
 public interface IPlaylistCrudService
 {
-    Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, Guid userId);
-    Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId);
+    Task<Playlist> CreateAsync(PostPlaylistRequest playlistDto, Guid userId);
+    Task UpdateAsync(UpdatePlaylistRequest patchDto, Guid playlistId);
     Task DeleteAsync(Guid id);
     Task AddVideoAsync(Guid playlistId, Guid videoId);
 

@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using OurTube.Application.DTOs.ApplicationUser;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Requests.ApplicationUser;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Exceptions;
+using ApplicationUser = OurTube.Application.Replies.ApplicationUser.ApplicationUser;
 
 namespace OurTube.Application.Services;
 
@@ -18,7 +19,7 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, Guid userId)
+    public async Task<ApplicationUser> UpdateUserAsync(PatchApplicationUserRequest patchDto, Guid userId)
     {
         var aUser = await _dbContext.ApplicationUsers
             .GetByIdAsync(userId,true);
@@ -36,11 +37,11 @@ public class UserService : IUserService
 
         await _dbContext.SaveChangesAsync();
 
-        return _mapper.Map<ApplicationUserDto>(aUser);
+        return _mapper.Map<ApplicationUser>(aUser);
     }
 
-    public async Task<ApplicationUserDto> GetUserAsync(Guid userId)
+    public async Task<ApplicationUser> GetUserAsync(Guid userId)
     {
-        return _mapper.Map<ApplicationUserDto>(await _dbContext.ApplicationUsers.GetByIdAsync(userId));
+        return _mapper.Map<ApplicationUser>(await _dbContext.ApplicationUsers.GetByIdAsync(userId));
     }
 }

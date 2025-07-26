@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-using OurTube.Application.DTOs.Common;
-using OurTube.Application.DTOs.Playlist;
-using OurTube.Application.DTOs.PlaylistElement;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Playlist;
+using OurTube.Application.Requests.Playlist;
 using OurTube.Domain.Entities;
 using OurTube.Domain.Events.PlaylistElement;
+using Playlist = OurTube.Domain.Entities.Playlist;
 
 namespace OurTube.Application.Services;
 
@@ -23,7 +24,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         _mapper = mapper;
     }
 
-    public async Task<PlaylistMinGetDto> CreateAsync(PlaylistPostDto playlistDto, Guid userId)
+    public async Task<Replies.Playlist.Playlist> CreateAsync(PostPlaylistRequest playlistDto, Guid userId)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
@@ -31,7 +32,6 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         var playlist = new Playlist
         {
             Title = playlistDto.Title,
-            Description = playlistDto.Description,
             ApplicationUserId = userId
         };
 
@@ -39,19 +39,16 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
         await _dbContext.SaveChangesAsync();
 
-        return _mapper.Map<PlaylistMinGetDto>(playlist);
+        return _mapper.Map<Replies.Playlist.Playlist>(playlist);
     }
 
-    public async Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId)
+    public async Task UpdateAsync(UpdatePlaylistRequest patchDto, Guid playlistId)
     {
         var playlist = await _dbContext.Playlists
             .GetByIdAsync(playlistId, true);
 
         if (!string.IsNullOrWhiteSpace(patchDto.Title))
             playlist.Title = patchDto.Title;
-
-        if (!string.IsNullOrWhiteSpace(patchDto.Description))
-            playlist.Description = patchDto.Description;
 
         await _dbContext.SaveChangesAsync();
     }
@@ -109,7 +106,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedDto<PlaylistElementGetDto>> GetElements(Guid playlistId, Guid userId, int limit, int after)
+    public async Task<ListReply<Replies.PlaylistElement.PlaylistElement>> GetElements(Guid playlistId, Guid userId, int limit, int after)
     {
         await _dbContext.PlaylistElements
             .EnsureExistAsync(playlistId);
@@ -131,13 +128,13 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
             .ProjectToMinDto(_mapper, userId)
             .ToDictionaryAsync(x => x.Id, x => x);
 
-        var elementsDto = playlistElements.Select(x => new PlaylistElementGetDto
+        var elementsDto = playlistElements.Select(x => new Replies.PlaylistElement.PlaylistElement()
         {
             Video = videos[x.VideoId],
-            AddedAt = x.CreatedDate
+            CreatedDate = x.CreatedDate
         });
 
-        return new PagedDto<PlaylistElementGetDto>()
+        return new ListReply<Replies.PlaylistElement.PlaylistElement>()
         {
             Elements = elementsDto,
             HasMore = hasMore,
@@ -145,19 +142,19 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         };
     }
 
-    public async Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(Guid userId)
+    public async Task<IEnumerable<Replies.Playlist.Playlist>> GetUserPlaylistsAsync(Guid userId)
     {
         return await _dbContext.Playlists
             .Where(p => p.ApplicationUserId == userId)
-            .ProjectTo<PlaylistMinGetDto>(_mapper.ConfigurationProvider)
+            .ProjectTo<Replies.Playlist.Playlist>(_mapper.ConfigurationProvider)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(Guid userId, Guid videoId)
+    public async Task<IEnumerable<PlaylistForVideo>> GetUserPlaylistsForVideoAsync(Guid userId, Guid videoId)
     {
         return await _dbContext.Playlists
             .Where(p => p.ApplicationUserId == userId)
-            .Select(p => new PlaylistForVideoGetDto
+            .Select(p => new PlaylistForVideo()
             {
                 Id = p.Id,
                 Title = p.Title,
@@ -167,30 +164,21 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
             .ToListAsync();
     }
 
-    public async Task<PlaylistMinGetDto> GetLikedPlaylistAsync(Guid userId)
+    public async Task<Replies.Playlist.Playlist> GetLikedPlaylistAsync(Guid userId)
     {
         var playlist = await _dbContext.Playlists
-            .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся" && p.IsSystem == true)
-            .ProjectTo<PlaylistMinGetDto>(_mapper.ConfigurationProvider)
+            .Where(p => p.ApplicationUserId == userId && p.IsSystem == true && p.Title == "Понравившееся" )
+            .ProjectTo<Replies.Playlist.Playlist>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
-
-        if (playlist == null)
-        {
-            await CreateAsync(new PlaylistPostDto { Title = "Понравившееся" }, userId);
-            playlist = await _dbContext.Playlists
-                .Where(p => p.ApplicationUserId == userId && p.Title == "Понравившееся" && p.IsSystem == true)
-                .ProjectTo<PlaylistMinGetDto>(_mapper.ConfigurationProvider)
-                .FirstAsync();
-        }
 
         return playlist;
     }
 
-    public async Task<PlaylistMinGetDto> GetMinById(Guid id)
+    public async Task<Replies.Playlist.Playlist> GetMinById(Guid id)
     {
         var playlist = await _dbContext.Playlists
             .GetByIdAsync(id);
         
-        return _mapper.Map<PlaylistMinGetDto>(playlist);
+        return _mapper.Map<Replies.Playlist.Playlist>(playlist);
     }
 }

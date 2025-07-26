@@ -1,23 +1,22 @@
 using AutoMapper;
-using OurTube.Application.DTOs.ApplicationUser;
-using OurTube.Application.DTOs.Comment;
 using OurTube.Domain.Entities;
+using ApplicationUser = OurTube.Application.Replies.ApplicationUser.ApplicationUser;
 
-namespace OurTube.Application.Services;
+namespace OurTube.Application.Mapping.Custom;
 
 public static class CommentMappingExtensions
 {
-    public static IQueryable<CommentGetDto> ProjectToDto(this IQueryable<Comment> query, IMapper mapper, Guid? userId)
+    public static IQueryable<Replies.Comment.Comment> ProjectToDto(this IQueryable<Comment> query, IMapper mapper, Guid? userId)
     {
-        return query.Select(c => new CommentGetDto
+        return query.Select(c => new Replies.Comment.Comment()
         {
             Id = c.Id,
             Text = c.IsDeleted ? "" : c.Text,
-            Created = c.CreatedDate,
-            Updated = c.CreatedDate,
-            Deleted = c.CreatedDate,
+            CreatedDate = c.CreatedDate,
+            UpdatedDate = c.CreatedDate,
+            DeletedDate = c.CreatedDate,
             ParentId = c.ParentId,
-            IsEdited = c.IsUpdated,
+            IsEdited = c.IsEdited,
             IsDeleted = c.IsDeleted,
             Vote = userId != null
                 ? c.Votes
@@ -28,7 +27,7 @@ public static class CommentMappingExtensions
             LikesCount = c.LikesCount,
             ChildsCount = c.ChildsCount,
             DislikesCount = c.DislikesCount,
-            User = mapper.Map<ApplicationUserDto>(c.User)
+            User = mapper.Map<ApplicationUser>(c.User)
         });
     }
 }

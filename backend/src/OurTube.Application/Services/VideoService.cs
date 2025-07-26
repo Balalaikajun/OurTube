@@ -3,11 +3,13 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Video;
 using OurTube.Application.Validators;
 using OurTube.Domain.Entities;
+using Video = OurTube.Domain.Entities.Video;
 
 namespace OurTube.Application.Services;
 
@@ -41,10 +43,10 @@ public class VideoService : IVideoService
         _tagService = tagService;
     }
 
-    public async Task<VideoGetDto> GetVideoByIdAsync(Guid videoId)
+    public async Task<Replies.Video.Video> GetVideoByIdAsync(Guid videoId)
     {
         var video = await _dbContext.Videos
-            .ProjectTo<VideoGetDto>(_mapper.ConfigurationProvider)
+            .ProjectTo<Replies.Video.Video>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(v => v.Id == videoId);
 
         if (video == null)
@@ -53,7 +55,7 @@ public class VideoService : IVideoService
         return video;
     }
 
-    public async Task<VideoGetDto> GetVideoByIdAsync(Guid videoId, Guid userId)
+    public async Task<Replies.Video.Video> GetVideoByIdAsync(Guid videoId, Guid userId)
     {
         var videoDto = await GetVideoByIdAsync(videoId);
 
@@ -74,7 +76,7 @@ public class VideoService : IVideoService
         return videoDto;
     }
 
-    public async Task<VideoMinGetDto> GetMinVideoByIdAsync(Guid videoId, Guid? userId)
+    public async Task<MinVideo> GetMinVideoByIdAsync(Guid videoId, Guid? userId)
     {
         var dto = await _dbContext.Videos
             .Where(v => v.Id == videoId)
@@ -87,7 +89,7 @@ public class VideoService : IVideoService
         return dto;
     }
 
-    public async Task<IEnumerable<VideoMinGetDto>> GetVideosByIdAsync(IReadOnlyList<Guid> videoIds,
+    public async Task<IEnumerable<MinVideo>> GetVideosByIdAsync(IEnumerable<Guid> videoIds,
         Guid? userId = null)
     {
         var videos = await _dbContext.Videos
@@ -100,15 +102,12 @@ public class VideoService : IVideoService
         return result;
     }
 
-    public async Task<VideoMinGetDto> PostVideo(
-        VideoUploadDto videoUploadDto,
+    public async Task<MinVideo> PostVideo(
+        PostVideoRequest request,
         Guid userId)
     {
         // Валидация
-        _validator.ValidateVideo(videoUploadDto);
-
-        var videoDto = videoUploadDto.VideoPostDto;
-
+        _validator.ValidateVideo(request);
 
         var guid = Guid.NewGuid().ToString();
         var tempVideoDir = Path.Combine(Path.GetTempPath() + guid);
@@ -119,14 +118,14 @@ public class VideoService : IVideoService
             if (!Directory.Exists(tempVideoDir)) Directory.CreateDirectory(tempVideoDir);
 
             var tempPreviewPath = await LocalFilesService.SaveFileAsync(
-                videoUploadDto.PreviewFile,
+                request.PreviewFile,
                 tempVideoDir,
-                "preview" + Path.GetExtension(videoUploadDto.PreviewFile.FileName));
+                "preview" + Path.GetExtension(request.PreviewFile.FileName));
 
             var tempSourcePath = await LocalFilesService.SaveFileAsync(
-                videoUploadDto.VideoFile,
+                request.VideoFile,
                 tempVideoDir,
-                "source" + Path.GetExtension(videoUploadDto.VideoFile.FileName));
+                "source" + Path.GetExtension(request.VideoFile.FileName));
 
 
             // Данные для плейлистов
@@ -197,7 +196,7 @@ public class VideoService : IVideoService
 
             var tags = new List<VideoTags>();
 
-            foreach (var tagName in videoDto.Tags)
+            foreach (var tagName in request.Tags)
             {
                 var tag = await _tagService.GetOrCreate(tagName);
 
@@ -208,8 +207,8 @@ public class VideoService : IVideoService
 
             // Создаём сущность
             var video = new Video(
-                videoDto.Title,
-                videoDto.Description,
+                request.Title,
+                request.Description,
                 preview,
                 source,
                 userId,
@@ -222,7 +221,7 @@ public class VideoService : IVideoService
 
             await _dbContext.SaveChangesAsync();
 
-            return _mapper.Map<VideoMinGetDto>(video);
+            return _mapper.Map<MinVideo>(video);
         }
         finally
         {

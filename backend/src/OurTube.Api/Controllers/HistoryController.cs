@@ -1,9 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.Views;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Views;
 
 namespace OurTube.Api.Controllers;
 
@@ -21,7 +22,7 @@ public class HistoryController : ControllerBase
     [Authorize]
     [HttpPost]
     public async Task<ActionResult> AddVideo(
-        [FromBody] ViewPostDto postDto)
+        [FromBody] PostViewsRequest postDto)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
@@ -60,7 +61,7 @@ public class HistoryController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<PagedVideoDto>> Get(
+    public async Task<ActionResult<ListReply<MinVideo>>> Get(
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
         [FromQuery] string? query = null)

@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
 using OurTube.Api.Attributes;
-using OurTube.Application.DTOs.Common;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Exceptions;
 

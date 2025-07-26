@@ -1,14 +1,12 @@
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
-using OurTube.Application.DTOs.Common;
+using OurTube.Application.Replies.Common;
 using OurTube.Domain.Exceptions;
 
 namespace OurTube.Api.Middlewares;
 
 public class ErrorHendlingMiddlware(RequestDelegate next)
 {
-    
-    
     public async Task InvokeAsync(HttpContext context, ILogger<ErrorHendlingMiddlware> logger)
     {
         try

@@ -10,6 +10,7 @@ using OurTube.Api.Middlewares;
 using OurTube.Application.Handlers;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping;
+using OurTube.Application.Mapping.AutoMapper;
 using OurTube.Application.Services;
 using OurTube.Application.Validators;
 using OurTube.Infrastructure.Data;

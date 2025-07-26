@@ -1,12 +1,14 @@
-using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.Views;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Replies.Views;
+using OurTube.Application.Requests.Views;
 
 namespace OurTube.Application.Interfaces;
 
 public interface IViewService
 {
-    Task AddVideoAsync(ViewPostDto dto, Guid userId);
+    Task AddVideoAsync(PostViewsRequest request, Guid userId);
     Task RemoveVideoAsync(Guid videoId, Guid userId);
     Task ClearHistoryAsync(Guid userId);
-    Task<PagedVideoDto> GetWithLimitAsync(Guid userId, int limit, int after, string? query);
+    Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, int limit, int after, string? query);
 }

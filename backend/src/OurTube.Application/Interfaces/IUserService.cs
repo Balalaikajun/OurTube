@@ -1,9 +1,10 @@
-using OurTube.Application.DTOs.ApplicationUser;
+using OurTube.Application.Replies.ApplicationUser;
+using OurTube.Application.Requests.ApplicationUser;
 
 namespace OurTube.Application.Interfaces;
 
 public interface IUserService
 {
-    Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, Guid userId);
-    Task<ApplicationUserDto> GetUserAsync(Guid userId);
+    Task<ApplicationUser> UpdateUserAsync(PatchApplicationUserRequest patchDto, Guid userId);
+    Task<ApplicationUser> GetUserAsync(Guid userId);
 }

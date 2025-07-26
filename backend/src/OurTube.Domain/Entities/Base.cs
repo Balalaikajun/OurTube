@@ -17,7 +17,7 @@ public abstract class Base
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
-    [NotMapped] public bool IsUpdated => UpdatedDate != CreatedDate;
+    [NotMapped] public bool IsEdited => UpdatedDate != CreatedDate;
 
     public DateTime? DeletedDate { get; set; }
     public bool IsDeleted { get; set; } = false;

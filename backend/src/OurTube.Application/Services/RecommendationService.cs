@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using OurTube.Application.DTOs.Video;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Recommendation;
 
 namespace OurTube.Application.Services;
 
@@ -24,13 +26,11 @@ public class RecommendationService : IRecomendationService
         _videoService = videoService;
     }
 
-    public async Task<PagedVideoDto> GetRecommendationsAsync(Guid? userId, Guid sessionId,
-        int limit, int after,
-        bool reload = false)
+    public async Task<ListReply<MinVideo>> GetRecommendationsAsync(GetRecommendationsRequest request)
     {
-        var cacheKey = GetRecommendationsCacheKey(sessionId);
+        var cacheKey = GetRecommendationsCacheKey(request.SessionId);
 
-        if (reload)
+        if (request.Reload)
             _cache.Remove(cacheKey);
 
         if (!_cache.TryGetValue(cacheKey, out List<Guid> cachedRecommendations))
@@ -53,58 +53,56 @@ public class RecommendationService : IRecomendationService
             });
         }
 
-
-        if (cachedRecommendations.Count <= after + limit && cachedRecommendations.Count < totalVideoCount)
+        if (cachedRecommendations.Count <= request.After + request.Limit && cachedRecommendations.Count < totalVideoCount)
         {
-            if (!string.IsNullOrEmpty(userId.ToString()))
+            if (!string.IsNullOrEmpty(request.UserId.ToString()))
                 cachedRecommendations.AddRange(
-                    await LoadAuthorizedRecommendationsAsync(userId!.Value, sessionId, RecommendationPullCount));
+                    await LoadAuthorizedRecommendationsAsync(request.UserId!.Value, request.SessionId, RecommendationPullCount));
             else
                 cachedRecommendations.AddRange(
-                    await LoadAnAuthorizedRecommendationsAsync(sessionId, RecommendationPullCount));
+                    await LoadAnAuthorizedRecommendationsAsync(request.SessionId, RecommendationPullCount));
         }
 
-        var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
+        var resultIds = cachedRecommendations.Skip(request.After).Take(request.Limit).ToList();
 
         var result = await _videoService.GetVideosByIdAsync(resultIds);
 
-        return new PagedVideoDto
+        return new ListReply<MinVideo>()
         {
-            Videos = result,
-            NextAfter = after + limit,
-            HasMore = cachedRecommendations.Count > after + limit
+            Elements= result,
+            NextAfter = request.After + request.Limit,
+            HasMore = cachedRecommendations.Count > request.After + request.Limit
         };
     }
 
-    public async Task<PagedVideoDto> GetRecommendationsForVideoAsync(Guid videoId,
-        Guid? userId, Guid sessionId,
-        int limit, int after,
-        bool reload = false)
+    public async Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(GetRecommendationsForVideoRequest request)
     {
-        var result = await GetRecommendationsAsync(
-            userId,
-            sessionId,
-            limit,
-            after,
-            reload
-        );
-
-        if (result.Videos.Any(v => v.Id == videoId))
+        var result = await GetRecommendationsAsync(new GetRecommendationsRequest
         {
-            var oneMore = await GetRecommendationsAsync(
-                userId,
-                sessionId,
-                1,
-                result.NextAfter,
-                false
-            );
+           UserId = request.UserId,
+            SessionId = request.SessionId,
+            Limit = request.Limit,
+            After = request.After,
+            Reload = request.Reload
+        });
 
-            var videos = result.Videos.ToList();
-            videos.Remove(videos.First(v => v.Id == videoId));
-            var newVideo = oneMore.Videos.FirstOrDefault();
+        if (result.Elements.Any(v => v.Id == request.VideoId))
+        {
+            var oneMore = await GetRecommendationsAsync(new GetRecommendationsRequest
+            {
+                UserId = request.UserId,
+                SessionId = request.SessionId,
+                Limit = 1,
+                After = request.After,
+                Reload = false
+            });
+
+            var videos = result.Elements.ToList();
+            videos.Remove(videos.First(v => v.Id == request.VideoId));
+            var newVideo = oneMore.Elements.FirstOrDefault();
             if(newVideo != null)
                 videos.Add(newVideo);
-            result.Videos = videos;
+            result.Elements = videos;
             result.NextAfter = oneMore.NextAfter;
         }
         

@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Api.Attributes;
-using OurTube.Application.DTOs.Common;
-using OurTube.Application.DTOs.Playlist;
-using OurTube.Application.DTOs.PlaylistElement;
+using OurTube.Application;
 using OurTube.Application.Interfaces;
-using OurTube.Domain.Entities;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Playlist;
+using OurTube.Application.Requests.Playlist;
+using Playlist = OurTube.Domain.Entities.Playlist;
+using PlaylistElement = OurTube.Application.Replies.PlaylistElement.PlaylistElement;
 
 namespace OurTube.Api.Controllers;
 
@@ -25,8 +27,8 @@ public class PlaylistController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<PlaylistMinGetDto>> Post(
-        [FromBody] PlaylistPostDto postDto)
+    public async Task<ActionResult<Application.Replies.Playlist.Playlist>> Post(
+        [FromBody] PostPlaylistRequest postDto)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
@@ -45,7 +47,7 @@ public class PlaylistController : ControllerBase
     [HttpPatch("{playlistId:guid}")]
     public async Task<ActionResult> Patch(
         Guid playlistId,
-        [FromBody] PlaylistPatchDto postDto)
+        [FromBody] UpdatePlaylistRequest postDto)
     {
         await _playlistCrudService.UpdateAsync(
             postDto,
@@ -95,7 +97,7 @@ public class PlaylistController : ControllerBase
     [Authorize]
     [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
     [HttpGet("{playlistId:guid}/elements")]
-    public async Task<ActionResult<PagedDto<PlaylistElementGetDto>>> GetByElements(
+    public async Task<ActionResult<ListReply<PlaylistElement>>> GetByElements(
         Guid playlistId,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0)
@@ -114,7 +116,7 @@ public class PlaylistController : ControllerBase
     [Authorize]
     [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
     [HttpGet("{playlistId:int}")]
-    public async Task<ActionResult<PlaylistMinGetDto>> GetById(Guid playlistId)
+    public async Task<ActionResult<Application.Replies.Playlist.Playlist>> GetById(Guid playlistId)
     {
         var result = await _playlistQueryService.GetMinById(playlistId);
 
@@ -123,7 +125,7 @@ public class PlaylistController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetUserPlaylists()
+    public async Task<ActionResult<IEnumerable<Application.Replies.Playlist.Playlist>>> GetUserPlaylists()
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
@@ -135,7 +137,7 @@ public class PlaylistController : ControllerBase
 
     [Authorize]
     [HttpGet("video/{videoId:guid}")]
-    public async Task<ActionResult<IEnumerable<PlaylistForVideoGetDto>>> GetForVideo(Guid videoId)
+    public async Task<ActionResult<IEnumerable<PlaylistForVideo>>> GetForVideo(Guid videoId)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         

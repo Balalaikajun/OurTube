@@ -1,8 +1,10 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Video;
 
 namespace OurTube.Application.Services;
 
@@ -23,13 +25,9 @@ public class SearchService : ISearchService
         _videoService = videoService;
     }
 
-    public async Task<PagedVideoDto> SearchVideos(
-        string searchQuery,
-        Guid? userId, Guid sessionId,
-        int limit = 10, int after = 0,
-        bool reload = true)
+    public async Task<ListReply<MinVideo>> SearchVideos(SearchRequest request)
     {
-        var cacheKey = GetCacheKey(sessionId);
+        var cacheKey = GetCacheKey(request.SessionId);
 
 
         if (!_cache.TryGetValue(cacheKey, out List<Guid> cachePull))
@@ -42,21 +40,21 @@ public class SearchService : ISearchService
             });
         }
 
-        if (reload)
+        if (request.Reload)
             cachePull = [];
 
-        if (cachePull.Count <= limit + after)
-            cachePull.AddRange(await SearchMoreVideos(searchQuery, sessionId, SearchPull));
+        if (cachePull.Count <= request.Limit +  request.After)
+            cachePull.AddRange(await SearchMoreVideos(request.SearchQuery, request.SessionId, SearchPull));
 
-        var videoIds = cachePull.Skip(after).Take(limit).ToList();
+        var videoIds = cachePull.Skip(request.After).Take(request.Limit).ToList();
 
         var videos = await _videoService.GetVideosByIdAsync(videoIds);
 
-        return new PagedVideoDto
+        return new ListReply<MinVideo>
         {
-            HasMore = cachePull.Count > after + limit,
-            NextAfter = after + limit,
-            Videos = videos
+            HasMore = cachePull.Count > request.After + request.Limit,
+            NextAfter = request.After + request.Limit,
+            Elements = videos
         };
     }
 

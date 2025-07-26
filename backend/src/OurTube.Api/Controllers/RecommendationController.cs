@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Recommendation;
 
 namespace OurTube.Api.Controllers;
 
@@ -17,7 +19,7 @@ public class RecommendationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedVideoDto>> Get(
+    public async Task<ActionResult<ListReply<MinVideo>>> Get(
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
         [FromQuery] bool reload = false)
@@ -25,19 +27,20 @@ public class RecommendationController : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
         
-        var result = await _recommendationService.GetRecommendationsAsync(
-            userId,
-            sessionId,
-            limit,
-            after,
-            reload
-        );
+        var result = await _recommendationService.GetRecommendationsAsync(new GetRecommendationsRequest()
+        {
+            UserId = userId,
+            SessionId = sessionId,
+            Limit = limit,
+            After = after,
+            Reload = reload
+        });
 
         return Ok(result);
     }
     
     [HttpGet("video/{videoId:guid}")]
-    public async Task<ActionResult<PagedVideoDto>> GetForVideo(
+    public async Task<ActionResult<ListReply<MinVideo>>> GetForVideo(
         Guid videoId,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
@@ -46,14 +49,15 @@ public class RecommendationController : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
         
-        var result = await _recommendationService.GetRecommendationsForVideoAsync(
-            videoId,
-            userId,
-            sessionId,
-            limit,
-            after,
-            reload
-        );
+        var result = await _recommendationService.GetRecommendationsForVideoAsync(new GetRecommendationsForVideoRequest()
+        {
+            VideoId = videoId,
+            UserId = userId,
+            SessionId = sessionId,
+            Limit = limit,
+            After = after,
+            Reload = reload
+        });
         
         return Ok(result);
     }

@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using OurTube.Application.DTOs.Video;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Video;
 
 namespace OurTube.Api.Controllers;
 
@@ -17,7 +19,7 @@ public class SearchController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedVideoDto>> Get(
+    public async Task<ActionResult<ListReply<MinVideo>>> Get(
         [FromQuery] string query = "",
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
@@ -26,13 +28,16 @@ public class SearchController : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
         
-        var result = await _searchService.SearchVideos(
-            query,
-            userId,
-            sessionId,
-            limit,
-            after,
-            reload);
+        var result = await _searchService.SearchVideos(new SearchRequest()
+        {
+            SearchQuery = query,
+            UserId = userId,
+            SessionId = sessionId,
+            Limit = limit,
+            After = after,
+            Reload = reload
+        });
+        
         return Ok(result);
     }
 }

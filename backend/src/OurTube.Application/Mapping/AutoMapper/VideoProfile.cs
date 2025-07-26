@@ -1,21 +1,20 @@
 ﻿using AutoMapper;
-using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.VideoPlaylist;
-using OurTube.Application.DTOs.VideoPreview;
+using OurTube.Application.Replies.Video;
 using OurTube.Domain.Entities;
+using Video = OurTube.Domain.Entities.Video;
 
-namespace OurTube.Application.Mapping;
+namespace OurTube.Application.Mapping.AutoMapper;
 
 public class VideoProfile : Profile
 {
     public VideoProfile()
     {
-        CreateMap<Video, VideoGetDto>();
+        CreateMap<Video, Replies.Video.Video>();
 
-        CreateMap<Video, VideoMinGetDto>();
+        CreateMap<Video, MinVideo>();
 
-        CreateMap<VideoPlaylist, VideoPlaylistDto>();
+        CreateMap<VideoPlaylist, Replies.VideoPlaylist.VideoPlaylist>();
 
-        CreateMap<VideoPreview, VideoPreviewDto>();
+        CreateMap<VideoPreview, Replies.VideoPreview.VideoPreview>();
     }
 }

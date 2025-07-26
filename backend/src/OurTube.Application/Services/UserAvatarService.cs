@@ -1,7 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using OurTube.Application.DTOs.UserAvatar;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
@@ -32,7 +31,7 @@ public class UserAvatarService : IUserAvatarService
         _bucket = configuration.GetSection("Minio:UserBucket").Get<string>();
     }
 
-    public async Task<UserAvatarDto> CreateOrUpdateUserAvatarAsync(IFormFile image, Guid userId)
+    public async Task<Replies.UserAvatar.UserAvatar> CreateOrUpdateUserAvatarAsync(IFormFile image, Guid userId)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
@@ -66,7 +65,7 @@ public class UserAvatarService : IUserAvatarService
 
         await _dbContext.SaveChangesAsync();
 
-        return _mapper.Map<UserAvatarDto>(userAvatar);
+        return _mapper.Map<Replies.UserAvatar.UserAvatar>(userAvatar);
     }
 
     public async Task DeleteUserAvatarAsync(Guid userId)

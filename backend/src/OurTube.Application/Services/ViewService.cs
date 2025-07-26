@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.Views;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Replies.Views;
+using OurTube.Application.Requests.Views;
 using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
@@ -22,27 +24,27 @@ public class ViewService : IViewService
         _mapper = mapper;
     }
 
-    public async Task AddVideoAsync(ViewPostDto dto, Guid userId)
+    public async Task AddVideoAsync(PostViewsRequest request, Guid userId)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
 
         var video = await _dbContext.Videos
-            .GetByIdAsync(dto.VideoId, true);
+            .GetByIdAsync(request.VideoId, true);
 
-        var view = await _dbContext.Views.FindAsync(dto.VideoId, userId);
+        var view = await _dbContext.Views.FindAsync(request.VideoId, userId);
 
         if (view != null)
         {
-            view.EndTime = dto.EndTime;
+            view.EndTime = request.EndTime;
         }
         else
         {
             view = new VideoView
             {
                 ApplicationUserId = userId,
-                VideoId = dto.VideoId,
-                EndTime = dto.EndTime,
+                VideoId = request.VideoId,
+                EndTime = request.EndTime,
             };
 
             _dbContext.Views.Add(view);
@@ -85,7 +87,7 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedVideoDto> GetWithLimitAsync(Guid userId, int limit, int after, string? query)
+    public async Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, int limit, int after, string? query)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
@@ -105,9 +107,9 @@ public class ViewService : IViewService
             .ProjectToMinDto(_mapper, userId)
             .ToListAsync();
 
-        return new PagedVideoDto
+        return new ListReply<MinVideo>()
         {
-            Videos = videos.Take(limit),
+            Elements = videos.Take(limit),
             NextAfter = after + limit,
             HasMore = videos.Count > limit
         };

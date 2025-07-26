@@ -1,12 +1,10 @@
-using OurTube.Application.DTOs.Video;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Video;
 
 namespace OurTube.Application.Interfaces;
 
 public interface ISearchService
 {
-    Task<PagedVideoDto> SearchVideos(
-        string searchQuery,
-        Guid? userId, Guid sessionId,
-        int limit = 10, int after = 0,
-        bool reload = true);
+    Task<ListReply<MinVideo>> SearchVideos(SearchRequest request);
 }
