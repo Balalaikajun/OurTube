@@ -11,6 +11,7 @@ public interface IApplicationDbContext
     DbSet<IdentityUser> IdentityUsers { get; set; }
     DbSet<UserAvatar> UserAvatars { get; set; }
     DbSet<Video> Videos { get; set; }
+    DbSet<VideoPreview> VideoPreviews { get; set; }
     DbSet<VideoVote> VideoVotes { get; set; }
 
     DbSet<Playlist> Playlists { get; set; }

@@ -38,15 +38,12 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         return _mapper.Map<PlaylistMinGetDto>(playlist);
     }
 
-    public async Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId, Guid userId)
+    public async Task UpdateAsync(PlaylistPatchDto patchDto, Guid playlistId)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
 
         if (playlist == null)
             throw new KeyNotFoundException("Плейлист не найден");
-
-        if (playlist.IsSystem || playlist.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
         if (patchDto.Title != null)
             playlist.Title = patchDto.Title;
@@ -57,38 +54,31 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid playlistId, Guid userId)
+    public async Task DeleteAsync(Guid id)
     {
-        var playlist = await _dbContext.Playlists.FindAsync(playlistId);
+        var playlist = await _dbContext.Playlists.FindAsync(id);
 
         if (playlist == null)
             throw new KeyNotFoundException("Плейлист не найден");
-
-        if (playlist.IsSystem || playlist.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
-
 
         playlist.Delete();
 
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddVideoAsync(Guid playlistId, Guid videoId, Guid userId)
+    public async Task AddVideoAsync(Guid playlistId, Guid videoId)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
 
         if (playlist == null)
             throw new KeyNotFoundException("Плейлист не найден");
 
-        if (playlist.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
-
         var element = await _dbContext.PlaylistElements.FindAsync(playlistId, videoId);
 
         if (element != null)
             return;
 
-        element = new PlaylistElement(playlist, videoId, userId);
+        element = new PlaylistElement(playlist, videoId, playlist.ApplicationUserId);
 
         _dbContext.PlaylistElements.Add(element);
 
@@ -100,16 +90,12 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
     public async Task RemoveVideoAsync(
         Guid playlistId,
         Guid videoId,
-        Guid userId,
         bool suppressDomainEvent = false)
     {
         var playlist = await _dbContext.Playlists.FindAsync(playlistId);
 
         if (playlist == null)
             throw new KeyNotFoundException("Плейлист не найден");
-
-        if (playlist.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного плейлиста");
 
         var playlistElement = await _dbContext.PlaylistElements.FindAsync(playlistId, videoId);
 

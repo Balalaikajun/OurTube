@@ -118,6 +118,7 @@ services.AddScoped<ISubscriptionService, SubscriptionService>();
 services.AddScoped<ISearchService, SearchService>();
 services.AddScoped<ITagService, TagService>();
 services.AddScoped<IUserAvatarService, UserAvatarService>();
+services.AddScoped<IAccessChecker, AccessChacker>();
 
 // Infrastructure
 services.AddScoped<IStorageClient, MinioClient>();
@@ -209,8 +210,9 @@ app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<IsUserHasAccessToEntityMiddleware>();
 
-app.UseMiddleware<UniqueVisitorId>();
+app.UseMiddleware<UniqueVisitorIdMiddleware>();
 
 app.MapControllers();
 

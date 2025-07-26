@@ -1,10 +1,12 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OurTube.Api.Attributes;
 using OurTube.Application.DTOs.Common;
 using OurTube.Application.DTOs.Playlist;
 using OurTube.Application.DTOs.PlaylistElement;
 using OurTube.Application.Interfaces;
+using OurTube.Domain.Entities;
 
 namespace OurTube.Api.Controllers;
 
@@ -38,19 +40,17 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
-    [HttpPatch("{id:guid}")]
+    [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
+    [HttpPatch("{playlistId:guid}")]
     public async Task<ActionResult> Patch(
-        Guid id,
+        Guid playlistId,
         [FromBody] PlaylistPatchDto postDto)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
             await _playlistCrudService.UpdateAsync(
                 postDto,
-                id,
-                userId);
+                playlistId);
 
             return Ok();
         }
@@ -65,17 +65,13 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("{id:guid}")]
-    public async Task<ActionResult> Delete(
-        Guid id)
+    [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
+    [HttpDelete("{playlistId:guid}")]
+    public async Task<ActionResult> Delete(Guid playlistId)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            await _playlistCrudService.DeleteAsync(
-                id,
-                userId);
+            await _playlistCrudService.DeleteAsync(playlistId);
             return Ok();
         }
         catch (KeyNotFoundException ex)
@@ -89,19 +85,17 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("{id:guid}/{videoId:guid}")]
+    [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
+    [HttpPost("{playlistId:guid}/{videoId:guid}")]
     public async Task<ActionResult> AddVideo(
-        Guid id,
+        Guid playlistId,
         Guid videoId)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
             await _playlistCrudService.AddVideoAsync(
-                id,
-                videoId,
-                userId);
+                playlistId,
+                videoId);
             return Ok();
         }
         catch (KeyNotFoundException ex)
@@ -119,19 +113,17 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("{id:guid}/{videoId:guid}")]
+    [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
+    [HttpDelete("{playlistId:guid}/{videoId:guid}")]
     public async Task<ActionResult> RemoveVideo(
-        Guid id,
+        Guid playlistId,
         Guid videoId)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
             await _playlistCrudService.RemoveVideoAsync(
-                id,
-                videoId,
-                userId);
+                playlistId,
+                videoId);
             return Ok();
         }
         catch (KeyNotFoundException ex)
@@ -145,9 +137,9 @@ public class PlaylistController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{id:guid}/elements")]
+    [HttpGet("{playlistId:guid}/elements")]
     public async Task<ActionResult<PagedDto<PlaylistElementGetDto>>> GetByElements(
-        Guid id,
+        Guid playlistId,
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0)
     {
@@ -156,7 +148,7 @@ public class PlaylistController : ControllerBase
             var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
             var result = await _playlistQueryService.GetElements(
-                id,
+                playlistId,
                 userId,
                 limit,
                 after);
@@ -174,15 +166,14 @@ public class PlaylistController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<PlaylistMinGetDto>> GetById(
-        Guid id)
+    [HttpGet("{playlistId:int}")]
+    public async Task<ActionResult<PlaylistMinGetDto>> GetById(Guid playlistId)
     {
         try
         {
             var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var result = await _playlistQueryService.GetMinById(id, userId);
+            var result = await _playlistQueryService.GetMinById(playlistId, userId);
             
             return Ok(result);
         }

@@ -52,16 +52,13 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         return await GetAsync(comment.Id, userId);
     }
 
-    public async Task UpdateAsync(Guid userId, CommentPatchDto postDto)
+    public async Task UpdateAsync(CommentPatchDto postDto)
     {
         var comment = await _dbContext.Comments
             .FindAsync(postDto.Id);
 
         if (comment == null)
             throw new InvalidOperationException("Комментарий не найден");
-
-        if (comment.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного комментария");
 
         if (comment.IsDeleted)
             throw new InvalidOperationException("Комментарий удалён");
@@ -74,7 +71,7 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         }
     }
 
-    public async Task DeleteAsync(Guid commentId, Guid userId)
+    public async Task DeleteAsync(Guid commentId)
     {
         var comment = await _dbContext.Comments
             .FindAsync(commentId);
@@ -86,9 +83,6 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
 
         if (video == null)
             throw new InvalidOperationException("Видео не найдено");
-
-        if (comment.ApplicationUserId != userId)
-            throw new UnauthorizedAccessException("Вы не имеете доступа к редактированию данного комментария");
 
         comment.Delete();
 

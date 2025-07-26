@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser, IdentityRole
     }
 
     public DbSet<Video> Videos { get; set; }
+    public DbSet<VideoPreview> VideoPreviews { get; set; }
     public DbSet<VideoVote> VideoVotes { get; set; }
     public DbSet<Playlist> Playlists { get; set; }
     public DbSet<PlaylistElement> PlaylistElements { get; set; }

@@ -1,8 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OurTube.Api.Attributes;
 using OurTube.Application.DTOs.Comment;
 using OurTube.Application.Interfaces;
+using OurTube.Domain.Entities;
 
 namespace OurTube.Api.Controllers;
 
@@ -44,17 +46,14 @@ public class CommentController : ControllerBase
     }
 
     [Authorize]
+    [IsUserHasAccessToEntity(typeof(Comment), FromBody = nameof(postDto.Id))]
     [HttpPatch]
     public async Task<ActionResult> Patch(
         [FromBody] CommentPatchDto postDto)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            
-            await _commentCrudService.UpdateAsync(
-                userId,
-                postDto);
+            await _commentCrudService.UpdateAsync(postDto);
             return Created();
         }
         catch (InvalidOperationException ex)
@@ -68,16 +67,13 @@ public class CommentController : ControllerBase
     }
 
     [Authorize]
+    [IsUserHasAccessToEntity(typeof(Comment), FromRoute = nameof(commentId))]
     [HttpDelete("{commentId:guid}")]
     public async Task<ActionResult> Delete(Guid commentId)
     {
         try
         {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            await _commentCrudService.DeleteAsync(
-                commentId,
-                userId);
+            await _commentCrudService.DeleteAsync(commentId);
             return Created();
         }
         catch (InvalidOperationException ex)
