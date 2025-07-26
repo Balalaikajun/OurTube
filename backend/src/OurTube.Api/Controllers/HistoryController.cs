@@ -23,20 +23,13 @@ public class HistoryController : ControllerBase
     public async Task<ActionResult> AddVideo(
         [FromBody] ViewPostDto postDto)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _viewService.AddVideoAsync(
-                postDto,
-                userId);
+        await _viewService.AddVideoAsync(
+            postDto,
+            userId);
 
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Created();
     }
 
     [Authorize]
@@ -44,39 +37,25 @@ public class HistoryController : ControllerBase
     public async Task<ActionResult> RemoveVideo(
         Guid videoId)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _viewService.RemoveVideoAsync(
-                videoId,
-                userId);
+        await _viewService.RemoveVideoAsync(
+            videoId,
+            userId);
 
-            return Ok();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok();
     }
 
     [Authorize]
     [HttpDelete]
     public async Task<ActionResult> ClearHistory()
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _viewService.ClearHistoryAsync(
-                userId);
+        await _viewService.ClearHistoryAsync(
+            userId);
 
-            return Ok();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok();
     }
 
     [Authorize]
@@ -86,22 +65,14 @@ public class HistoryController : ControllerBase
         [FromQuery] int after = 0,
         [FromQuery] string? query = null)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            
-            var result = await _viewService.GetWithLimitAsync(
-                userId,
-                limit,
-                after,
-                query);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            return Ok(result);
-        }
+        var result = await _viewService.GetWithLimitAsync(
+            userId,
+            limit,
+            after,
+            query);
 
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(result);
     }
 }

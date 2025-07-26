@@ -22,20 +22,13 @@ public class CommentVoteController : ControllerBase
         Guid commentId,
         [FromBody] bool type)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _commentVoteService.SetAsync(
-                commentId,
-                userId,
-                type);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _commentVoteService.SetAsync(
+            commentId,
+            userId,
+            type);
+        return Created();
     }
 
 
@@ -44,18 +37,11 @@ public class CommentVoteController : ControllerBase
     public async Task<ActionResult> DeleteVote(
         Guid commentId)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _commentVoteService.DeleteAsync(
-                commentId,
-                userId);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _commentVoteService.DeleteAsync(
+            commentId,
+            userId);
+        return Created();
     }
 }

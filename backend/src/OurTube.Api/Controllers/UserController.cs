@@ -17,7 +17,7 @@ public class UserController : ControllerBase
 {
     private readonly IUserAvatarService _userAvatarService;
     private readonly IUserService _userService;
-    
+
     public UserController(IUserService userService, IUserAvatarService userAvatarService)
     {
         _userService = userService;
@@ -42,25 +42,14 @@ public class UserController : ControllerBase
     public async Task<ActionResult<ApplicationUserDto>> Patch(
         [FromBody] ApplicationUserPatchDto patchDto)
     {
-        try
-        {
-            var userId = Guid.Parse((ReadOnlySpan<char>)User.FindFirstValue(ClaimTypes.NameIdentifier));
-            
-            var result = await _userService.UpdateUserAsync(patchDto, userId);
-            return Created(
-                string.Empty,
-                result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var userId = Guid.Parse((ReadOnlySpan<char>)User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+        var result = await _userService.UpdateUserAsync(patchDto, userId);
+        return Created(
+            string.Empty,
+            result);
     }
-    
+
     /// <summary>
     /// Получить данные пользователя.
     /// </summary>
@@ -76,16 +65,9 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ApplicationUserDto>> Get()
     {
-        try
-        {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            return Ok(await _userService.GetUserAsync(userId));
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(await _userService.GetUserAsync(userId));
     }
 
     /// <summary>
@@ -104,16 +86,10 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserAvatarDto>> CreateOrUpdateAvatar([FromForm] UserAvatarPostDto dto)
     {
-        try
-        {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var result = await _userAvatarService.CreateOrUpdateUserAvatarAsync(dto.Image, userId);
-            return Created(string.Empty, result);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var result = await _userAvatarService.CreateOrUpdateUserAvatarAsync(dto.Image, userId);
+
+        return Created(string.Empty, result);
     }
 
     /// <summary>
@@ -131,21 +107,10 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteAvatar()
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _userAvatarService.DeleteUserAvatarAsync(userId);
+        await _userAvatarService.DeleteUserAvatarAsync(userId);
 
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return NoContent();
     }
 }

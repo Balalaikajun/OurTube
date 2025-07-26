@@ -21,6 +21,7 @@ public class IdentityController: ControllerBase
     public async Task<ActionResult> Logout()
     {
         _signInManager.SignOutAsync();
+        
         return Ok();
     }
 }

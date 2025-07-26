@@ -43,22 +43,15 @@ namespace OurTube.Api.Controllers
             [FromForm] VideoUploadDto videoUploadDto,
             [FromServices] IConfiguration configuration)
         {
-            try
-            {
-                var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var result = await _videoService.PostVideo(
-                    videoUploadDto,
-                    userId);
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _videoService.PostVideo(
+                videoUploadDto,
+                userId);
 
-                return CreatedAtAction(
-                    nameof(Get),
-                    new { videoId = result.Id },
-                    result);
-            }
-            catch (FormatException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return CreatedAtAction(
+                nameof(Get),
+                new { videoId = result.Id },
+                result);
         }
 
         /// <summary>
@@ -75,15 +68,8 @@ namespace OurTube.Api.Controllers
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            try
-            {
-                var video = await _videoService.GetVideoByIdAsync(videoId, userId);
-                return Ok(video);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(ex.Message);
-            }
+            var video = await _videoService.GetVideoByIdAsync(videoId, userId);
+            return Ok(video);
         }
     }
 }

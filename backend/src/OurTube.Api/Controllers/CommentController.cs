@@ -28,21 +28,15 @@ public class CommentController : ControllerBase
     public async Task<ActionResult<CommentGetDto>> Post(
         [FromBody] CommentPostDto postDto)
     {
-        try
-        {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var result = await _commentCrudService.CreateAsync(
-                userId,
-                postDto);
-            return Created(
-                string.Empty,
-                result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _commentCrudService.CreateAsync(
+            userId,
+            postDto);
+        
+        return Created(
+            string.Empty,
+            result);
     }
 
     [Authorize]
@@ -51,19 +45,9 @@ public class CommentController : ControllerBase
     public async Task<ActionResult> Patch(
         [FromBody] CommentPatchDto postDto)
     {
-        try
-        {
-            await _commentCrudService.UpdateAsync(postDto);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _commentCrudService.UpdateAsync(postDto);
+        
+        return Created();
     }
 
     [Authorize]
@@ -71,19 +55,9 @@ public class CommentController : ControllerBase
     [HttpDelete("{commentId:guid}")]
     public async Task<ActionResult> Delete(Guid commentId)
     {
-        try
-        {
-            await _commentCrudService.DeleteAsync(commentId);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _commentCrudService.DeleteAsync(commentId);
+        
+        return Created();
     }
 
     [HttpGet("{videoId:guid}")]
@@ -97,24 +71,17 @@ public class CommentController : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
-        try
-        {
-            var result = await _commentRecommendationService.GetCommentsWithLimitAsync(new GetCommentsRequest
-            (
-                videoId,
-                limit,
-                after,
-                sessionId,
-                userId,
-                parentId,
-                reload
-            ));
+        var result = await _commentRecommendationService.GetCommentsWithLimitAsync(new GetCommentsRequest
+        (
+            videoId,
+            limit,
+            after,
+            sessionId,
+            userId,
+            parentId,
+            reload
+        ));
 
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(result);
     }
 }

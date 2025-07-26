@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using System.Text.Json;
 using OurTube.Api.Attributes;
+using OurTube.Application.DTOs.Common;
 using OurTube.Application.Interfaces;
+using OurTube.Domain.Exceptions;
 
 namespace OurTube.Api.Middlewares;
 
@@ -12,22 +14,20 @@ public class IsUserHasAccessToEntityMiddleware( RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context, IAccessChecker accessChecker)
     {
-        var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(userIdClaim, out var userId) || userId == Guid.Empty)
-        {
-            await WriteErrorAsync(context,
-                "Пользователь не авторизован",
-                StatusCodes.Status401Unauthorized);
-            return;
-        }
-        
-        var attribute = context.GetEndpoint()?
+       var attribute = context.GetEndpoint()?
             .Metadata
             .GetMetadata<IsUserHasAccessToEntityAttribute>();
+       
         if (attribute == null)
         {
             await next(context);
             return;
+        }
+        
+        var userIdClaim = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdClaim, out var userId) || userId == Guid.Empty)
+        {
+            throw new UnauthorizedAccessException();
         }
 
         string? entityStringId = null;
@@ -71,56 +71,20 @@ public class IsUserHasAccessToEntityMiddleware( RequestDelegate next)
         }
         else
         {
-            await context.Response.WriteAsJsonAsync(new
-            {
-                Code = StatusCodes.Status500InternalServerError,
-                Message = "Должен быть задан ровно один из параметров: FromQuery, FromRoute, FromForm или FromBody"
-            });
-
-            await context.Response.CompleteAsync();
-            return;
+            throw new InvalidOperationException(
+                "Должен быть задан ровно один из параметров: FromQuery, FromRoute, FromForm или FromBody");
         }
 
         if (string.IsNullOrWhiteSpace(entityStringId) || !Guid.TryParse(entityStringId, out var entityId))
         {
-            await WriteErrorAsync(context,
-                "Идентификатор сущности в запросе не найден",
-                StatusCodes.Status500InternalServerError);
-            return;
+            throw new InvalidCastException("Идентифиакатор сущности отсутствует или не найден");
         }
 
         if (!await accessChecker.CanEditAsync(attribute.EntityType, entityId, userId))
         {
-            await WriteErrorAsync(context,
-                "Вы не имеете прав доступа на это действие",
-                StatusCodes.Status403Forbidden);
-            return;
+            throw new ForbiddenAccessException(attribute.EntityType, entityId);
         }
 
         await next(context);
-    }
-
-    private static async Task WriteErrorAsync(
-        HttpContext context,
-        string message,
-        int statusCode = StatusCodes.Status400BadRequest)
-    {
-        if (context.Response.HasStarted)
-            return;
-
-        context.Response.Clear(); // очищаем любые предыдущие данные
-        context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "application/json";
-
-        var error = new
-        {
-            Code = statusCode.ToString(),
-            Status = statusCode,
-            Message = message,
-            TraceId = context.TraceIdentifier
-        };
-
-        await context.Response.WriteAsJsonAsync(error);
-        await context.Response.CompleteAsync();
     }
 }

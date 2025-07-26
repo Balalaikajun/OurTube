@@ -28,11 +28,12 @@ public class PlaylistController : ControllerBase
     public async Task<ActionResult<PlaylistMinGetDto>> Post(
         [FromBody] PlaylistPostDto postDto)
     {
-        var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         var result = await _playlistCrudService.CreateAsync(
             postDto,
             userId);
+
         return CreatedAtAction(
             nameof(GetByElements),
             new { id = result.Id },
@@ -46,22 +47,11 @@ public class PlaylistController : ControllerBase
         Guid playlistId,
         [FromBody] PlaylistPatchDto postDto)
     {
-        try
-        {
-            await _playlistCrudService.UpdateAsync(
-                postDto,
-                playlistId);
+        await _playlistCrudService.UpdateAsync(
+            postDto,
+            playlistId);
 
-            return Ok();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok();
     }
 
     [Authorize]
@@ -69,19 +59,9 @@ public class PlaylistController : ControllerBase
     [HttpDelete("{playlistId:guid}")]
     public async Task<ActionResult> Delete(Guid playlistId)
     {
-        try
-        {
-            await _playlistCrudService.DeleteAsync(playlistId);
-            return Ok();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _playlistCrudService.DeleteAsync(playlistId);
+        
+        return Ok();
     }
 
     [Authorize]
@@ -91,25 +71,11 @@ public class PlaylistController : ControllerBase
         Guid playlistId,
         Guid videoId)
     {
-        try
-        {
-            await _playlistCrudService.AddVideoAsync(
-                playlistId,
-                videoId);
-            return Ok();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _playlistCrudService.AddVideoAsync(
+            playlistId,
+            videoId);
+
+        return Ok();
     }
 
     [Authorize]
@@ -119,21 +85,11 @@ public class PlaylistController : ControllerBase
         Guid playlistId,
         Guid videoId)
     {
-        try
-        {
-            await _playlistCrudService.RemoveVideoAsync(
-                playlistId,
-                videoId);
-            return Ok();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _playlistCrudService.RemoveVideoAsync(
+            playlistId,
+            videoId);
+
+        return Ok();
     }
 
     [Authorize]
@@ -144,54 +100,32 @@ public class PlaylistController : ControllerBase
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var result = await _playlistQueryService.GetElements(
-                playlistId,
-                userId,
-                limit,
-                after);
+        var result = await _playlistQueryService.GetElements(
+            playlistId,
+            userId,
+            limit,
+            after);
 
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Ok(result);
     }
-    
+
     [Authorize]
     [IsUserHasAccessToEntity(typeof(Playlist), FromRoute = nameof(playlistId))]
     [HttpGet("{playlistId:int}")]
     public async Task<ActionResult<PlaylistMinGetDto>> GetById(Guid playlistId)
     {
-        try
-        {
-            var result = await _playlistQueryService.GetMinById(playlistId);
-            
-            return Ok(result);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _playlistQueryService.GetMinById(playlistId);
+
+        return Ok(result);
     }
 
     [Authorize]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PlaylistMinGetDto>>> GetUserPlaylists()
     {
-        var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         var result = await _playlistQueryService.GetUserPlaylistsAsync(
             userId);
@@ -204,7 +138,9 @@ public class PlaylistController : ControllerBase
     public async Task<ActionResult<IEnumerable<PlaylistForVideoGetDto>>> GetForVideo(Guid videoId)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        
         var result = await _playlistQueryService.GetUserPlaylistsForVideoAsync(userId, videoId);
+        
         return Ok(result);
     }
 }

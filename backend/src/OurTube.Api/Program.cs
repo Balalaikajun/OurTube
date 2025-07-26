@@ -15,6 +15,7 @@ using OurTube.Application.Validators;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using Xabe.FFmpeg;
+using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -204,6 +205,8 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty; 
     });
 }
+
+app.UseMiddleware<ErrorHendlingMiddlware>();
 
 app.UseRouting();
 app.UseCors("AllowFrontend");

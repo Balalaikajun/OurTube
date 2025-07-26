@@ -25,24 +25,13 @@ public class SubscriptionController : ControllerBase
     public async Task<ActionResult> Subscribe(
         Guid userToId)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _subscriptionService.SubscribeAsync(
-                userId,
-                userToId);
+        await _subscriptionService.SubscribeAsync(
+            userId,
+            userToId);
 
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Created();
     }
 
     [Authorize]
@@ -50,19 +39,12 @@ public class SubscriptionController : ControllerBase
     public async Task<ActionResult> UnSubscribe(
         Guid userToId)
     {
-        try
-        {
-            var userId= Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            await _subscriptionService.UnSubscribeAsync(
-                userToId,
-                userToId);
+        await _subscriptionService.UnSubscribeAsync(
+            userToId,
+            userToId);
 
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        return Created();
     }
 }

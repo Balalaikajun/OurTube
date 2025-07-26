@@ -39,19 +39,9 @@ public class VideoVoteController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        try
-        {
-            await _videoVoteVoteService.SetAsync(videoId, userId, type);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+
+        await _videoVoteVoteService.SetAsync(videoId, userId, type);
+        return Created();
     }
 
     /// <summary>
@@ -72,18 +62,7 @@ public class VideoVoteController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        try
-        {
-            await _videoVoteVoteService.DeleteAsync(videoId, userId);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _videoVoteVoteService.DeleteAsync(videoId, userId);
+        return Created();
     }
 }
