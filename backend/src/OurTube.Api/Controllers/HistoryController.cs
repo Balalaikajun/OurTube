@@ -8,6 +8,9 @@ using OurTube.Application.Requests.Views;
 
 namespace OurTube.Api.Controllers;
 
+/// <summary>
+/// Управление историей просмотров пользователя.
+/// </summary>
 [Route("[controller]")]
 [ApiController]
 public class HistoryController : ControllerBase
@@ -19,48 +22,88 @@ public class HistoryController : ControllerBase
         _viewService = viewService;
     }
 
+    /// <summary>
+    /// Добавить видео в историю просмотров.
+    /// </summary>
+    /// <param name="postDto">Запрос с информацией о просмотренном видео.</param>
+    /// <response code="204">Видео успешно добавлено в историю.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> AddVideo(
         [FromBody] PostViewsRequest postDto)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-        await _viewService.AddVideoAsync(
-            postDto,
-            userId);
+        await _viewService.AddVideoAsync(postDto, userId);
 
-        return Created();
+        return NoContent();
     }
 
+    /// <summary>
+    /// Удалить видео из истории просмотров.
+    /// </summary>
+    /// <param name="videoId">Идентификатор видео.</param>
+    /// <response code="204">Видео успешно удалено из истории.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Видео не найдено в истории.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpDelete("{videoId:guid}")]
-    public async Task<ActionResult> RemoveVideo(
-        Guid videoId)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> RemoveVideo(Guid videoId)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-        await _viewService.RemoveVideoAsync(
-            videoId,
-            userId);
+        await _viewService.RemoveVideoAsync(videoId, userId);
 
-        return Ok();
+        return NoContent();
     }
 
+    /// <summary>
+    /// Очистить всю историю просмотров пользователя.
+    /// </summary>
+    /// <response code="204">История просмотров успешно очищена.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ClearHistory()
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-        await _viewService.ClearHistoryAsync(
-            userId);
+        await _viewService.ClearHistoryAsync(userId);
 
-        return Ok();
+        return NoContent();
     }
 
+    /// <summary>
+    /// Получить историю просмотров пользователя с пагинацией и фильтрацией.
+    /// </summary>
+    /// <param name="limit">Количество элементов для загрузки (по умолчанию 10).</param>
+    /// <param name="after">Смещение по количеству элементов (для пагинации).</param>
+    /// <param name="query">Строка поиска по истории просмотров.</param>
+    /// <returns>Список просмотренных видео с ограничениями.</returns>
+    /// <response code="200">История просмотров успешно получена.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpGet]
+    [ProducesResponseType(typeof(ListReply<MinVideo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> Get(
         [FromQuery] int limit = 10,
         [FromQuery] int after = 0,
@@ -68,11 +111,7 @@ public class HistoryController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-        var result = await _viewService.GetWithLimitAsync(
-            userId,
-            limit,
-            after,
-            query);
+        var result = await _viewService.GetWithLimitAsync(userId, limit, after, query);
 
         return Ok(result);
     }

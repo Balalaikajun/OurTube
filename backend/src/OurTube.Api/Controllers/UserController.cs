@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Replies.ApplicationUser;
+using OurTube.Application.Replies.Common;
 using OurTube.Application.Replies.UserAvatar;
 using OurTube.Application.Replies.Video;
 using OurTube.Application.Requests.ApplicationUser;
@@ -35,12 +36,14 @@ public class UserController : ControllerBase
     /// <response code="400">Неверный формат входных данных.</response>
     /// <response code="401">Пользователь не авторизован.</response>
     /// <response code="404">Пользователь с такими данными не найден.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpPatch]
     [ProducesResponseType(typeof(ApplicationUser), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Application.Replies.ApplicationUser.ApplicationUser>> Patch(
         [FromBody] PatchApplicationUserRequest request)
     {
@@ -60,11 +63,13 @@ public class UserController : ControllerBase
     /// <response code="200">Пользователь найден, его данные возвращены.</response>
     /// <response code="400">Неверный формат входных данных.</response>
     /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpGet]
-    [ProducesResponseType(typeof(ApplicationUser), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApplicationUser), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ApplicationUser>> Get()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -77,15 +82,17 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="request">Запрос на обновление аватара пользователя.</param>
     /// <returns>Данные обновлённого аватара пользователя.</returns>
-    /// <response code="200">Пользователь найден, его данные возвращены.</response>
+    /// <response code="201">Аватар обновлён, его данные возвращены.</response>
     /// <response code="400">Неверный формат входных данных.</response>
     /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpPost("avatar")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(MinVideo), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserAvatar>> CreateOrUpdateAvatar([FromForm] PostUserAvatarRequest request)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -101,12 +108,14 @@ public class UserController : ControllerBase
     /// <response code="400">Неверный формат входных данных.</response>
     /// <response code="401">Пользователь не авторизован.</response>
     /// <response code="404">Контент не найден.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
     [HttpDelete("avatar")]
-    [ProducesResponseType(typeof(MinVideo), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(MinVideo), StatusCodes.Status204NoContent)]   
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error),StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteAvatar()
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
