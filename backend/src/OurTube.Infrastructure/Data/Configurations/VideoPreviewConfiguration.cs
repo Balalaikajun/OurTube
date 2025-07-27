@@ -8,8 +8,6 @@ public class VideoPreviewConfiguration : IEntityTypeConfiguration<VideoPreview>
 {
     public void Configure(EntityTypeBuilder<VideoPreview> builder)
     {
-        builder.HasKey(vp => vp.VideoId);
-
         builder.Property(vp => vp.FileName)
             .IsRequired()
             .HasMaxLength(125);

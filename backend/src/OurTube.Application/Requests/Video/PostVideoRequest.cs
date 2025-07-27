@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
 namespace OurTube.Application.Requests.Video;
@@ -20,12 +21,14 @@ public class PostVideoRequest
     /// </summary>
     [MaxLength(5000, ErrorMessage = "Описание не должно превышать 5000 символов")]
     [Required]
+    [DefaultValue("")]
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
     ///     Список тегов, связанных с видео.
     ///     Формат: "#{tag}"
     /// </summary>
+    [DefaultValue(new string[] {})]
     public IEnumerable<string> Tags { get; set; } = new List<string>();
 
     /// <summary>

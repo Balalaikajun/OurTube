@@ -5,7 +5,6 @@ using OurTube.Application.Interfaces;
 using OurTube.Application.Replies.Common;
 using OurTube.Application.Replies.Video;
 using OurTube.Application.Requests.Common;
-using OurTube.Application.Requests.Recommendation;
 
 namespace OurTube.Application.Services;
 

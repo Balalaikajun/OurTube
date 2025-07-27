@@ -8,8 +8,6 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
 {
     public void Configure(EntityTypeBuilder<UserAvatar> builder)
     {
-        builder.HasKey(ua => ua.UserId);
-
         builder.Property(ua => ua.FileName)
             .HasMaxLength(125)
             .IsRequired();

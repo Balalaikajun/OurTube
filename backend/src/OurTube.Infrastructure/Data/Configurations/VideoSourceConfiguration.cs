@@ -8,8 +8,6 @@ public class VideoSourceConfiguration : IEntityTypeConfiguration<VideoSource>
 {
     public void Configure(EntityTypeBuilder<VideoSource> builder)
     {
-        builder.HasKey(vs => vs.VideoId);
-
         builder.Property(vs => vs.FileName)
             .IsRequired()
             .HasMaxLength(125);

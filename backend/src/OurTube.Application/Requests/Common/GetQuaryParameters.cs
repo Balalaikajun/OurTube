@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace OurTube.Application.Requests.Common;
 
 /// <summary>
@@ -6,17 +8,20 @@ namespace OurTube.Application.Requests.Common;
 public class GetQuaryParameters
 {
     /// <summary>
-    ///     Максимальное количество комментариев, возвращаемых за один запрос.
+    ///     Максимальное количество комментариев, возвращаемых за один запрос. (По умолчанию 10)
     /// </summary>
-    public int Limit { get; set; }
+    [DefaultValue(10)]
+    public int Limit { get; set; } = 10;
 
     /// <summary>
     ///     Смещение для пагинации — номер комментария, после которого следует вернуть следующие.
     /// </summary>
-    public int After { get; set; }
+    [DefaultValue(0)]
+    public int After { get; set; } = 0;
 
     /// <summary>
     ///     Флаг, указывающий, нужно ли перезагрузить комментарии полностью, игнорируя кэш.
     /// </summary>
-    public bool Reload { get; set; }
+    [DefaultValue(false)]
+    public bool Reload { get; set; } =  false;
 }

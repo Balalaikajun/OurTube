@@ -20,6 +20,10 @@ public class Video : Base
         Description = description;
         ApplicationUserId = applicationUserId;
         Duration = duration;
+        Preview = preview;
+        Source = source;
+        Files = files;
+        Tags = tags;
     }
 
     public string Title { get; set; }
