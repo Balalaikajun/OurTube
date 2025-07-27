@@ -86,7 +86,6 @@ const username = ref("");
                 <button @click="navigate">Восстановление доступа</button>
             </router-link>
         </div>
-        <div class="right-pannel"></div>
     </div>
 </template>
 

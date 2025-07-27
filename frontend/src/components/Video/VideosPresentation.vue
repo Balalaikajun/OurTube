@@ -311,7 +311,7 @@ defineExpose({
       <div v-if="scrollError" class="error-state">
         {{ scrollError }}
       </div>
-      <div v-else ref="container" class="container" style="width: 100%; color: #F3F0E9;">
+      <div v-else ref="container" class="container">
         <VideoCard
             v-for="video in videos"
             :video="video"
@@ -355,6 +355,7 @@ defineExpose({
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
+  width: 100%;
 }
 
 .row-layout {
@@ -390,5 +391,12 @@ defineExpose({
   margin: 0;
   padding: 0;
   background: #f39e60;
+}
+
+@media (max-width: 1200px) {
+  .container-wrapper.standart-recomend {
+    padding: 20px;
+  }
+  
 }
 </style>

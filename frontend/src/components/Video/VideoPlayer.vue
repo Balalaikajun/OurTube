@@ -194,6 +194,23 @@ const changeUserInput = (event) => {
   }
 };
 
+const playerDimensions = () => {
+  if (!videoPlayerRef.value || !videoContainer.value) {
+    console.log('Элементы еще не доступны');
+    return;
+  }
+  if (videoContainer.value.width < videoContainer.value.height)
+  {
+    videoDimensions.value.height = videoContainer.value.width / 16 * 9;
+  }
+  else 
+  {
+    videoDimensions.value.height = videoContainer.value.height;
+  }
+  videoDimensions.value.width = videoContainer.value.width;
+  
+}
+
 
 const destroyPlayer = () => {
   try {
@@ -238,6 +255,7 @@ watch(() => videoStore.speed, (newSpeed) => {
 onMounted(async () => {
   await nextTick();
   initHls();
+  playerDimensions();
   
   if (videoPlayerRef.value) {
     videoPlayerRef.value.addEventListener('play', () => isPlaying.value = true);

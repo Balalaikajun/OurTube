@@ -63,12 +63,6 @@ const routes = [
     }
     ,
     { 
-        path: '/account', 
-        component: () => import('../views/AccountPage.vue'),
-        meta: { title: 'Страница пользователя' }
-    }
-    ,
-    { 
         path: '/playlists', 
         component: () => import('../views/PlaylistsPage.vue'),
         meta: { title: 'Плейлисты' }

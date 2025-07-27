@@ -222,12 +222,12 @@
     .burger-button {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 1rem;
         cursor: pointer;
         background: transparent;
     }
     .burger-button span {
-        width: 50px;
+        width: 3rem;
         height: 2px;
         background-color: #F3F0E9;
     }
