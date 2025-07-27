@@ -8,8 +8,6 @@ public class VideoSourceConfiguration : IEntityTypeConfiguration<VideoSource>
 {
     public void Configure(EntityTypeBuilder<VideoSource> builder)
     {
-        builder.HasKey(vs => vs.VideoId);
-
         builder.Property(vs => vs.FileName)
             .IsRequired()
             .HasMaxLength(125);
@@ -21,6 +19,8 @@ public class VideoSourceConfiguration : IEntityTypeConfiguration<VideoSource>
         builder.HasOne(vs => vs.Video)
             .WithOne(v => v.Source)
             .HasForeignKey<VideoSource>(vs => vs.VideoId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

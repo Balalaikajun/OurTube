@@ -10,7 +10,6 @@ public class LikedPlaylistHandler :
 {
     private readonly IVideoVoteService _videoVoteService;
 
-
     public LikedPlaylistHandler(IVideoVoteService videoVoteService)
     {
         _videoVoteService = videoVoteService;
@@ -25,6 +24,6 @@ public class LikedPlaylistHandler :
     public async Task Handle(PlaylistElementDeleteEvent notification, CancellationToken cancellationToken)
     {
         if (notification.IsSystem && notification.PlaylistTitle == "Понравившееся")
-            await _videoVoteService.DeleteAsync(notification.VideoId, notification.UserId);
+            await _videoVoteService.DeleteAsync(notification.VideoId, notification.UserId, true);
     }
 }

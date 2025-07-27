@@ -1,14 +1,14 @@
-using OurTube.Application.DTOs.Common;
-using OurTube.Application.DTOs.Playlist;
-using OurTube.Application.DTOs.PlaylistElement;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Playlist;
+using OurTube.Application.Replies.PlaylistElement;
 
 namespace OurTube.Application.Interfaces;
 
 public interface IPlaylistQueryService
 {
-    Task<PlaylistMinGetDto> GetMinById(int id, string userId);
-    Task<PagedDto<PlaylistElementGetDto>> GetElements(int playlistId, string userId, int limit, int after);
-    Task<IEnumerable<PlaylistMinGetDto>> GetUserPlaylistsAsync(string userId);
-    Task<IEnumerable<PlaylistForVideoGetDto>> GetUserPlaylistsForVideoAsync(string userId, int videoId);
-    Task<PlaylistMinGetDto> GetLikedPlaylistAsync(string userId);
+    Task<Playlist> GetMinById(Guid id);
+    Task<ListReply<PlaylistElement>> GetElements(Guid playlistId, Guid userId, int limit, int after);
+    Task<IEnumerable<Playlist>> GetUserPlaylistsAsync(Guid userId);
+    Task<IEnumerable<PlaylistForVideo>> GetUserPlaylistsForVideoAsync(Guid userId, Guid videoId);
+    Task<Playlist> GetLikedPlaylistAsync(Guid userId);
 }

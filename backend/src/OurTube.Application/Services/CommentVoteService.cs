@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 
@@ -13,21 +14,15 @@ public class CommentVoteService : ICommentVoteService
         _dbContext = dbContext;
     }
 
-    public async Task SetAsync(int commentId, string userId, bool type)
+    public async Task SetAsync(Guid commentId, Guid userId, bool type)
     {
         var comment = await _dbContext.Comments
-            .FindAsync(commentId);
+            .FindAsync(commentId, true);
 
-        if (comment == null)
-            throw new InvalidOperationException("Комментарий не найден");
+        await _dbContext.ApplicationUsers.EnsureExistAsync(userId);
 
-        if (comment.IsDeleted)
-            throw new InvalidOperationException("Комментарий удалён");
-
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
-
-        var vote = await _dbContext.CommentVotes.FindAsync(commentId, userId);
+        var vote = await _dbContext.CommentVotes
+            .FirstOrDefaultAsync( cv => cv.CommentId == commentId && cv.ApplicationUserId == userId);
 
         if (vote == null)
         {
@@ -66,32 +61,20 @@ public class CommentVoteService : ICommentVoteService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int commentId, string userId)
+    public async Task DeleteAsync(Guid commentId, Guid userId)
     {
         var comment = await _dbContext.Comments
-            .FindAsync(commentId);
+            .FindAsync(commentId, true);
 
+       var vote =  await _dbContext.CommentVotes
+            .GetAsync(cv => cv.CommentId == commentId && cv.ApplicationUserId == userId, true);
 
-        if (comment == null)
-            throw new InvalidOperationException("Комментарий не найдено");
+       if (vote.Type)
+           comment.LikesCount--;
+       else
+           comment.DislikesCount--;
 
-        if (comment.IsDeleted)
-            throw new InvalidOperationException("Комментарий удалён");
-
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
-
-        var vote = await _dbContext.CommentVotes.FindAsync(commentId, userId);
-
-        if (vote == null)
-            return;
-
-        if (vote.Type)
-            comment.LikesCount--;
-        else
-            comment.DislikesCount--;
-
-        _dbContext.CommentVotes.Remove(vote);
+        vote.Delete();
 
         await _dbContext.SaveChangesAsync();
     }

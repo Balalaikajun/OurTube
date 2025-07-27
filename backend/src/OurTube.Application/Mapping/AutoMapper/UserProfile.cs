@@ -1,17 +1,17 @@
 ﻿using AutoMapper;
-using OurTube.Application.DTOs.ApplicationUser;
-using OurTube.Application.DTOs.UserAvatar;
+using OurTube.Application.Replies.UserAvatar;
 using OurTube.Domain.Entities;
+using UserAvatar = OurTube.Application.Replies.UserAvatar.UserAvatar;
 
-namespace OurTube.Application.Mapping;
+namespace OurTube.Application.Mapping.AutoMapper;
 
 public class UserProfile : Profile
 {
     public UserProfile()
     {
-        CreateMap<ApplicationUser, ApplicationUserDto>()
+        CreateMap<ApplicationUser, Replies.ApplicationUser.ApplicationUser>()
             .ForMember(dest => dest.UserAvatar, opt => opt.MapFrom(src => src.UserAvatar));
 
-        CreateMap<UserAvatar, UserAvatarDto>();
+        CreateMap<Domain.Entities.UserAvatar, UserAvatar>();
     }
 }

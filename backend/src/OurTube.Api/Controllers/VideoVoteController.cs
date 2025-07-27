@@ -2,51 +2,66 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
 
 namespace OurTube.Api.Controllers;
 
-[Route("Video/{videoId:int}/vote")]
+/// <summary>
+///     Работа с реакциями (голосами) под видео.
+/// </summary>
+[Route("videos/{videoId:guid}/vote")]
+[ApiController]
 public class VideoVoteController : ControllerBase
 {
-    private readonly IVideoVoteService _videoVoteVoteService;
+    private readonly IVideoVoteService _videoVoteService;
 
     public VideoVoteController(IVideoVoteService videoVoteService)
     {
-        _videoVoteVoteService = videoVoteService;
+        _videoVoteService = videoVoteService;
     }
 
+    /// <summary>
+    ///     Поставить реакцию (лайк или дизлайк) под видео.
+    /// </summary>
+    /// <param name="videoId">Идентификатор видео.</param>
+    /// <param name="type">Тип реакции: true — лайк, false — дизлайк.</param>
+    /// <response code="201">Реакция успешно сохранена.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Видео не найдено.</response>
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult> PostVote(int videoId,
-        [FromBody] bool type)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> PostVote(Guid videoId, [FromBody] bool type)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        try
-        {
-            await _videoVoteVoteService.SetAsync(videoId, userId, type);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.ToString());
-        }
+        await _videoVoteService.SetAsync(videoId, userId, type);
+        return Created();
     }
 
+    /// <summary>
+    ///     Удалить реакцию под видео.
+    /// </summary>
+    /// <param name="videoId">Идентификатор видео.</param>
+    /// <response code="204">Реакция успешно удалена.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Видео не найдено.</response>
     [Authorize]
     [HttpDelete]
-    public async Task<ActionResult> DeleteDislike(int videoId)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteVote(Guid videoId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        try
-        {
-            await _videoVoteVoteService.DeleteAsync(videoId, userId);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.ToString());
-        }
+        await _videoVoteService.DeleteAsync(videoId, userId);
+        return NoContent();
     }
 }

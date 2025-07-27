@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
-using OurTube.Application.DTOs.Playlist;
-using OurTube.Application.DTOs.PlaylistElement;
 using OurTube.Domain.Entities;
+using PlaylistElement = OurTube.Application.Replies.PlaylistElement.PlaylistElement;
 
-namespace OurTube.Application.Mapping;
+namespace OurTube.Application.Mapping.AutoMapper;
 
 public class PlaylistProfile : Profile
 {
     public PlaylistProfile()
     {
-        CreateMap<Playlist, PlaylistGetDto>();
+        CreateMap<Playlist, Replies.Playlist.Playlist>();
 
-        CreateMap<Playlist, PlaylistMinGetDto>();
-
-        CreateMap<PlaylistElement, PlaylistElementGetDto>();
+        CreateMap<Domain.Entities.PlaylistElement, PlaylistElement>();
     }
 }

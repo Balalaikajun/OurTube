@@ -1,10 +1,11 @@
-using OurTube.Application.DTOs.Comment;
+using OurTube.Application.Replies.Comment;
+using OurTube.Application.Requests.Comment;
 
 namespace OurTube.Application.Interfaces;
 
 public interface ICommentCrudService
 {
-    Task<CommentGetDto> CreateAsync(string userId, CommentPostDto postDto);
-    Task UpdateAsync(string userId, CommentPatchDto postDto);
-    Task DeleteAsync(int commentId, string userId);
+    Task<Comment> CreateAsync(Guid userId, Guid videoId, PostCommentRequest postCommentDto);
+    Task UpdateAsync(Guid id, UpdateCommentRequest request);
+    Task DeleteAsync(Guid commentId);
 }

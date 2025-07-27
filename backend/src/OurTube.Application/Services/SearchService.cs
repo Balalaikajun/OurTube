@@ -1,8 +1,12 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using OurTube.Application.DTOs.Video;
+using NpgsqlTypes;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Common;
+using OurTube.Application.Requests.Video;
 
 namespace OurTube.Application.Services;
 
@@ -23,16 +27,12 @@ public class SearchService : ISearchService
         _videoService = videoService;
     }
 
-    public async Task<PagedVideoDto> SearchVideos(
-        string searchQuery,
-        string? userId, string sessionId,
-        int limit = 10, int after = 0,
-        bool reload = true)
+    public async Task<ListReply<MinVideo>> SearchVideos(Guid? userId, Guid sessionId, GetQueryParametersWithSearch parameters)
     {
         var cacheKey = GetCacheKey(sessionId);
 
 
-        if (!_cache.TryGetValue(cacheKey, out List<int> cachePull))
+        if (!_cache.TryGetValue(cacheKey, out List<Guid> cachePull))
         {
             cachePull = [];
 
@@ -42,42 +42,43 @@ public class SearchService : ISearchService
             });
         }
 
-        if (reload)
+        if (parameters.Reload)
             cachePull = [];
 
-        if (cachePull.Count <= limit + after)
-            cachePull.AddRange(await SearchMoreVideos(searchQuery, sessionId, SearchPull));
+        if (cachePull.Count <= parameters.Limit +  parameters.After)
+            cachePull.AddRange(await SearchMoreVideos(parameters.SearchQuery, sessionId, SearchPull));
 
-        var videoIds = cachePull.Skip(after).Take(limit).ToList();
+        var videoIds = cachePull.Skip(parameters.After).Take(parameters.Limit).ToList();
 
         var videos = await _videoService.GetVideosByIdAsync(videoIds);
 
-        return new PagedVideoDto
+        return new ListReply<MinVideo>
         {
-            HasMore = cachePull.Count > after + limit,
-            NextAfter = after + limit,
-            Videos = videos
+            HasMore = cachePull.Count > parameters.After + parameters.Limit,
+            NextAfter = parameters.After + parameters.Limit,
+            Elements = videos
         };
     }
 
-    private async Task<IEnumerable<int>> SearchMoreVideos(string searchQuery, string sessionId,
+    private async Task<IEnumerable<Guid>> SearchMoreVideos(string searchQuery, Guid sessionId,
         int limit = 10)
     {
-        _cache.TryGetValue(GetCacheKey(sessionId), out List<int> viewedIds);
+        _cache.TryGetValue(GetCacheKey(sessionId), out List<Guid> viewedIds);
 
         var targetDate = DateTime.UtcNow.AddDays(-7);
 
         return await _dbContext.Videos
-            .Where(v => EF.Functions.Like(v.Title, $"%{searchQuery}%"))
+            .Where(v => EF.Property<NpgsqlTsVector>(v, "SearchVector")
+                .Matches(EF.Functions.PlainToTsQuery("simple", searchQuery)))
             .Where(v => !viewedIds.Contains(v.Id))
-            .OrderBy(v => v.Views.Count(v => v.DateTime >= targetDate))
+            .OrderBy(v => v.Views.Count(v => v.UpdatedDate >= targetDate))
             .Take(limit)
             .Select(x => x.Id)
             .ToListAsync();
     }
 
-    private static string GetCacheKey(string sessionId)
+    private static string GetCacheKey(Guid sessionId)
     {
-        return $"SearchService:{sessionId}";
+        return $"SearchService:{sessionId.ToString()}";
     }
 }

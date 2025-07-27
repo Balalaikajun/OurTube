@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using OurTube.Application.DTOs.Video;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Common;
 
 namespace OurTube.Application.Services;
 
@@ -23,21 +26,16 @@ public class RecommendationService : IRecomendationService
         _videoService = videoService;
     }
 
-    public async Task<PagedVideoDto> GetRecommendationsAsync(string? userId, string sessionId,
-        int limit, int after,
-        bool reload = false)
+    public async Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId,  GetQuaryParameters parameters)
     {
-        if (!string.IsNullOrEmpty(userId) && !await _dbContext.ApplicationUsers.AnyAsync(x => x.Id == userId))
-            throw new InvalidOperationException("Пользователь не найдет");
-
         var cacheKey = GetRecommendationsCacheKey(sessionId);
 
-        if (reload)
+        if (parameters.Reload)
             _cache.Remove(cacheKey);
 
-        if (!_cache.TryGetValue(cacheKey, out List<int> cachedRecommendations))
+        if (!_cache.TryGetValue(cacheKey, out List<Guid> cachedRecommendations))
         {
-            cachedRecommendations = new List<int>();
+            cachedRecommendations = new List<Guid>();
 
             _cache.Set(cacheKey, cachedRecommendations, new MemoryCacheEntryOptions
             {
@@ -55,66 +53,53 @@ public class RecommendationService : IRecomendationService
             });
         }
 
-
-        if (cachedRecommendations.Count <= after + limit && cachedRecommendations.Count < totalVideoCount)
+        if (cachedRecommendations.Count <= parameters.After + parameters.Limit && cachedRecommendations.Count < totalVideoCount)
         {
-            if (!string.IsNullOrEmpty(userId))
+            if (!string.IsNullOrEmpty(userId.ToString()))
                 cachedRecommendations.AddRange(
-                    await LoadAuthorizedRecommendationsAsync(userId, sessionId, RecommendationPullCount));
+                    await LoadAuthorizedRecommendationsAsync(userId!.Value, sessionId, RecommendationPullCount));
             else
                 cachedRecommendations.AddRange(
                     await LoadAnAuthorizedRecommendationsAsync(sessionId, RecommendationPullCount));
         }
 
-        var resultIds = cachedRecommendations.Skip(after).Take(limit).ToList();
+        var resultIds = cachedRecommendations.Skip(parameters.After).Take(parameters.Limit).ToList();
 
         var result = await _videoService.GetVideosByIdAsync(resultIds);
 
-        return new PagedVideoDto
+        return new ListReply<MinVideo>()
         {
-            Videos = result,
-            NextAfter = after + limit,
-            HasMore = cachedRecommendations.Count > after + limit
+            Elements= result,
+            NextAfter = parameters.After + parameters.Limit,
+            HasMore = cachedRecommendations.Count > parameters.After + parameters.Limit
         };
     }
 
-    public async Task<PagedVideoDto> GetRecommendationsForVideoAsync(int videoId,
-        string? userId, string sessionId,
-        int limit, int after,
-        bool reload = false)
+    public async Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,  GetQuaryParameters parameters)
     {
-        var result = await GetRecommendationsAsync(
-            userId,
-            sessionId,
-            limit,
-            after,
-            reload
-        );
+        var result = await GetRecommendationsAsync(userId, sessionId, parameters);
 
-        if (result.Videos.Any(v => v.Id == videoId))
+        if (result.Elements.Any(v => v.Id == videoId))
         {
-            var oneMore = await GetRecommendationsAsync(
-                userId,
-                sessionId,
-                1,
-                result.NextAfter,
-                false
-            );
+            var oneMore = await GetRecommendationsAsync(userId, sessionId, parameters);
 
-            var videos = result.Videos.ToList();
+            var videos = result.Elements.ToList();
             videos.Remove(videos.First(v => v.Id == videoId));
-            var newVideo = oneMore.Videos.FirstOrDefault();
+            var newVideo = oneMore.Elements.FirstOrDefault();
             if(newVideo != null)
                 videos.Add(newVideo);
-            result.Videos = videos;
+            result.Elements = videos;
             result.NextAfter = oneMore.NextAfter;
         }
         
         return result;
     }
 
-    private async Task<IEnumerable<int>> LoadAuthorizedRecommendationsAsync(string userId, string sessionId, int limit)
+    private async Task<IEnumerable<Guid>> LoadAuthorizedRecommendationsAsync(Guid userId, Guid sessionId, int limit)
     {
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
+        
         const double trendRecRatio = 0.4;
         const double popRecRatio = 0.2;
         const double tagsRecRatio = 0.2;
@@ -125,8 +110,8 @@ public class RecommendationService : IRecomendationService
         var tagsRec = (await GetTagsRecommendationsAsync(userId, sessionId, limit)).ToList();
         var subsRec = (await GetSubscriptionRecommendationsAsync(userId, sessionId, limit)).ToList();
 
-        var result = new List<int>(limit);
-        var used = new HashSet<int>();
+        var result = new List<Guid>(limit);
+        var used = new HashSet<Guid>();
 
         var trendIndex = 0;
         var popIndex = 0;
@@ -192,7 +177,7 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private async Task<IEnumerable<int>> LoadAnAuthorizedRecommendationsAsync(string sessionId,
+    private async Task<IEnumerable<Guid>> LoadAnAuthorizedRecommendationsAsync(Guid sessionId,
         int limit)
     {
         const double trendRecRatio = 0.6;
@@ -201,8 +186,8 @@ public class RecommendationService : IRecomendationService
         var trendRec = (await GetTrendsRecommendationsAsync(sessionId, limit)).ToList();
         var popRec = (await GetPopularityRecommendationsAsync(sessionId, limit)).ToList();
 
-        var result = new List<int>(limit);
-        var used = new HashSet<int>();
+        var result = new List<Guid>(limit);
+        var used = new HashSet<Guid>();
 
         var trendIndex = 0;
         var popIndex = 0;
@@ -239,21 +224,21 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private async Task<IEnumerable<int>> GetTrendsRecommendationsAsync(string sessionId, int limit)
+    private async Task<IEnumerable<Guid>> GetTrendsRecommendationsAsync(Guid sessionId, int limit)
     {
-        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<Guid>? usedIds);
         usedIds ??= [];
 
         var targetDate = DateTime.UtcNow.AddDays(-7);
 
         var candidates = await _dbContext.Videos
-            .Where(v => v.Created >= targetDate)
+            .Where(v => v.CreatedDate >= targetDate)
             .Where(v => !usedIds.Contains(v.Id))
             .Select(v => new
             {
                 v.Id,
-                ViewsCount = v.Views.Count(vi => vi.DateTime >= targetDate),
-                LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
+                ViewsCount = v.Views.Count(vi => vi.UpdatedDate >= targetDate),
+                LikesCount = v.Votes.Count(vi => vi.UpdatedDate >= targetDate && vi.Type == true)
             })
             .ToListAsync();
 
@@ -285,9 +270,9 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private async Task<IEnumerable<int>> GetPopularityRecommendationsAsync(string sessionId, int limit)
+    private async Task<IEnumerable<Guid>> GetPopularityRecommendationsAsync(Guid sessionId, int limit)
     {
-        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<Guid>? usedIds);
         usedIds ??= [];
 
         var sortTargetDate = DateTime.UtcNow.AddDays(-7);
@@ -297,8 +282,8 @@ public class RecommendationService : IRecomendationService
             .Select(v => new
             {
                 v.Id,
-                ViewsCount = v.Views.Count(vi => vi.DateTime >= sortTargetDate),
-                LikesCount = v.Votes.Count(vi => vi.Created >= sortTargetDate && vi.Type == true)
+                ViewsCount = v.Views.Count(vi => vi.UpdatedDate >= sortTargetDate),
+                LikesCount = v.Votes.Count(vi => vi.UpdatedDate >= sortTargetDate && vi.Type == true)
             })
             .ToListAsync();
 
@@ -330,9 +315,9 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private async Task<IEnumerable<int>> GetTagsRecommendationsAsync(string userId, string sessionId, int limit)
+    private async Task<IEnumerable<Guid>> GetTagsRecommendationsAsync(Guid userId, Guid sessionId, int limit)
     {
-        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<Guid>? usedIds);
         usedIds ??= [];
 
         var targetDate = DateTime.UtcNow.AddDays(-7);
@@ -340,7 +325,7 @@ public class RecommendationService : IRecomendationService
         var userTags = await (
             from vi in _dbContext.Views
             join vt in _dbContext.VideoTags on vi.VideoId equals vt.VideoId
-            where vi.ApplicationUserId == userId && vi.DateTime >= targetDate
+            where vi.ApplicationUserId == userId && vi.UpdatedDate >= targetDate
             select vt.TagId
         ).Distinct().ToListAsync();
 
@@ -356,8 +341,8 @@ public class RecommendationService : IRecomendationService
             {
                 v.Id,
                 TagMatch = tagMatchCount,
-                ViewsCount = v.Views.Count(vi => vi.DateTime >= targetDate),
-                LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
+                ViewsCount = v.Views.Count(vi => vi.UpdatedDate >= targetDate),
+                LikesCount = v.Votes.Count(vi => vi.UpdatedDate >= targetDate && vi.Type == true)
             }
         ).ToListAsync();
 
@@ -390,9 +375,9 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private async Task<IEnumerable<int>> GetSubscriptionRecommendationsAsync(string userId, string sessionId, int limit)
+    private async Task<IEnumerable<Guid>> GetSubscriptionRecommendationsAsync(Guid userId, Guid sessionId, int limit)
     {
-        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<int>? usedIds);
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<Guid>? usedIds);
         usedIds ??= [];
 
         var targetDate = DateTime.UtcNow.AddDays(-7);
@@ -403,15 +388,15 @@ public class RecommendationService : IRecomendationService
             .ToListAsync();
 
         if (subs.Count == 0)
-            return new List<int>();
+            return new List<Guid>();
 
         var candidates = await _dbContext.Videos
             .Where(v => !usedIds.Contains(v.Id) && subs.Contains(v.ApplicationUserId))
             .Select(v => new
             {
                 v.Id,
-                ViewsCount = v.Views.Count(vi => vi.DateTime >= targetDate),
-                LikesCount = v.Votes.Count(vi => vi.Created >= targetDate && vi.Type == true)
+                ViewsCount = v.Views.Count(vi => vi.UpdatedDate >= targetDate),
+                LikesCount = v.Votes.Count(vi => vi.UpdatedDate >= targetDate && vi.Type == true)
             })
             .ToListAsync();
 
@@ -443,8 +428,8 @@ public class RecommendationService : IRecomendationService
         return result;
     }
 
-    private static string GetRecommendationsCacheKey(string sessionId)
+    private static string GetRecommendationsCacheKey(Guid sessionId)
     {
-        return $"Recommendations_{sessionId}";
+        return $"Recommendations_{sessionId.ToString()}";
     }
 }

@@ -8,8 +8,6 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
 {
     public void Configure(EntityTypeBuilder<UserAvatar> builder)
     {
-        builder.HasKey(ua => ua.UserId);
-
         builder.Property(ua => ua.FileName)
             .HasMaxLength(125)
             .IsRequired();
@@ -21,6 +19,8 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
         builder.HasOne(ua => ua.ApplicationUser)
             .WithOne(ua => ua.UserAvatar)
             .HasForeignKey<UserAvatar>(ua => ua.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

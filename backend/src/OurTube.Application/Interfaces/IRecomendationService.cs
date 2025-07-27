@@ -1,14 +1,13 @@
-using OurTube.Application.DTOs.Video;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Common;
 
 namespace OurTube.Application.Interfaces;
 
 public interface IRecomendationService
 {
-    Task<PagedVideoDto> GetRecommendationsAsync(string? userId, string sessionId,
-        int limit, int after,
-        bool reload = false);
-    Task<PagedVideoDto> GetRecommendationsForVideoAsync( int videoId,
-        string? userId, string sessionId,
-        int limit, int after,
-        bool reload = false);
+    Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId, GetQuaryParameters parameters);
+
+    Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,
+        GetQuaryParameters parameters);
 }

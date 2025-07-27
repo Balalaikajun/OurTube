@@ -1,9 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.Views;
+using NpgsqlTypes;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Replies.Views;
+using OurTube.Application.Requests.Common;
+using OurTube.Application.Requests.Views;
 using OurTube.Domain.Entities;
 
 namespace OurTube.Application.Services;
@@ -21,31 +26,28 @@ public class ViewService : IViewService
         _mapper = mapper;
     }
 
-    public async Task AddVideoAsync(ViewPostDto dto, string userId)
+    public async Task AddVideoAsync(Guid userId, Guid videoId, PostViewsRequest request)
     {
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
-        var video = await _dbContext.Videos.FindAsync(dto.VideoId);
+        var video = await _dbContext.Videos
+            .GetByIdAsync(videoId, true);
 
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
-
-        var view = await _dbContext.Views.FindAsync(dto.VideoId, userId);
+        var view = await _dbContext.Views.FirstOrDefaultAsync(vv =>
+            vv.VideoId == videoId && vv.ApplicationUserId == userId);
 
         if (view != null)
         {
-            view.DateTime = DateTime.UtcNow;
-            view.EndTime = dto.EndTime;
+            view.EndTime = request.EndTime;
         }
         else
         {
             view = new VideoView
             {
                 ApplicationUserId = userId,
-                VideoId = dto.VideoId,
-                EndTime = dto.EndTime,
-                DateTime = DateTime.UtcNow
+                VideoId = videoId,
+                EndTime = request.EndTime,
             };
 
             _dbContext.Views.Add(view);
@@ -55,65 +57,65 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task RemoveVideoAsync(int videoId, string userId)
+    public async Task RemoveVideoAsync(Guid videoId, Guid userId)
     {
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
-        if (!await _dbContext.Videos.AnyAsync(v => v.Id == videoId))
-            throw new InvalidOperationException("Видео не найдено");
+        await _dbContext.Videos
+            .EnsureExistAsync(videoId);
 
-        var view = await _dbContext.Views.FindAsync(videoId, userId);
+        var view = await _dbContext.Views
+            .GetAsync(vv => vv.VideoId == videoId && vv.ApplicationUserId == userId, true);
 
-        if (view == null)
-            return;
-
-        _dbContext.Views.Remove(view);
+        view.Delete();
 
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task ClearHistoryAsync(string userId)
+    public async Task ClearHistoryAsync(Guid userId)
     {
-        var applicationUser = await _dbContext.ApplicationUsers.FindAsync(userId);
-
-        if (applicationUser == null)
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
         var views = await _dbContext.Views
-            .Where(vv => vv.ApplicationUserId == applicationUser.Id)
+            .Where(vv => vv.ApplicationUserId == userId)
             .ToListAsync();
 
-        _dbContext.Views.RemoveRange(views);
+        foreach (var view in views)
+        {
+            view.Delete();
+        }
 
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<PagedVideoDto> GetWithLimitAsync(string userId, int limit, int after, string? query)
+    public async Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, GetQueryParametersWithSearch parameter)
     {
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers
+            .EnsureExistAsync(userId);
 
         var queryable = _dbContext.Views
             .Where(v => v.ApplicationUserId == userId);
-        
-        if (!string.IsNullOrEmpty(query))
-            queryable = queryable.Where(v =>EF.Functions.Like(v.Video.Title, $"%{query}%"));
 
-        queryable = queryable.OrderByDescending(v => v.DateTime)
-            .Skip(after)
-            .Take(limit + 1);
-        
+        if (!string.IsNullOrEmpty(parameter.SearchQuery))
+            queryable = queryable.Where(v => EF.Property<NpgsqlTsVector>(v, "SearchVector")
+                .Matches(EF.Functions.PlainToTsQuery("simple", parameter.SearchQuery)));
+
+        queryable = queryable.OrderByDescending(v => v.UpdatedDate)
+            .Skip(parameter.After)
+            .Take(parameter.Limit + 1);
+
         var videos = await queryable
             .Select(vv => vv.Video)
             .ProjectToMinDto(_mapper, userId)
             .ToListAsync();
 
-        return new PagedVideoDto
+        return new ListReply<MinVideo>()
         {
-            Videos = videos.Take(limit),
-            NextAfter = after + limit,
-            HasMore = videos.Count > limit
+            Elements = videos.Take(parameter.Limit),
+            NextAfter = parameter.After + parameter.Limit,
+            HasMore = videos.Count > parameter.Limit
         };
     }
 }

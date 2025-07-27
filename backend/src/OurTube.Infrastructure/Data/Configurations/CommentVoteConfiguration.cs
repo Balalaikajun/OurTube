@@ -13,17 +13,16 @@ public class CommentVoteConfiguration : IEntityTypeConfiguration<CommentVote>
         builder.Property(cv => cv.Type)
             .IsRequired();
 
-        builder.Property(cv => cv.Created)
-            .IsRequired();
-
         builder.HasOne(cv => cv.Comment)
             .WithMany(c => c.Votes)
             .HasForeignKey(cv => cv.CommentId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(cv => cv.ApplicationUser)
             .WithMany()
             .HasForeignKey(cv => cv.ApplicationUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

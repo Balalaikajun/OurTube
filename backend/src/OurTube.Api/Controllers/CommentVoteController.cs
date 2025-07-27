@@ -2,10 +2,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
 
 namespace OurTube.Api.Controllers;
 
-[Route("Video/Comment/{commentId:int}/vote")]
+/// <summary>
+///     Управление голосами за комментарии (лайки и дизлайки).
+/// </summary>
+[Route("comments/{commentId:guid}/vote")]
 [ApiController]
 public class CommentVoteController : ControllerBase
 {
@@ -16,42 +20,59 @@ public class CommentVoteController : ControllerBase
         _commentVoteService = commentVoteService;
     }
 
+    /// <summary>
+    ///     Проголосовать за комментарий (лайк или дизлайк).
+    /// </summary>
+    /// <param name="commentId">Идентификатор комментария.</param>
+    /// <param name="type">Тип голоса: <c>true</c> – лайк, <c>false</c> – дизлайк.</param>
+    /// <response code="204">Голос успешно установлен или обновлён.</response>
+    /// <response code="400">Неверный формат входных данных.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Комментарий не найден.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
-    [HttpPost("")]
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> PostVote(
-        int commentId,
+        Guid commentId,
         [FromBody] bool type)
     {
-        try
-        {
-            await _commentVoteService.SetAsync(
-                commentId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier),
-                type);
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+        await _commentVoteService.SetAsync(
+            commentId,
+            userId,
+            type);
+
+        return NoContent();
     }
 
-
+    /// <summary>
+    ///     Удалить голос за комментарий.
+    /// </summary>
+    /// <param name="commentId">Идентификатор комментария.</param>
+    /// <response code="204">Голос успешно удалён.</response>
+    /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Комментарий не найден или голос отсутствует.</response>
+    /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
-    [HttpDelete("")]
-    public async Task<ActionResult> DeleteVote(
-        int commentId)
+    [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> DeleteVote(Guid commentId)
     {
-        try
-        {
-            await _commentVoteService.DeleteAsync(
-                commentId,
-                User.FindFirstValue(ClaimTypes.NameIdentifier));
-            return Created();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+        await _commentVoteService.DeleteAsync(
+            commentId,
+            userId);
+
+        return NoContent();
     }
 }

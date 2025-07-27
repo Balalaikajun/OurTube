@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OurTube.Domain.Entities;
+using NpgsqlTypes;
 
 namespace OurTube.Infrastructure.Data.Configurations;
 
@@ -8,11 +9,6 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
 {
     public void Configure(EntityTypeBuilder<Video> builder)
     {
-        builder.HasKey(v => v.Id);
-
-        builder.Property(v => v.Id)
-            .ValueGeneratedOnAdd();
-
         builder.Property(v => v.Title)
             .HasMaxLength(150)
             .IsRequired();
@@ -33,9 +29,6 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.Property(v => v.ViewsCount)
             .IsRequired();
 
-        builder.Property(v => v.Created)
-            .IsRequired();
-
         builder.Property(v => v.Duration)
             .HasColumnType("interval")
             .IsRequired();
@@ -43,7 +36,15 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
         builder.HasOne(v => v.User)
             .WithMany()
             .HasForeignKey(v => v.ApplicationUserId)
-            .OnDelete(DeleteBehavior.Cascade)
+            .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
+
+        builder.HasGeneratedTsVectorColumn(
+            v => v.SearchVector,
+            "simple",
+            v => new { v.Title, v.Description });
+        builder.HasIndex(v => v.SearchVector).HasMethod("GIN");
+
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

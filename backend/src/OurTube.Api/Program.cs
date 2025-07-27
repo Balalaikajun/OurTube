@@ -1,19 +1,24 @@
+using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OurTube.Api.Middlewares;
+using OurTube.Api.Other;
 using OurTube.Application.Handlers;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping;
+using OurTube.Application.Mapping.AutoMapper;
 using OurTube.Application.Services;
 using OurTube.Application.Validators;
 using OurTube.Infrastructure.Data;
 using OurTube.Infrastructure.Other;
 using Xabe.FFmpeg;
+using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -21,7 +26,21 @@ builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 // Infrastructure
+var ffmpegPath = configuration["FFmpeg:ExecutablesPath"];
+if (!File.Exists(ffmpegPath + "/ffmpeg.exe"))
+{
+    if(configuration.GetValue<bool>("FFmpeg:AutoDownload"))
+    {
+        Console.WriteLine("Исполняемые файлы ffmpeg не найдены");
+        await FfmpegProcessor.DownloadAndExtractFFmpegAsync(ffmpegPath);
+    }
+    else
+    {
+        throw new FileNotFoundException("ffmpeg.exe not found");
+    }
+}
 FFmpeg.SetExecutablesPath(configuration["FFmpeg:ExecutablesPath"]);
+
 
 // DB
 var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -35,7 +54,7 @@ services.AddMemoryCache();
 services.AddAuthorization();
 services.AddAuthentication();
 
-services.AddIdentity<IdentityUser, IdentityRole>(options =>
+services.AddIdentity<OurTube.Domain.Entities.IdentityUser, IdentityRole<Guid>>(options =>
     {
         options.Password.RequireDigit = true;
         options.Password.RequiredLength = 6;
@@ -77,9 +96,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 services.AddTransient<IEmailSender, EmailSender>();
 
 // AutoMapper
-services.AddAutoMapper(typeof(VideoProfile).Assembly);
-services.AddAutoMapper(typeof(UserProfile).Assembly);
-services.AddAutoMapper(typeof(UserProfile).Assembly);
+services.AddAutoMapper(cfg => { }, typeof(VideoProfile).Assembly);
 
 
 // MediatR
@@ -105,6 +122,7 @@ services.AddScoped<ISubscriptionService, SubscriptionService>();
 services.AddScoped<ISearchService, SearchService>();
 services.AddScoped<ITagService, TagService>();
 services.AddScoped<IUserAvatarService, UserAvatarService>();
+services.AddScoped<IAccessChecker, AccessChacker>();
 
 // Infrastructure
 services.AddScoped<IStorageClient, MinioClient>();
@@ -138,34 +156,23 @@ if (builder.Environment.IsDevelopment())
 {
     services.AddSwaggerGen(c =>
     {
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+        
+        var xmlDtoPath = Path.Combine(AppContext.BaseDirectory, "OurTube.Application.xml");
+        c.IncludeXmlComments(xmlDtoPath);
+        
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
-        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "Введите: Bearer {токен}"
-        });
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
     });
 }
 
 services.AddControllers();
+
+services.AddControllersWithViews(options =>
+{
+    options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
+});
 
 // DataProtection directory
 var keysPath = builder.Configuration["DataProtection:KeysPath"]
@@ -177,8 +184,6 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
 var app = builder.Build();
-
-app.UsePathBase("/api");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -205,20 +210,25 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
         c.OAuthClientId("swagger-client-id");
         c.OAuthAppName("Swagger UI");
+        c.RoutePrefix = string.Empty; 
     });
 }
+
+app.UseMiddleware<ErrorHendlingMiddlware>();
 
 app.UseRouting();
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<IsUserHasAccessToEntityMiddleware>();
 
-app.UseMiddleware<UniqueVisitorId>();
+app.UseMiddleware<UniqueVisitorIdMiddleware>();
 
 app.MapControllers();
 
 app.MapGroup("/identity")
-    .MapIdentityApi<IdentityUser>();
+    .MapIdentityApi<IdentityUser>()
+    .WithTags("Identity");
 
 app.Run();

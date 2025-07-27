@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Entities;
 
@@ -13,17 +14,14 @@ public class VideoVoteService : IVideoVoteService
         _dbContext = dbContext;
     }
 
-    public async Task SetAsync(int videoId, string userId, bool type)
+    public async Task SetAsync(Guid videoId, Guid userId, bool type)
     {
-        var video = await _dbContext.Videos.FindAsync(videoId);
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
+        await _dbContext.Videos.EnsureExistAsync(videoId);
 
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers.EnsureExistAsync(userId);
 
-        var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
-
+        var vote = await _dbContext.VideoVotes.FirstOrDefaultAsync( vv => vv.VideoId == videoId && vv.ApplicationUserId == userId);
+        
         if (vote == null)
             _dbContext.VideoVotes.Add(new VideoVote(videoId, userId, type));
         else if (vote.Type != type)
@@ -31,29 +29,22 @@ public class VideoVoteService : IVideoVoteService
         else
             return;
 
-
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int videoId, string userId)
+    public async Task DeleteAsync(Guid videoId, Guid userId,  bool suppressDomainEvent = false)
     {
-        var video = await _dbContext.Videos.FindAsync(videoId);
+        await _dbContext.Videos.EnsureExistAsync(videoId);
 
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
-
-        if (!await _dbContext.ApplicationUsers.AnyAsync(u => u.Id == userId))
-            throw new InvalidOperationException("Пользователь не найден");
+        await _dbContext.ApplicationUsers.EnsureExistAsync(userId);
 
         var vote = await _dbContext.VideoVotes
-            .FindAsync(videoId, userId);
+            .GetAsync(vv => vv.VideoId == videoId && vv.ApplicationUserId == userId, true);
 
-        if (vote == null)
-            return;
-
-        vote.RemoveEvent();
-
-        _dbContext.VideoVotes.Remove(vote);
+        if(!suppressDomainEvent)
+            vote.RemoveEvent();
+        
+        vote.Delete();
 
         await _dbContext.SaveChangesAsync();
     }

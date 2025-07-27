@@ -8,8 +8,6 @@ public class VideoTagsConfiguration : IEntityTypeConfiguration<VideoTags>
 {
     public void Configure(EntityTypeBuilder<VideoTags> builder)
     {
-        builder.HasKey(vt => new { vt.VideoId, vt.TagId });
-
         builder.Property(vt => vt.VideoId)
             .IsRequired();
 
@@ -19,11 +17,17 @@ public class VideoTagsConfiguration : IEntityTypeConfiguration<VideoTags>
         builder.HasOne(vt => vt.Video)
             .WithMany(v => v.Tags)
             .HasForeignKey(vt => vt.VideoId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(vt => vt.Tag)
             .WithMany()
             .HasForeignKey(vt => vt.TagId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(vt => new { vt.VideoId, vt.TagId })
+            .HasFilter("\"IsDeleted\" = false")
+            .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

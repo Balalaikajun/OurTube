@@ -26,7 +26,7 @@ public class PlaylistLikeHandler :
 
         var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
-        await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+        await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId);
     }
 
     public async Task Handle(VideoVoteDeleteEvent notification, CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ public class PlaylistLikeHandler :
 
         var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
-        await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+        await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, true);
     }
 
     public async Task Handle(VideoVoteUpdateEvent notification, CancellationToken cancellationToken)
@@ -44,8 +44,8 @@ public class PlaylistLikeHandler :
         var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
         if (notification.NewValue)
-            await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId, notification.UserId);
+            await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId);
         else
-            await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, notification.UserId, true);
+            await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, true);
     }
 }

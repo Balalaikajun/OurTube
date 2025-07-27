@@ -8,8 +8,6 @@ public class VideoPreviewConfiguration : IEntityTypeConfiguration<VideoPreview>
 {
     public void Configure(EntityTypeBuilder<VideoPreview> builder)
     {
-        builder.HasKey(vp => vp.VideoId);
-
         builder.Property(vp => vp.FileName)
             .IsRequired()
             .HasMaxLength(125);
@@ -21,6 +19,8 @@ public class VideoPreviewConfiguration : IEntityTypeConfiguration<VideoPreview>
         builder.HasOne(vp => vp.Video)
             .WithOne(v => v.Preview)
             .HasForeignKey<VideoPreview>(vp => vp.VideoId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

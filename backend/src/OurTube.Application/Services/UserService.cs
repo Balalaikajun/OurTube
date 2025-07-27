@@ -1,6 +1,12 @@
 ﻿using AutoMapper;
-using OurTube.Application.DTOs.ApplicationUser;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Requests.ApplicationUser;
+using OurTube.Domain.Entities;
+using OurTube.Domain.Exceptions;
+using ApplicationUser = OurTube.Application.Replies.ApplicationUser.ApplicationUser;
 
 namespace OurTube.Application.Services;
 
@@ -15,17 +21,15 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<ApplicationUserDto> UpdateUserAsync(ApplicationUserPatchDto patchDto, string userId)
+    public async Task<ApplicationUser> UpdateUserAsync(PatchApplicationUserRequest patchDto, Guid userId)
     {
-        var aUser = await _dbContext.ApplicationUsers.FindAsync(userId);
-
-        if (aUser == null)
-            throw new KeyNotFoundException("Пользователь не найден");
+        var aUser = await _dbContext.ApplicationUsers
+            .GetByIdAsync(userId,true);
 
         var iUser = await _dbContext.IdentityUsers.FindAsync(userId);
 
         if (iUser == null)
-            throw new KeyNotFoundException("Пользователь не найден");
+            throw new NotFoundException(typeof(IdentityUser), userId);
 
         if (patchDto.UserName != null)
         {
@@ -35,11 +39,11 @@ public class UserService : IUserService
 
         await _dbContext.SaveChangesAsync();
 
-        return _mapper.Map<ApplicationUserDto>(aUser);
+        return _mapper.Map<ApplicationUser>(aUser);
     }
 
-    public async Task<ApplicationUserDto> GetUserAsync(string userId)
+    public async Task<ApplicationUser> GetUserAsync(Guid userId)
     {
-        return _mapper.Map<ApplicationUserDto>(await _dbContext.ApplicationUsers.FindAsync(userId));
+        return await _dbContext.ApplicationUsers.GetByIdAsync<Domain.Entities.ApplicationUser,ApplicationUser>(userId, _mapper.ConfigurationProvider);
     }
 }

@@ -1,12 +1,11 @@
-using OurTube.Application.DTOs.Comment;
+using OurTube.Application.Replies.Comment;
+using OurTube.Application.Replies.Common;
+using OurTube.Application.Requests.Comment;
 
 namespace OurTube.Application.Interfaces;
 
 public interface ICommentRecommendationService
 {
-    Task<PagedCommentDto> GetCommentsWithLimitAsync(
-        int videoId, int limit, int after,
-        string sessionId, string? userId,
-        int? parentId = null,
-        bool reload = false);
+    Task<ListReply<Comment>> GetCommentsWithLimitAsync(Guid videoId, Guid userId, Guid sessionId,
+        GetCommentQueryParameters commentQueryParameters);
 }

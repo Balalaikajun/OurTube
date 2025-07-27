@@ -2,6 +2,6 @@ namespace OurTube.Application.Interfaces;
 
 public interface ICommentVoteService
 {
-    Task SetAsync(int commentId, string userId, bool type);
-    Task DeleteAsync(int commentId, string userId);
+    Task SetAsync(Guid commentId, Guid userId, bool type);
+    Task DeleteAsync(Guid commentId, Guid userId);
 }

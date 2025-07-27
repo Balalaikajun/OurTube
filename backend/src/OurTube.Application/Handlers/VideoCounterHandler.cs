@@ -1,4 +1,5 @@
 using MediatR;
+using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Domain.Events.VideoVote;
 
@@ -18,10 +19,8 @@ public class VideoCounterHandler :
 
     public async Task Handle(VideoVoteCreateEvent notification, CancellationToken cancellationToken)
     {
-        var video = await _dbContext.Videos.FindAsync(notification.VideoId, cancellationToken);
-
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
+        var video = await _dbContext.Videos
+            .GetByIdAsync(notification.VideoId, true);
 
         if (notification.Value)
             video.UpdateLikesCount(1);
@@ -33,10 +32,8 @@ public class VideoCounterHandler :
 
     public async Task Handle(VideoVoteDeleteEvent notification, CancellationToken cancellationToken)
     {
-        var video = await _dbContext.Videos.FindAsync(notification.VideoId, cancellationToken);
-
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
+        var video = await _dbContext.Videos
+            .GetByIdAsync(notification.VideoId, true);
 
         if (notification.Value)
             video.UpdateLikesCount(-1);
@@ -50,10 +47,8 @@ public class VideoCounterHandler :
         if (notification.OldValue == notification.NewValue)
             return;
 
-        var video = await _dbContext.Videos.FindAsync(notification.VideoId, cancellationToken);
-
-        if (video == null)
-            throw new InvalidOperationException("Видео не найдено");
+        var video = await _dbContext.Videos
+            .GetByIdAsync(notification.VideoId, true);
 
         if (notification.NewValue)
         {

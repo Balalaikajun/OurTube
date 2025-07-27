@@ -1,25 +1,25 @@
 using AutoMapper;
-using OurTube.Application.DTOs.ApplicationUser;
-using OurTube.Application.DTOs.Video;
-using OurTube.Application.DTOs.VideoPreview;
-using OurTube.Domain.Entities;
+using OurTube.Application.Replies.ApplicationUser;
+using OurTube.Application.Replies.Video;
+using OurTube.Application.Replies.VideoPreview;
+using Video = OurTube.Domain.Entities.Video;
 
 namespace OurTube.Application.Mapping.Custom;
 
 public static class VideoMappingExtensions
 {
-    public static IQueryable<VideoMinGetDto> ProjectToMinDto(
+    public static IQueryable<MinVideo> ProjectToMinDto(
         this IQueryable<Video> query,
         IMapper mapper,
-        string? userId)
+        Guid? userId)
     {
-        return query.Select(v => new VideoMinGetDto
+        return query.Select(v => new MinVideo()
         {
             Id = v.Id,
             Title = v.Title,
             ViewsCount = v.ViewsCount,
             Duration = v.Duration,
-            Created = v.Created,
+            CreatedDate = v.CreatedDate,
             Vote = userId != null
                 ? v.Votes
                     .Where(vv => vv.ApplicationUserId == userId)
@@ -32,8 +32,8 @@ public static class VideoMappingExtensions
                     .Select(vv => vv.EndTime)
                     .FirstOrDefault()
                 : null,
-            Preview = mapper.Map<VideoPreviewDto>(v.Preview),
-            User = mapper.Map<ApplicationUserDto>(v.User)
+            Preview = mapper.Map<VideoPreview>(v.Preview),
+            User = mapper.Map<ApplicationUser>(v.User)
         });
     }
 }
