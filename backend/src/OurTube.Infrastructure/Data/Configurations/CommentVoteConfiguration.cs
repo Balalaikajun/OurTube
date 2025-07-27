@@ -22,5 +22,7 @@ public class CommentVoteConfiguration : IEntityTypeConfiguration<CommentVote>
             .WithMany()
             .HasForeignKey(cv => cv.ApplicationUserId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

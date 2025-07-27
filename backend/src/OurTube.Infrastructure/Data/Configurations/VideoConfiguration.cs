@@ -37,5 +37,7 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
             .HasForeignKey(v => v.ApplicationUserId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

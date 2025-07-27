@@ -15,5 +15,7 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.HasIndex(t => t.Name)
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

@@ -22,5 +22,7 @@ public class VideoPreviewConfiguration : IEntityTypeConfiguration<VideoPreview>
             .WithOne(v => v.Preview)
             .HasForeignKey<VideoPreview>(vp => vp.VideoId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

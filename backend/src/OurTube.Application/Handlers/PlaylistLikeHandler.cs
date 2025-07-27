@@ -36,7 +36,7 @@ public class PlaylistLikeHandler :
 
         var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
-        await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId);
+        await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, true);
     }
 
     public async Task Handle(VideoVoteUpdateEvent notification, CancellationToken cancellationToken)

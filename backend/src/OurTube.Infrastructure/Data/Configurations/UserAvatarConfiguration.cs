@@ -22,5 +22,7 @@ public class UserAvatarConfiguration : IEntityTypeConfiguration<UserAvatar>
             .WithOne(ua => ua.UserAvatar)
             .HasForeignKey<UserAvatar>(ua => ua.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

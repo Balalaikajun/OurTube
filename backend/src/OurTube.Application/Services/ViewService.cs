@@ -33,7 +33,8 @@ public class ViewService : IViewService
         var video = await _dbContext.Videos
             .GetByIdAsync(videoId, true);
 
-        var view = await _dbContext.Views.FindAsync(videoId, userId);
+        var view = await _dbContext.Views.FirstOrDefaultAsync(vv =>
+            vv.VideoId == videoId && vv.ApplicationUserId == userId);
 
         if (view != null)
         {
@@ -64,7 +65,7 @@ public class ViewService : IViewService
             .EnsureExistAsync(videoId);
 
         var view = await _dbContext.Views
-            .GetAsync(vv => vv.VideoId==videoId && vv.ApplicationUserId == userId, true);
+            .GetAsync(vv => vv.VideoId == videoId && vv.ApplicationUserId == userId, true);
 
         view.Delete();
 
@@ -95,14 +96,14 @@ public class ViewService : IViewService
 
         var queryable = _dbContext.Views
             .Where(v => v.ApplicationUserId == userId);
-        
+
         if (!string.IsNullOrEmpty(parameter.SearchQuery))
-            queryable = queryable.Where(v =>EF.Functions.Like(v.Video.Title, $"%{parameter.SearchQuery}%"));
+            queryable = queryable.Where(v => EF.Functions.Like(v.Video.Title, $"%{parameter.SearchQuery}%"));
 
         queryable = queryable.OrderByDescending(v => v.UpdatedDate)
             .Skip(parameter.After)
             .Take(parameter.Limit + 1);
-        
+
         var videos = await queryable
             .Select(vv => vv.Video)
             .ProjectToMinDto(_mapper, userId)

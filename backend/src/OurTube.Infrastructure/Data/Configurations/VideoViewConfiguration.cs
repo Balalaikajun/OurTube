@@ -30,5 +30,7 @@ public class VideoViewConfiguration : IEntityTypeConfiguration<VideoView>
         builder.HasIndex(vv => new { vv.VideoId, vv.ApplicationUserId })
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

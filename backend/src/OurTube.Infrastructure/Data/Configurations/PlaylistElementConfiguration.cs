@@ -21,5 +21,7 @@ public class PlaylistElementConfiguration : IEntityTypeConfiguration<PlaylistEle
         builder.HasIndex(pe => new { pe.PlaylistId, pe.VideoId })
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

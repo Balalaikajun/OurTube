@@ -145,7 +145,7 @@ public class PlaylistsController : ControllerBase
         [FromRoute] Guid videoId)
     {
         await _playlistCrudService.RemoveVideoAsync(playlistId, videoId);
-        return Ok();
+        return NoContent();
     }
 
     /// <summary>

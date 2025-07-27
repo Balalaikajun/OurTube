@@ -21,5 +21,7 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.HasIndex(s => new { s.SubscribedToId, s.SubscriberId })
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

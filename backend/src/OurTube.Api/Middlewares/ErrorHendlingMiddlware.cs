@@ -34,8 +34,10 @@ public class ErrorHendlingMiddlware(RequestDelegate next)
             NotFoundException => new Error(StatusCodes.Status404NotFound.ToString(), StatusCodes.Status404NotFound,
                 ex.Message),
             InvalidOperationException => new Error(StatusCodes.Status400BadRequest.ToString(), StatusCodes.Status400BadRequest, ex.Message ),
-            UnauthorizedAccessException => new Error(StatusCodes.Status403Forbidden.ToString(), StatusCodes.Status403Forbidden, ex.Message),
+            ForbiddenAccessException => new Error(StatusCodes.Status403Forbidden.ToString(), StatusCodes.Status403Forbidden, ex.Message),
             ArgumentException => new Error(StatusCodes.Status400BadRequest.ToString(), StatusCodes.Status400BadRequest, ex.Message ),
+            UnauthorizedAccessException => new Error(StatusCodes.Status401Unauthorized.ToString(), StatusCodes.Status401Unauthorized, ex.Message),
+            AlreadyExistsException => new Error(StatusCodes.Status409Conflict.ToString(), StatusCodes.Status409Conflict, ex.Message),
             _ => new Error(StatusCodes.Status500InternalServerError.ToString(), StatusCodes.Status500InternalServerError, ex.Message)
         };
     }

@@ -22,5 +22,7 @@ public class VideoSourceConfiguration : IEntityTypeConfiguration<VideoSource>
             .WithOne(v => v.Source)
             .HasForeignKey<VideoSource>(vs => vs.VideoId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

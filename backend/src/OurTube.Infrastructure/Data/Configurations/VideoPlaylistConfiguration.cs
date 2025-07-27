@@ -30,5 +30,7 @@ public class VideoPlaylistConfiguration : IEntityTypeConfiguration<VideoPlaylist
         builder.HasIndex(vp => new { vp.VideoId, vp.Resolution })
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

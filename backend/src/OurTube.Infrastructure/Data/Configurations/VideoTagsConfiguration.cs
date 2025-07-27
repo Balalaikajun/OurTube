@@ -27,5 +27,7 @@ public class VideoTagsConfiguration : IEntityTypeConfiguration<VideoTags>
         builder.HasIndex(vt => new { vt.VideoId, vt.TagId })
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

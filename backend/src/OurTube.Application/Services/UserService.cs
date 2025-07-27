@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Requests.ApplicationUser;
@@ -42,6 +44,6 @@ public class UserService : IUserService
 
     public async Task<ApplicationUser> GetUserAsync(Guid userId)
     {
-        return _mapper.Map<ApplicationUser>(await _dbContext.ApplicationUsers.GetByIdAsync(userId));
+        return await _dbContext.ApplicationUsers.GetByIdAsync<Domain.Entities.ApplicationUser,ApplicationUser>(userId, _mapper.ConfigurationProvider);
     }
 }

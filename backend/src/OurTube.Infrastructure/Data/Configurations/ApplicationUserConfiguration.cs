@@ -23,5 +23,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .WithOne()
             .HasForeignKey<ApplicationUser>(a => a.Id)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

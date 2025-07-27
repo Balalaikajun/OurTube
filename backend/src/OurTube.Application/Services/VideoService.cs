@@ -59,13 +59,13 @@ public class VideoService : IVideoService
     {
         var videoDto = await GetVideoByIdAsync(videoId);
 
-        var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
+        var vote = await _dbContext.VideoVotes.FirstOrDefaultAsync( vv => vv.VideoId == videoId && vv.ApplicationUserId == userId);
 
         if (vote != null)
             videoDto.Vote = vote.Type;
 
-        var view = await _dbContext.Views.FindAsync(videoId, userId);
-
+        var view = await _dbContext.Views.FirstOrDefaultAsync( vv => vv.VideoId == videoId && vv.ApplicationUserId == userId);
+        
         if (view != null)
             videoDto.EndTime = view.EndTime;
 

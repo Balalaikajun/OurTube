@@ -20,8 +20,8 @@ public class VideoVoteService : IVideoVoteService
 
         await _dbContext.ApplicationUsers.EnsureExistAsync(userId);
 
-        var vote = await _dbContext.VideoVotes.FindAsync(videoId, userId);
-
+        var vote = await _dbContext.VideoVotes.FirstOrDefaultAsync( vv => vv.VideoId == videoId && vv.ApplicationUserId == userId);
+        
         if (vote == null)
             _dbContext.VideoVotes.Add(new VideoVote(videoId, userId, type));
         else if (vote.Type != type)
@@ -32,7 +32,7 @@ public class VideoVoteService : IVideoVoteService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid videoId, Guid userId)
+    public async Task DeleteAsync(Guid videoId, Guid userId,  bool suppressDomainEvent = false)
     {
         await _dbContext.Videos.EnsureExistAsync(videoId);
 
@@ -41,8 +41,9 @@ public class VideoVoteService : IVideoVoteService
         var vote = await _dbContext.VideoVotes
             .GetAsync(vv => vv.VideoId == videoId && vv.ApplicationUserId == userId, true);
 
-        vote.RemoveEvent();
-
+        if(!suppressDomainEvent)
+            vote.RemoveEvent();
+        
         vote.Delete();
 
         await _dbContext.SaveChangesAsync();

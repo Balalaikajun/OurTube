@@ -30,5 +30,7 @@ public class VideoVoteConfiguration : IEntityTypeConfiguration<VideoVote>
         builder.HasIndex(vv => new { vv.VideoId, vv.ApplicationUserId })
             .HasFilter("\"IsDeleted\" = false")
             .IsUnique();
+        
+        builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

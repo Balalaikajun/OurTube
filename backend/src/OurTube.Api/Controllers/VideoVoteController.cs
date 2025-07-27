@@ -9,7 +9,7 @@ namespace OurTube.Api.Controllers;
 /// <summary>
 ///     Работа с реакциями (голосами) под видео.
 /// </summary>
-[Route("videos/{videoId:int}/vote")]
+[Route("videos/{videoId:guid}/vote")]
 [ApiController]
 public class VideoVoteController : ControllerBase
 {

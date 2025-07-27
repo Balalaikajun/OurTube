@@ -69,7 +69,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
             .GetByIdAsync(playlistId, true);
         
         await _dbContext.PlaylistElements
-            .EnsureExistAsync(x => x.PlaylistId == playlistId && x.VideoId == videoId);
+            .EnsureNotExistAsync(x => x.PlaylistId == playlistId && x.VideoId == videoId);
 
         var element = new PlaylistElement(playlist, videoId, playlist.ApplicationUserId);
 
@@ -108,7 +108,7 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
 
     public async Task<ListReply<Replies.PlaylistElement.PlaylistElement>> GetElements(Guid playlistId, Guid userId, int limit, int after)
     {
-        await _dbContext.PlaylistElements
+        await _dbContext.Playlists
             .EnsureExistAsync(playlistId);
         
         var playlistElements = await _dbContext.PlaylistElements
