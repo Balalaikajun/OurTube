@@ -27,6 +27,8 @@ public class PlaylistConfiguration : IEntityTypeConfiguration<Playlist>
             .HasForeignKey(p => p.ApplicationUserId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        builder.HasIndex(p => p.Title);
+        
         builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

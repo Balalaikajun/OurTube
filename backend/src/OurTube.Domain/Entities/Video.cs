@@ -1,4 +1,6 @@
-﻿namespace OurTube.Domain.Entities;
+﻿using NpgsqlTypes;
+
+namespace OurTube.Domain.Entities;
 
 public class Video : Base
 {
@@ -37,6 +39,7 @@ public class Video : Base
     public VideoPreview Preview { get; private set; }
     public VideoSource Source { get; private set; }
     public TimeSpan Duration { get; private set; }
+    public NpgsqlTsVector SearchVector { get; private set; }
 
     public ICollection<VideoPlaylist> Files { get; private set; }
     public ICollection<VideoVote> Votes { get; }

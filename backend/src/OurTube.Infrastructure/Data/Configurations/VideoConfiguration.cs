@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OurTube.Domain.Entities;
+using NpgsqlTypes;
 
 namespace OurTube.Infrastructure.Data.Configurations;
 
@@ -37,7 +38,13 @@ public class VideoConfiguration : IEntityTypeConfiguration<Video>
             .HasForeignKey(v => v.ApplicationUserId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
-        
+
+        builder.HasGeneratedTsVectorColumn(
+            v => v.SearchVector,
+            "simple",
+            v => new { v.Title, v.Description });
+        builder.HasIndex(v => v.SearchVector).HasMethod("GIN");
+
         builder.HasQueryFilter(ua => !ua.IsDeleted);
     }
 }

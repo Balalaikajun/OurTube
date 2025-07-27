@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using NpgsqlTypes;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Replies.Common;
 using OurTube.Application.Replies.Video;
@@ -26,7 +27,7 @@ public class SearchService : ISearchService
         _videoService = videoService;
     }
 
-    public async Task<ListReply<MinVideo>> SearchVideos(Guid userId, Guid sessionId, GetQueryParametersWithSearch parameters)
+    public async Task<ListReply<MinVideo>> SearchVideos(Guid? userId, Guid sessionId, GetQueryParametersWithSearch parameters)
     {
         var cacheKey = GetCacheKey(sessionId);
 
@@ -67,7 +68,8 @@ public class SearchService : ISearchService
         var targetDate = DateTime.UtcNow.AddDays(-7);
 
         return await _dbContext.Videos
-            .Where(v => EF.Functions.Like(v.Title, $"%{searchQuery}%"))
+            .Where(v => EF.Property<NpgsqlTsVector>(v, "SearchVector")
+                .Matches(EF.Functions.PlainToTsQuery("simple", searchQuery)))
             .Where(v => !viewedIds.Contains(v.Id))
             .OrderBy(v => v.Views.Count(v => v.UpdatedDate >= targetDate))
             .Take(limit)

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping.Custom;
@@ -98,7 +99,8 @@ public class ViewService : IViewService
             .Where(v => v.ApplicationUserId == userId);
 
         if (!string.IsNullOrEmpty(parameter.SearchQuery))
-            queryable = queryable.Where(v => EF.Functions.Like(v.Video.Title, $"%{parameter.SearchQuery}%"));
+            queryable = queryable.Where(v => EF.Property<NpgsqlTsVector>(v, "SearchVector")
+                .Matches(EF.Functions.PlainToTsQuery("simple", parameter.SearchQuery)));
 
         queryable = queryable.OrderByDescending(v => v.UpdatedDate)
             .Skip(parameter.After)

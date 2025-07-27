@@ -24,6 +24,8 @@ public class BaseConfiguration<TEntity> : IEntityTypeConfiguration<TEntity> wher
         builder.Property(e => e.IsDeleted)
             .IsRequired()
             .HasDefaultValue(false);
+        
+        builder.HasIndex(v => v.IsDeleted);
 
         builder.HasQueryFilter(e => !e.IsDeleted);
     }
