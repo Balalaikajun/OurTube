@@ -24,9 +24,9 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         _mapper = mapper;
     }
 
-    public async Task<Replies.Comment.Comment> CreateAsync(Guid userId, PostCommentRequest postCommentDto)
+    public async Task<Replies.Comment.Comment> CreateAsync(Guid userId, Guid videoId, PostCommentRequest postCommentDto)
     {
-        var video = await _dbContext.Videos.GetByIdAsync(postCommentDto.VideoId, true);
+        var video = await _dbContext.Videos.GetByIdAsync(videoId, true);
 
         var parent = await _dbContext.Comments.FindAsync(postCommentDto.ParentId);
 
@@ -36,7 +36,7 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         var comment = new Comment
         {
             ApplicationUserId = userId,
-            VideoId = postCommentDto.VideoId,
+            VideoId = videoId,
             Text = postCommentDto.Text,
             Parent = parent
         };
@@ -52,12 +52,12 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         return await GetAsync(comment.Id, userId);
     }
 
-    public async Task UpdateAsync(UpdateCommentRequest request)
+    public async Task UpdateAsync(Guid id, UpdateCommentRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Text))
             return;
 
-        var comment = await _dbContext.Comments.GetByIdAsync(request.Id, true);
+        var comment = await _dbContext.Comments.GetByIdAsync(id, true);
         
         comment.Text = request.Text;
 
@@ -74,11 +74,12 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<ListReply<Replies.Comment.Comment>> GetCommentsWithLimitAsync(GetCommentRequest commentRequest)
+    public async Task<ListReply<Replies.Comment.Comment>> GetCommentsWithLimitAsync(Guid videoId, Guid userId, Guid sessionId,
+        GetCommentQueryParameters commentQueryParameters)
     {
-        var cacheKey = GetCacheKey(commentRequest.SessionId, commentRequest.VideoId, commentRequest.ParentId);
+        var cacheKey = GetCacheKey(sessionId, videoId, commentQueryParameters.ParentId);
 
-        if (commentRequest.Reload)
+        if (commentQueryParameters.Reload)
             _cache.Remove(cacheKey);
 
         if (!_cache.TryGetValue(cacheKey, out List<Guid> cachedRecommendations))
@@ -91,20 +92,23 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
             });
         }
 
-        if (cachedRecommendations.Count <= commentRequest.After + commentRequest.Limit)
-            cachedRecommendations.AddRange(await GetMoreIds(commentRequest));
+        if (cachedRecommendations.Count <= commentQueryParameters.After + commentQueryParameters.Limit)
+        {
+            cachedRecommendations.AddRange(await GetMoreIds(videoId, userId, sessionId, commentQueryParameters));
+            
+        }
 
-        var resultIds = cachedRecommendations.Skip(commentRequest.After).Take(commentRequest.Limit).ToList();
+        var resultIds = cachedRecommendations.Skip(commentQueryParameters.After).Take(commentQueryParameters.Limit).ToList();
 
         var commentsDict = await _dbContext.Comments
             .Where(c => resultIds.Contains(c.Id))
-            .ProjectToDto(_mapper, commentRequest.UserId)
+            .ProjectToDto(_mapper, userId)
             .ToDictionaryAsync(c => c.Id);
 
         var comments = resultIds
             .Select(id => commentsDict[id]);
 
-        var nextAfter = commentRequest.After + commentRequest.Limit;
+        var nextAfter = commentQueryParameters.After + commentQueryParameters.Limit;
         var hasMore = cachedRecommendations.Count > nextAfter;
 
         return new ListReply<Replies.Comment.Comment>()
@@ -115,21 +119,22 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         };
     }
 
-    private async Task<IEnumerable<Guid>> GetMoreIds(GetCommentRequest commentRequest)
+    private async Task<IEnumerable<Guid>> GetMoreIds(Guid videoId, Guid userId, Guid sessionId,
+        GetCommentQueryParameters commentQueryParameters)
     {
-        await _dbContext.ApplicationUsers.EnsureExistAsync(commentRequest.UserId);
+        await _dbContext.ApplicationUsers.EnsureExistAsync(userId);
 
-        await _dbContext.Videos.EnsureExistAsync(commentRequest.VideoId);
+        await _dbContext.Videos.EnsureExistAsync(videoId);
 
-        await _dbContext.Comments.EnsureExistAsync(commentRequest.ParentId);
+        await _dbContext.Comments.EnsureExistAsync(commentQueryParameters.ParentId);
 
-        _cache.TryGetValue(GetCacheKey(commentRequest.SessionId, commentRequest.VideoId, commentRequest.ParentId), out List<Guid> usedId);
+        _cache.TryGetValue(GetCacheKey(sessionId, videoId, commentQueryParameters.ParentId), out List<Guid> usedId);
 
         var result = await _dbContext.Comments
-            .Where(c => c.VideoId == commentRequest.VideoId && c.ParentId == commentRequest.ParentId)
+            .Where(c => c.VideoId == videoId && c.ParentId == commentQueryParameters.ParentId)
             .Where(c => !usedId.Contains(c.Id))
             .OrderByDescending(c => c.LikesCount)
-            .Take(commentRequest.Limit)
+            .Take(commentQueryParameters.Limit)
             .Select(c => c.Id)
             .ToListAsync();
 

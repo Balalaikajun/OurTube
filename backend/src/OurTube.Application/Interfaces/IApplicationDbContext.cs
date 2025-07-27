@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OurTube.Domain.Entities;
 using IdentityUser = OurTube.Domain.Entities.IdentityUser;

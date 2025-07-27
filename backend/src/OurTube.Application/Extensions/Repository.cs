@@ -17,7 +17,7 @@ public static class Repository
     /// <param name="canModify">Флаг отслеживания сущности</param>
     /// <typeparam name="TEntity">Тип сущности, производный от Base</typeparam>
     /// <returns>Сущность</returns>
-    /// <exception cref="NotFoundException"></exception>
+    /// <exception cref="NotFoundException">Элемент с данным идентификатором не найден</exception>
     public static async Task<TEntity> GetByIdAsync<TEntity>(this DbSet<TEntity> dbSet, Guid id, bool canModify = false) where TEntity : Base
     {
         var query = canModify 

@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
+namespace OurTube.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -94,8 +94,8 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    SubscribersCount = table.Column<long>(type: "bigint", nullable: false),
-                    SubscribedToCount = table.Column<long>(type: "bigint", nullable: false),
+                    SubscribersCount = table.Column<int>(type: "integer", nullable: false),
+                    SubscribedToCount = table.Column<int>(type: "integer", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -203,8 +203,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
-                    Count = table.Column<long>(type: "bigint", nullable: false),
+                    Count = table.Column<int>(type: "integer", nullable: false),
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsSystem = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -314,9 +313,9 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                     ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Text = table.Column<string>(type: "character varying(1500)", maxLength: 1500, nullable: false),
                     ParentId = table.Column<Guid>(type: "uuid", nullable: true),
-                    LikesCount = table.Column<long>(type: "bigint", nullable: false),
-                    ChildsCount = table.Column<long>(type: "bigint", nullable: false),
-                    DislikesCount = table.Column<long>(type: "bigint", nullable: false),
+                    LikesCount = table.Column<int>(type: "integer", nullable: false),
+                    ChildsCount = table.Column<int>(type: "integer", nullable: false),
+                    DislikesCount = table.Column<int>(type: "integer", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DeletedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -400,7 +399,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 });
 
             migrationBuilder.CreateTable(
-                name: "VideoPreview",
+                name: "VideoPreviews",
                 columns: table => new
                 {
                     VideoId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -414,9 +413,9 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VideoPreview", x => x.VideoId);
+                    table.PrimaryKey("PK_VideoPreviews", x => x.VideoId);
                     table.ForeignKey(
-                        name: "FK_VideoPreview_Videos_VideoId",
+                        name: "FK_VideoPreviews_Videos_VideoId",
                         column: x => x.VideoId,
                         principalTable: "Videos",
                         principalColumn: "Id",
@@ -750,7 +749,7 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                 name: "VideoPlaylist");
 
             migrationBuilder.DropTable(
-                name: "VideoPreview");
+                name: "VideoPreviews");
 
             migrationBuilder.DropTable(
                 name: "VideoSource");

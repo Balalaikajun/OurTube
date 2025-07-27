@@ -24,14 +24,14 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         _mapper = mapper;
     }
 
-    public async Task<Replies.Playlist.Playlist> CreateAsync(PostPlaylistRequest playlistDto, Guid userId)
+    public async Task<Replies.Playlist.Playlist> CreateAsync(Guid userId,PostPlaylistRequest request)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
         
         var playlist = new Playlist
         {
-            Title = playlistDto.Title,
+            Title = request.Title,
             ApplicationUserId = userId
         };
 
@@ -42,13 +42,13 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         return _mapper.Map<Replies.Playlist.Playlist>(playlist);
     }
 
-    public async Task UpdateAsync(UpdatePlaylistRequest patchDto, Guid playlistId)
+    public async Task UpdateAsync(Guid playlistId, UpdatePlaylistRequest request) 
     {
         var playlist = await _dbContext.Playlists
             .GetByIdAsync(playlistId, true);
 
-        if (!string.IsNullOrWhiteSpace(patchDto.Title))
-            playlist.Title = patchDto.Title;
+        if (!string.IsNullOrWhiteSpace(request.Title))
+            playlist.Title = request.Title;
 
         await _dbContext.SaveChangesAsync();
     }

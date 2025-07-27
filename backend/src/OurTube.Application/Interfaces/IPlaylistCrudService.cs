@@ -5,8 +5,8 @@ namespace OurTube.Application.Interfaces;
 
 public interface IPlaylistCrudService
 {
-    Task<Playlist> CreateAsync(PostPlaylistRequest playlistDto, Guid userId);
-    Task UpdateAsync(UpdatePlaylistRequest patchDto, Guid playlistId);
+    Task<Playlist> CreateAsync(Guid userId, PostPlaylistRequest request);
+    Task UpdateAsync(Guid playlistId, UpdatePlaylistRequest request);
     Task DeleteAsync(Guid id);
     Task AddVideoAsync(Guid playlistId, Guid videoId);
 

@@ -5,7 +5,7 @@ namespace OurTube.Application.Interfaces;
 
 public interface ICommentCrudService
 {
-    Task<Comment> CreateAsync(Guid userId, PostCommentRequest postCommentDto);
-    Task UpdateAsync(UpdateCommentRequest request);
+    Task<Comment> CreateAsync(Guid userId, Guid videoId, PostCommentRequest postCommentDto);
+    Task UpdateAsync(Guid id, UpdateCommentRequest request);
     Task DeleteAsync(Guid commentId);
 }

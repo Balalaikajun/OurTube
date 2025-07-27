@@ -42,7 +42,6 @@
 
     <ItemGroup>
         <Folder Include="Data\Migrations\" />
-        <Folder Include="Data\Migrations\ApplicationDb\" />
     </ItemGroup>
 
 </Project>

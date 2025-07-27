@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OurTube.Infrastructure.Data;
 
 #nullable disable
 
-namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
+namespace OurTube.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250727074636_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,11 +169,11 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<long>("SubscribedToCount")
-                        .HasColumnType("bigint");
+                    b.Property<int>("SubscribedToCount")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("SubscribersCount")
-                        .HasColumnType("bigint");
+                    b.Property<int>("SubscribersCount")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -194,8 +197,8 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                     b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uuid");
 
-                    b.Property<long>("ChildsCount")
-                        .HasColumnType("bigint");
+                    b.Property<int>("ChildsCount")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -203,14 +206,14 @@ namespace OurTube.Infrastructure.Data.Migrations.ApplicationDb
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("DislikesCount")
-                        .HasColumnType("bigint");
+                    b.Property<int>("DislikesCount")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<long>("LikesCount")
-                        .HasColumnType("bigint");
+                    b.Property<int>("LikesCount")
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uuid");

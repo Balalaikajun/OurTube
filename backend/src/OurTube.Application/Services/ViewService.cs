@@ -6,6 +6,7 @@ using OurTube.Application.Mapping.Custom;
 using OurTube.Application.Replies.Common;
 using OurTube.Application.Replies.Video;
 using OurTube.Application.Replies.Views;
+using OurTube.Application.Requests.Common;
 using OurTube.Application.Requests.Views;
 using OurTube.Domain.Entities;
 
@@ -24,15 +25,15 @@ public class ViewService : IViewService
         _mapper = mapper;
     }
 
-    public async Task AddVideoAsync(PostViewsRequest request, Guid userId)
+    public async Task AddVideoAsync(Guid userId, Guid videoId, PostViewsRequest request)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
 
         var video = await _dbContext.Videos
-            .GetByIdAsync(request.VideoId, true);
+            .GetByIdAsync(videoId, true);
 
-        var view = await _dbContext.Views.FindAsync(request.VideoId, userId);
+        var view = await _dbContext.Views.FindAsync(videoId, userId);
 
         if (view != null)
         {
@@ -43,7 +44,7 @@ public class ViewService : IViewService
             view = new VideoView
             {
                 ApplicationUserId = userId,
-                VideoId = request.VideoId,
+                VideoId = videoId,
                 EndTime = request.EndTime,
             };
 
@@ -87,7 +88,7 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, int limit, int after, string? query)
+    public async Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, GetQueryParametersWithSearch parameter)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);
@@ -95,12 +96,12 @@ public class ViewService : IViewService
         var queryable = _dbContext.Views
             .Where(v => v.ApplicationUserId == userId);
         
-        if (!string.IsNullOrEmpty(query))
-            queryable = queryable.Where(v =>EF.Functions.Like(v.Video.Title, $"%{query}%"));
+        if (!string.IsNullOrEmpty(parameter.SearchQuery))
+            queryable = queryable.Where(v =>EF.Functions.Like(v.Video.Title, $"%{parameter.SearchQuery}%"));
 
         queryable = queryable.OrderByDescending(v => v.UpdatedDate)
-            .Skip(after)
-            .Take(limit + 1);
+            .Skip(parameter.After)
+            .Take(parameter.Limit + 1);
         
         var videos = await queryable
             .Select(vv => vv.Video)
@@ -109,9 +110,9 @@ public class ViewService : IViewService
 
         return new ListReply<MinVideo>()
         {
-            Elements = videos.Take(limit),
-            NextAfter = after + limit,
-            HasMore = videos.Count > limit
+            Elements = videos.Take(parameter.Limit),
+            NextAfter = parameter.After + parameter.Limit,
+            HasMore = videos.Count > parameter.Limit
         };
     }
 }

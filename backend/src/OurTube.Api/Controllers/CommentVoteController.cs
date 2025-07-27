@@ -7,9 +7,9 @@ using OurTube.Application.Replies.Common;
 namespace OurTube.Api.Controllers;
 
 /// <summary>
-/// Управление голосами за комментарии (лайки и дизлайки).
+///     Управление голосами за комментарии (лайки и дизлайки).
 /// </summary>
-[Route("Video/Comment/{commentId:guid}/vote")]
+[Route("comments/{commentId:guid}/vote")]
 [ApiController]
 public class CommentVoteController : ControllerBase
 {
@@ -21,7 +21,7 @@ public class CommentVoteController : ControllerBase
     }
 
     /// <summary>
-    /// Проголосовать за комментарий (лайк или дизлайк).
+    ///     Проголосовать за комментарий (лайк или дизлайк).
     /// </summary>
     /// <param name="commentId">Идентификатор комментария.</param>
     /// <param name="type">Тип голоса: <c>true</c> – лайк, <c>false</c> – дизлайк.</param>
@@ -31,7 +31,7 @@ public class CommentVoteController : ControllerBase
     /// <response code="404">Комментарий не найден.</response>
     /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
-    [HttpPost("")]
+    [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
@@ -52,7 +52,7 @@ public class CommentVoteController : ControllerBase
     }
 
     /// <summary>
-    /// Удалить голос за комментарий.
+    ///     Удалить голос за комментарий.
     /// </summary>
     /// <param name="commentId">Идентификатор комментария.</param>
     /// <response code="204">Голос успешно удалён.</response>
@@ -60,7 +60,7 @@ public class CommentVoteController : ControllerBase
     /// <response code="404">Комментарий не найден или голос отсутствует.</response>
     /// <response code="500">Неизвестная ошибка сервера.</response>
     [Authorize]
-    [HttpDelete("")]
+    [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]

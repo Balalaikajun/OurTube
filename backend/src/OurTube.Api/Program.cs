@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OurTube.Api.Middlewares;
+using OurTube.Api.Other;
 using OurTube.Application.Handlers;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping;
@@ -166,6 +168,11 @@ if (builder.Environment.IsDevelopment())
 }
 
 services.AddControllers();
+
+services.AddControllersWithViews(options =>
+{
+    options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
+});
 
 // DataProtection directory
 var keysPath = builder.Configuration["DataProtection:KeysPath"]

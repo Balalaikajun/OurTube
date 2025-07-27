@@ -2,37 +2,40 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Replies.Common;
 
 namespace OurTube.Api.Controllers;
 
 /// <summary>
-/// Работа с подписками пользователей.
+///     Работа с подписками пользователей.
 /// </summary>
-[Route("[controller]")]
+[Route("users/{userToId:guid}")]
 [ApiController]
-public class SubscriptionController : ControllerBase
+public class SubscriptionsController : ControllerBase
 {
     private readonly ISubscriptionService _subscriptionService;
 
-    public SubscriptionController(ISubscriptionService subscriptionService)
+    public SubscriptionsController(ISubscriptionService subscriptionService)
     {
         _subscriptionService = subscriptionService;
     }
 
     /// <summary>
-    /// Подписаться на пользователя.
+    ///     Подписаться на пользователя.
     /// </summary>
     /// <param name="userToId">Идентификатор пользователя, на которого подписываемся.</param>
     /// <response code="201">Подписка успешно создана.</response>
     /// <response code="400">Неверные данные запроса.</response>
     /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Элемент не найден.</response>
     /// <response code="500">Ошибка сервера.</response>
     [Authorize]
-    [HttpPost]
+    [HttpPost("subscribe")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(OurTube.Application.Replies.Common.Error), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(OurTube.Application.Replies.Common.Error), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(OurTube.Application.Replies.Common.Error), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> Subscribe(Guid userToId)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -43,19 +46,21 @@ public class SubscriptionController : ControllerBase
     }
 
     /// <summary>
-    /// Отписаться от пользователя.
+    ///     Отписаться от пользователя.
     /// </summary>
     /// <param name="userToId">Идентификатор пользователя, от которого отписываемся.</param>
     /// <response code="201">Отписка успешно выполнена.</response>
     /// <response code="400">Неверные данные запроса.</response>
     /// <response code="401">Пользователь не авторизован.</response>
+    /// <response code="404">Элемент не найден.</response>
     /// <response code="500">Ошибка сервера.</response>
     [Authorize]
-    [HttpDelete]
+    [HttpDelete("unsubscribe")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(OurTube.Application.Replies.Common.Error), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(OurTube.Application.Replies.Common.Error), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(OurTube.Application.Replies.Common.Error), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnSubscribe(Guid userToId)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);

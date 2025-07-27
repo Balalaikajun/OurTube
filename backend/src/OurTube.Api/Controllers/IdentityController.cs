@@ -6,7 +6,7 @@ using OurTube.Application.Replies.Common;
 namespace OurTube.Api.Controllers;
 
 /// <summary>
-/// Управление аутентификацией пользователя.
+///     Управление аутентификацией пользователя.
 /// </summary>
 [Route("identity")]
 [ApiController]
@@ -20,7 +20,7 @@ public class IdentityController : ControllerBase
     }
 
     /// <summary>
-    /// Выйти из системы (разлогиниться).
+    ///     Выйти из системы (разлогиниться).
     /// </summary>
     /// <response code="204">Пользователь успешно разлогинен.</response>
     /// <response code="401">Пользователь не авторизован.</response>

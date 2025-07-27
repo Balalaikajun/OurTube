@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Replies.Common;
 using OurTube.Application.Replies.Video;
+using OurTube.Application.Requests.Common;
 using OurTube.Application.Requests.Video;
 
 namespace OurTube.Application.Services;
@@ -25,9 +26,9 @@ public class SearchService : ISearchService
         _videoService = videoService;
     }
 
-    public async Task<ListReply<MinVideo>> SearchVideos(SearchRequest request)
+    public async Task<ListReply<MinVideo>> SearchVideos(Guid userId, Guid sessionId, GetQueryParametersWithSearch parameters)
     {
-        var cacheKey = GetCacheKey(request.SessionId);
+        var cacheKey = GetCacheKey(sessionId);
 
 
         if (!_cache.TryGetValue(cacheKey, out List<Guid> cachePull))
@@ -40,20 +41,20 @@ public class SearchService : ISearchService
             });
         }
 
-        if (request.Reload)
+        if (parameters.Reload)
             cachePull = [];
 
-        if (cachePull.Count <= request.Limit +  request.After)
-            cachePull.AddRange(await SearchMoreVideos(request.SearchQuery, request.SessionId, SearchPull));
+        if (cachePull.Count <= parameters.Limit +  parameters.After)
+            cachePull.AddRange(await SearchMoreVideos(parameters.SearchQuery, sessionId, SearchPull));
 
-        var videoIds = cachePull.Skip(request.After).Take(request.Limit).ToList();
+        var videoIds = cachePull.Skip(parameters.After).Take(parameters.Limit).ToList();
 
         var videos = await _videoService.GetVideosByIdAsync(videoIds);
 
         return new ListReply<MinVideo>
         {
-            HasMore = cachePull.Count > request.After + request.Limit,
-            NextAfter = request.After + request.Limit,
+            HasMore = cachePull.Count > parameters.After + parameters.Limit,
+            NextAfter = parameters.After + parameters.Limit,
             Elements = videos
         };
     }
