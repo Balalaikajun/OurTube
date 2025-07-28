@@ -69,7 +69,7 @@
             }
             
             // Всегда запрашиваем свежие данные с сервера
-            const response = await api.get(`Playlist/${playlistData.value.id}`)
+            const response = await api.get(`/playlists/${playlistData.value.id}`)
             if (response.data) {
             Object.assign(playlistData.value, response.data)
             setDocumentTitle(playlistData.value.title)

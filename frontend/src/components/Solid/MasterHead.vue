@@ -27,7 +27,7 @@
     const logout = async () => {
         try {
             const response = await api.post(`identity/logout`)
-            // console.log(response.status)
+            console.log(response.status)
         }
         catch (error) {
             console.error('Ошибка разлогирования:', error)

@@ -64,9 +64,9 @@ export default function useInfiniteScroll(options) {
             }
             
             const result = await fetchMethod(nextAfter.value);
-            
-            if (result?.items) {
-                data.value = reset ? result.items : [...data.value, ...result.items];
+
+            if (result) {
+                data.value = reset ? result.items || result.elements || [] : [...data.value, ...(result.items || result.elements || [])];
                 nextAfter.value = result.nextAfter;
                 hasMore.value = result.hasMore !== undefined ? result.hasMore : true;
             }

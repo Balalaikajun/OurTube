@@ -86,7 +86,7 @@ const handleReaction = async (isLike) => {
                 localLikesCount.value--;
                 localReaction.value = null
                 // console.log("Удаление лайка", localReaction.value, commentId)
-                const responseContext = props.context == `comment` ? `Video/Comment/${commentId}/vote` : `Video/${videoId.value}/vote`;
+                const responseContext = props.context == `comment` ? `/comments/${commentId}/vote` : `/videos/${videoId.value}/vote`;
                 const response = await api.delete(responseContext);
             }
             else
@@ -96,12 +96,10 @@ const handleReaction = async (isLike) => {
                     localDislikesCount.value--;
                 }
                 localLikesCount.value++;
-                localReaction.value = true
+                localReaction.value = true;
                 // console.log("Смена дизлайка на лайк или добавление лайка", localReaction.value, commentId)
-                const responseContext = props.context == `comment` ? `Video/Comment/${commentId}/vote` : `Video/${videoId.value}/vote`;
-                const response = await api.post(responseContext, 
-                    true
-                );
+                const responseContext = props.context == `comment` ? `/comments/${commentId}/vote` : `/videos/${videoId.value}/vote`;
+                const response = await api.post(responseContext, true);
             }
         break
         case false:
@@ -110,7 +108,7 @@ const handleReaction = async (isLike) => {
                 localDislikesCount.value--;
                 localReaction.value = null;
                 // console.log("Удаление дизлайка", localReaction.value, commentId)
-                const responseContext = props.context == `comment` ? `Video/Comment/${commentId}/vote` : `Video/${videoId.value}/vote`;
+                const responseContext = props.context == `comment` ? `/comments/${commentId}/vote` : `/videos/${videoId.value}/vote`;
                 const response = await api.delete(responseContext);
             }
             else
@@ -121,12 +119,10 @@ const handleReaction = async (isLike) => {
                 } 
                 
                 localDislikesCount.value++;
-                localReaction.value = false
+                localReaction.value = false;
                 // console.log("Смена лайка на дизлайк или добавление дизлайка", localReaction.value, commentId)
-                const responseContext = props.context == `comment` ? `Video/Comment/${commentId}/vote` : `Video/${videoId.value}/vote`;
-                const response = await api.post( responseContext, 
-                    false
-                );
+                const responseContext = props.context == `comment` ? `/comments/${commentId}/vote` : `/videos/${videoId.value}/vote`;
+                const response = await api.post( responseContext, false);
             }
         break
     } 
