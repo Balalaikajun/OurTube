@@ -1,5 +1,6 @@
 using MediatR;
 using OurTube.Application.Interfaces;
+using OurTube.Application.Requests.Playlist;
 using OurTube.Domain.Events.VideoVote;
 
 namespace OurTube.Application.Handlers;
@@ -26,7 +27,7 @@ public class PlaylistLikeHandler :
 
         var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
-        await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId);
+        await _playlistCrudService.AddVideoAsync(playlist.Id, new AddVideoRequest { VideoId = notification.VideoId });
     }
 
     public async Task Handle(VideoVoteDeleteEvent notification, CancellationToken cancellationToken)
@@ -44,7 +45,8 @@ public class PlaylistLikeHandler :
         var playlist = await _playlistQueryService.GetLikedPlaylistAsync(notification.UserId);
 
         if (notification.NewValue)
-            await _playlistCrudService.AddVideoAsync(playlist.Id, notification.VideoId);
+            await _playlistCrudService.AddVideoAsync(playlist.Id,
+                new AddVideoRequest { VideoId = notification.VideoId });
         else
             await _playlistCrudService.RemoveVideoAsync(playlist.Id, notification.VideoId, true);
     }

@@ -104,7 +104,7 @@ public class PlaylistsController : ControllerBase
     ///     Добавить видео в плейлист.
     /// </summary>
     /// <param name="playlistId">Идентификатор плейлиста.</param>
-    /// <param name="videoId">Идентификатор видео.</param>
+    /// <param name="request">Идентификатор видео.</param>
     /// <response code="200">Видео успешно добавлено в плейлист.</response>
     /// <response code="401">Пользователь не авторизован или не имеет доступа.</response>
     /// <response code="404">Элемент не найден.</response>
@@ -118,9 +118,9 @@ public class PlaylistsController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> AddVideo(
         [FromRoute] Guid playlistId,
-        [FromBody] Guid videoId)
+        [FromBody] AddVideoRequest request)
     {
-        await _playlistCrudService.AddVideoAsync(playlistId, videoId);
+        await _playlistCrudService.AddVideoAsync(playlistId, request);
         return Ok();
     }
 
@@ -223,10 +223,10 @@ public class PlaylistsController : ControllerBase
     }
 
     /// <summary>
-    ///     Получить плейлисты пользователя, содержащие указанное видео.
+    ///     Получить плейлисты пользователя, с учётом того добавлено ли видео в них.
     /// </summary>
     /// <param name="videoId">Идентификатор видео.</param>
-    /// <returns>Список плейлистов, содержащих видео.</returns>
+    /// <returns>Список плейлистов, с флагом о содержании в нём указанного видео.</returns>
     /// <response code="200">Плейлисты успешно получены.</response>
     /// <response code="401">Пользователь не авторизован.</response>
     /// <response code="404">Элемент не найден.</response>

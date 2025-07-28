@@ -8,7 +8,7 @@ public interface IPlaylistCrudService
     Task<Playlist> CreateAsync(Guid userId, PostPlaylistRequest request);
     Task UpdateAsync(Guid playlistId, UpdatePlaylistRequest request);
     Task DeleteAsync(Guid id);
-    Task AddVideoAsync(Guid playlistId, Guid videoId);
+    Task AddVideoAsync(Guid playlistId, AddVideoRequest request);
 
     Task RemoveVideoAsync(
         Guid playlistId,

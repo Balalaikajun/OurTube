@@ -29,12 +29,4 @@
         <ProjectReference Include="..\OurTube.Domain\OurTube.Domain.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Requests\PlaylistElement\" />
-      <Folder Include="Requests\Recommendation\" />
-      <Folder Include="Requests\Search\" />
-      <Folder Include="Requests\VideoPlaylist\" />
-      <Folder Include="Requests\VideoPreview\" />
-    </ItemGroup>
-
 </Project>

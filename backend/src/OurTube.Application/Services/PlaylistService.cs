@@ -63,15 +63,15 @@ public class PlaylistService : IPlaylistCrudService, IPlaylistQueryService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddVideoAsync(Guid playlistId, Guid videoId)
+    public async Task AddVideoAsync(Guid playlistId, AddVideoRequest request)
     {
         var playlist = await _dbContext.Playlists
             .GetByIdAsync(playlistId, true);
         
         await _dbContext.PlaylistElements
-            .EnsureNotExistAsync(x => x.PlaylistId == playlistId && x.VideoId == videoId);
+            .EnsureNotExistAsync(x => x.PlaylistId == playlistId && x.VideoId == request.VideoId);
 
-        var element = new PlaylistElement(playlist, videoId, playlist.ApplicationUserId);
+        var element = new PlaylistElement(playlist, request.VideoId, playlist.ApplicationUserId);
 
         _dbContext.PlaylistElements.Add(element);
 
