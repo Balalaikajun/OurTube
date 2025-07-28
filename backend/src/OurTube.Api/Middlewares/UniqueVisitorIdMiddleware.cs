@@ -19,7 +19,9 @@ public class UniqueVisitorIdMiddleware
             {
                 Expires = DateTimeOffset.UtcNow.AddYears(1),
                 HttpOnly = true,
-                IsEssential = true
+                IsEssential = true,
+                SameSite = SameSiteMode.None,
+                Secure = true
             });
         }
 

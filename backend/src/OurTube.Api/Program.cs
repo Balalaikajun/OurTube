@@ -219,11 +219,10 @@ app.UseMiddleware<ErrorHendlingMiddlware>();
 app.UseRouting();
 app.UseCors("AllowFrontend");
 
+app.UseMiddleware<UniqueVisitorIdMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<IsUserHasAccessToEntityMiddleware>();
-
-app.UseMiddleware<UniqueVisitorIdMiddleware>();
 
 app.MapControllers();
 
