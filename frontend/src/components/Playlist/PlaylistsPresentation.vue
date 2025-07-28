@@ -16,8 +16,6 @@ import RenamePlaylistOverlay from "./RetitlePlaylistOverlay.vue";
 import LoadingState from "@/components/Solid/LoadingState.vue";
 import PlaylistCard from "./PlaylistCard.vue";
 
-import useInfiniteScroll from "@/assets/utils/useInfiniteScroll.js";
-
 const props = defineProps({
   errorMessage: {
     type: String,
@@ -38,34 +36,19 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["load-more", "rename", "delete"]);
+
+const data = ref([]);
+const isLoading = ref(true);
+
+const container = ref(props.scrollElement);
+
 const isAuthorized = ref(false);
 const router = useRouter();
 const currentPlaylist = ref({});
 const parentWidth = ref(0);
 const kebabMenuRef = ref(null);
 const retitlePlaylistRef = ref(null);
-const shareRef = ref(null);
 const error = ref(null);
-
-const {
-  data: playlists,
-  observerTarget,
-  hasMore,
-  isLoading,
-  error: scrollError,
-  container,
-  loadMore,
-  reset: resetPlaylists,
-} = useInfiniteScroll({
-  fetchMethod: async (after) => {
-    const result = await fetchMethod(after);
-    // emit('load-more');
-    return result;
-  },
-  scrollElement: props.scrollElement,
-  isEnabled: props.isInfiniteScroll,
-  initialLoad: true,
-});
 
 onBeforeMount(async () => {
   isAuthorized.value = Boolean(localStorage.getItem("userData"));
@@ -96,9 +79,9 @@ const retitlePlaylist = async (playlistTitle) => {
   try {
     // console.log(playlistTitle);
     // console.log(currentPlaylist.value);
-    await api.patch(`Playlist/${currentPlaylist.value.playlistId}`, {
+    await api.patch(`/playlists/${currentPlaylist.value.playlistId}`, 
+    {
       title: playlistTitle,
-      description: "плейлист",
     });
     await resetPlaylists();
   } catch (err) {
@@ -111,7 +94,7 @@ const retitlePlaylist = async (playlistTitle) => {
 
 const deletePlaylist = async (playlistId) => {
   try {
-    await api.delete(`Playlist/${playlistId}`);
+    await api.delete(`/playlists/${playlistId}`);
     await resetPlaylists();
   } catch (err) {
     error.value =
@@ -133,22 +116,13 @@ const navigateToPlaylist = (playlist) => {
 const fetchMethod = async (after) => {
   // Проверяем авторизацию перед запросом
   if (!isAuthorized.value) {
-    return { items: [], nextAfter: null, hasMore: false };
+    data.value = [];
   }
 
-  const limit = computedBlocksInRow.value * 4;
   try {
-    const response = await api.get(`Playlist`, {
-      params: {
-        limit: limit,
-        after: after || 0,
-      },
-    });
-    return {
-      items: response.data,
-      nextAfter: response.data[response.data.length - 1]?.id || null,
-      hasMore: response.data.length === limit,
-    };
+    const response = await api.get(`/users/me/playlists`);
+    data.value = response.data;
+    isLoading.value = false;
   } catch (error) {
     console.error("Ошибка получения плейлистов:", error);
     if (error.response?.status === 401) {
@@ -156,14 +130,15 @@ const fetchMethod = async (after) => {
       window.dispatchEvent(new CustomEvent("auth-update"));
       router.push("/login");
     }
-    return { items: [], nextAfter: null, hasMore: false };
+
+    data.value = [];
   }
 };
 
 const updateDimensions = () => {
   if (!container.value) return;
   const rect = container.value.getBoundingClientRect();
-  parentWidth.value = rect.width - 20;
+  parentWidth.value = rect.width;
 };
 
 const adaptiveView = async () => {
@@ -212,6 +187,7 @@ const computedBlockWidth = computed(() => {
 onMounted(async () => {
   await nextTick();
   await adaptiveView();
+  await fetchMethod();
   window.addEventListener("resize", adaptiveView);
   // console.log("Request prop:", props.request);
 });
@@ -219,18 +195,6 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener("resize", adaptiveView);
 });
-
-watch(
-  () => props.request,
-  () => loadMore(true)
-);
-watch(
-  () => props.searchQuery,
-  (newVal, oldVal) => {
-    if (newVal !== oldVal) loadMore(true);
-  },
-  { immediate: true }
-);
 
 defineExpose({
   deletePlaylist,
@@ -268,11 +232,6 @@ defineExpose({
         :style="{ width: computedBlockWidth }"
       />
       <LoadingState v-if="isLoading" />
-      <div
-        ref="observerTarget"
-        class="observer-target"
-        v-if="isInfiniteScroll && hasMore"
-      ></div>
     </div>
   </div>
 

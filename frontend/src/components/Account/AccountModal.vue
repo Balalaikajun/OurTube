@@ -123,7 +123,7 @@
                 
             }
 
-            const response = await api.post(`User/avatar`, formData, {
+            const response = await api.post(`/users/me`, formData, {
                 headers: {
                     'accept': 'text/plain',
                     'Content-Type': 'multipart/form-data'
@@ -147,7 +147,7 @@
 
     const patchAlias = async () => {
         try {
-            const response = await api.patch(`User/`, {
+            const response = await api.patch(`/users/me`, {
                 userName: newAlias.value
             });
 

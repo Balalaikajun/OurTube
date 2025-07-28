@@ -41,14 +41,14 @@
     };
 
     const addToPlaylist = async (playlistId, isContained) => {
-        if(isContained)
+        if(!isContained)
         {
-            const response = await api.post(`Playlist/${playlistId}/${videoId.value}`);
+            const response = await api.post(`/playlists/${playlistId}/videos`, videoId.value);
             // console.log("Добавление в плейлист")
         }
         else
         {
-            const response = await api.delete(`Playlist/${playlistId}/${videoId.value}`);
+            const response = await api.delete(`/playlists/${playlistId}/videos`, videoId.value);
             // console.log("Удаление из плейлиста")
         }
 
@@ -57,13 +57,12 @@
     const createNewPlaylist = async () => {
         if (!isMain.value && newPlaylistName.value.trim()) {
             try {
-                const response = await api.post('Playlist', {
-                    title: newPlaylistName.value.trim(),
-                    description: "плейлист"
+                const response = await api.post('/users/me/playlists', {
+                    title: newPlaylistName.value.trim()
                 });
                 // console.log(response.data.id)
                 if (response.data.id) {
-                    await api.post(`Playlist/${response.data.id}/${videoId.value}`);
+                    await api.post(`/playlists/${response.data.id}/videos`, videoId.value);
                     await fetchPlaylists();
                 }
                 
@@ -90,7 +89,7 @@
             error.value = null;
 
             // console.log(videoId.value)
-            const response = await api.get(`Playlist/video/${videoId.value}`);
+            const response = await api.get(`/users/me/videos/${videoId.value}/playlists`);
             playlists.value = response.data;
             
 

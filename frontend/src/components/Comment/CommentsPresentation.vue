@@ -39,7 +39,7 @@ const props = defineProps({
         fetchMethod: async (after) => {
             try {
                 const response = await api.get(
-                    `Video/Comment/${props.videoId}?limit=${props.initialLimit}&after=${after}`
+                    `video/${props.videoId}?limit=${props.initialLimit}&after=${after}`
                 );
                 // console.log(response)
                 // console.log("response hasMore", response.data?.hasMore)
@@ -75,7 +75,7 @@ const props = defineProps({
                 throw new Error("Вы не можете удалить чужой комментарий");
             }
             
-            await api.delete(`Video/Comment/${currentCommentId.value}`);
+            await api.delete(`/comments/${currentCommentId.value}`);
             await resetComments();
         } catch (err) {
             error.value = err.response?.data?.message || err.message || 'Ошибка при удалении комментария';
@@ -86,8 +86,7 @@ const props = defineProps({
 
     const handleEditComment = async (newText) => {
         try {
-            await api.patch(`Video/Comment`, {
-                "id": currentCommentId.value,
+            await api.patch(`/comments/${currentCommentId.value}`, {
                 "text": newText.text
             });
             await resetComments();

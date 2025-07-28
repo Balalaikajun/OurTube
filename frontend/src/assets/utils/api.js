@@ -9,12 +9,13 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json'
   },
 });
 
 (async () => {
   try {
-    const resp = await api.get("/Health");
+    const resp = await api.get("/health");
     console.log(resp);
   } catch (error) {
     console.error(error);

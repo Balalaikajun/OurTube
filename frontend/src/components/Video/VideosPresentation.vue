@@ -113,120 +113,105 @@ const navigateToVideo = (video) => {
 
 // Логика бесконечной прокрутки
 const fetchMethods = {
-  async recomend (after) {
-    const limit = computedBlocksInRow.value * 4
+    async recomend(after) {
+        const limit = computedBlocksInRow.value * 4;
 
-    try {
-      let response = {};
-      if (props.context == 'aside-recomend')
-      {
-        // console.log(props.videoId)
-        response = await api.get(`Recommendation/video/${props.videoId}`, {
-          params: {
-            limit: limit,
-            after: after || 0
-          }
-        })
-        // console.log(response)
-      }
-      else
-      {
-        // console.log(1715)
-        response = await api.get(`Recommendation`, {
-          params: {
-            limit: limit,
-            after: after || 0
-          }
-        })
-      }
-      return {
-        items: response.data.videos,
-        nextAfter: response.data.nextAfter,
-        hasMore: response.data.hasMore
-      }
-    } catch (error) {
-      console.error('Ошибка получения рекомендаций:', error)
-      // if (error.response?.status === 401) {
-      //   router.push('/login')
-      // }
-      return { videos: [], nextAfter: 0 }
-    }
-  },
+        try {
+            const endpoint = props.context === 'aside-recomend' 
+                ? `/recommendations/videos/${props.videoId}`
+                : '/recommendations';
 
-  async search (after) {
-    if (!props.searchQuery.trim()) return { videos: [], nextAfter: 0 }
-    const limit = computedBlocksInRow.value * 4
-    try {
-      const response = await api.get(`Search`, {
-        params: {
-          query: props.searchQuery,
-          limit: limit,
-          after: after || 0
+            const response = await api.get(endpoint, {
+                params: {
+                    Limit: limit,
+                    After: after || 0,
+                    Reload: false
+                }
+            });
+
+            return {
+                items: response.data?.elements || [],
+                nextAfter: response.data?.nextAfter || 0,
+                hasMore: response.data?.hasMore || false
+            };
+            
+        } catch (error) {
+            console.error('Ошибка при получении рекомендаций:', error);
+            if (error.response?.status === 401) router.push('/login');
+            return {
+                items: [],
+                nextAfter: 0,
+                hasMore: false
+            };
         }
-      })
-      return {
-        items: response.data.videos,
-        nextAfter: response.data.nextAfter,
-        hasMore: response.data.hasMore
-      }
-    } catch (error) {
-      console.error('Ошибка при выполнении поиска:', error)
-      // if (error.response?.status === 401) {
-      //   router.push('/login')
-      // }
-      return { videos: [], nextAfter: 0 }
-    }
-  },
+    },
 
-  async history (after) {
-    const limit = computedBlocksInRow.value * 4
-    try {
-      const response = await api.get(`History`, {
-        params: {
-          query: props.searchQuery,
-          limit: limit,
-          after: after || 0
+    async search(after) {
+        if (!props.searchQuery.trim()) return { items: [], nextAfter: 0, hasMore: false };
+        const limit = computedBlocksInRow.value * 4;
+        try {
+            const response = await api.get(`/search`, {
+                params: {
+                    query: props.searchQuery,
+                    limit: limit,
+                    after: after || 0
+                }
+            });
+            return {
+                items: response.data?.elements || response.data?.videos || [],
+                nextAfter: response.data?.nextAfter || 0,
+                hasMore: response.data?.hasMore || false
+            };
+        } catch (error) {
+            console.error('Ошибка при выполнении поиска:', error);
+            return { items: [], nextAfter: 0, hasMore: false };
         }
-      })
-      // console.log(response)
-      return {
-        items: response.data.videos,
-        nextAfter: response.data.nextAfter,
-        hasMore: response.data.hasMore
-      }
-    } catch (error) {
-      console.error('Ошибка при получении истории:', error)
-      // if (error.response?.status === 401) {
-      //   router.push('/login')
-      // }
-      return { videos: [], nextAfter: 0 }
+    },
+
+    async history(after) {
+        const limit = computedBlocksInRow.value * 4;
+        try {
+            const response = await api.get(`/users/me/watch-history`, {
+                params: {
+                    query: props.searchQuery,
+                    limit: limit,
+                    after: after || 0
+                }
+            });
+            return {
+                items: response.data?.elements || response.data?.videos || [],
+                nextAfter: response.data?.nextAfter || 0,
+                hasMore: response.data?.hasMore || false
+            };
+        } catch (error) {
+            console.error('Ошибка при получении истории:', error);
+            return { items: [], nextAfter: 0, hasMore: false };
+        }
+    },
+
+    async playlist(after) {
+        const playlistId = route.params.id;
+        if (!playlistId) return { items: [], nextAfter: 0, hasMore: false };
+
+        const limit = computedBlocksInRow.value * 4;
+
+        try {
+            const response = await api.get(`/playlists/${playlistId}/elements`, {
+                params: { limit, after: after || 0 }
+            });
+
+            const items = response.data.elements.map(el => el.video);
+            return {
+                items,
+                nextAfter: response.data.nextAfter,
+                hasMore: items.length >= limit && response.data.nextAfter !== 0
+            };
+        } catch (error) {
+            console.error('Playlist load error:', error);
+            if (error.response?.status === 401) router.push('/login');
+            return { items: [], nextAfter: 0, hasMore: false };
+        }
     }
-  },
-
-  async playlist (after) {
-    const playlistId = route.params.id
-    // console.log('$$Playlist id in fetch:',playlistId)
-    if (!playlistId) return { items: [], nextAfter: 0, hasMore: false }
-
-    const limit = computedBlocksInRow.value * 4
-
-    try {
-      const response = await api.get(`Playlist/${playlistId}`, {
-        params: { limit, after: after || 0 }
-      })
-
-      const items = response.data.elements.map(el => el.video)
-      return {
-        items,
-        nextAfter: response.data.nextAfter,
-        hasMore: items.length >= limit && response.data.nextAfter !== 0
-      }
-    } catch (error) {
-      console.error('Playlist load error:', error)
-      if (error.response?.status === 401) router.push('/login')
-      return { items: [], nextAfter: 0, hasMore: false }
-    }
-  }
 }
 
 const updateDimensions = () => {

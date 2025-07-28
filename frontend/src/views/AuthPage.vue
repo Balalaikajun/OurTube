@@ -21,8 +21,11 @@ const email = ref("");
                 password: password.value,
             });
 
+            console.log(response)
+
                     // Получаем и сохраняем данные пользователя
-            const userData = await saveUserDataToLocalStorage();
+            const userData = await saveUserDataToLocalStorage(true);
+
             if (!userData) {
                 throw new Error("Не удалось получить данные пользователя");
             }
@@ -99,9 +102,6 @@ const email = ref("");
                     @click="navigate">Восстановление доступа</button>
             </router-link>
         </div>
-        <!-- <div class="right-pannel">
-
-        </div> -->
     </div>
 </template>
 

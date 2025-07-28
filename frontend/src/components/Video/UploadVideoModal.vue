@@ -143,7 +143,7 @@ const uploadFiles = async () => {
     const previewBlob = new Blob([previewFile.value], { type: 'image/jpeg' });
     formData.append('PreviewFile', previewBlob, 'preview.jpg');
 
-    const response = await api.post('Video', formData, {
+    const response = await api.post('/videos', formData, {
       headers: {
         'accept': 'text/plain',
         'Content-Type': 'multipart/form-data'
