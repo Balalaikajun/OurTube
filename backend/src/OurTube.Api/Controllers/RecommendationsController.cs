@@ -38,7 +38,13 @@ public class RecommendationsController : ControllerBase
     public async Task<ActionResult<ListReply<MinVideo>>> Get(
         [FromQuery] GetQuaryParameters parameters)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        Guid? userId = null;
+        if (Guid.TryParse(nameId, out var guid))
+        {
+            userId = guid;
+        }
+        
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         var result = await _recommendationService.GetRecommendationsAsync(
@@ -68,7 +74,12 @@ public class RecommendationsController : ControllerBase
         Guid videoId,
         [FromQuery] GetQuaryParameters parameters)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        Guid? userId = null;
+        if (Guid.TryParse(nameId, out var guid))
+        {
+            userId = guid;
+        }
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         var result = await _recommendationService.GetRecommendationsForVideoAsync(

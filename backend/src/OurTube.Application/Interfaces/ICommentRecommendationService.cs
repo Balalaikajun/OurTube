@@ -6,6 +6,6 @@ namespace OurTube.Application.Interfaces;
 
 public interface ICommentRecommendationService
 {
-    Task<ListReply<Comment>> GetCommentsWithLimitAsync(Guid videoId, Guid userId, Guid sessionId,
+    Task<ListReply<Comment>> GetCommentsWithLimitAsync(Guid videoId, Guid? userId, Guid sessionId,
         GetCommentQueryParameters commentQueryParameters);
 }

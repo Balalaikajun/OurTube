@@ -74,7 +74,7 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<ListReply<Replies.Comment.Comment>> GetCommentsWithLimitAsync(Guid videoId, Guid userId, Guid sessionId,
+    public async Task<ListReply<Replies.Comment.Comment>> GetCommentsWithLimitAsync(Guid videoId, Guid? userId, Guid sessionId,
         GetCommentQueryParameters commentQueryParameters)
     {
         var cacheKey = GetCacheKey(sessionId, videoId, commentQueryParameters.ParentId);
@@ -119,7 +119,7 @@ public class CommentService : ICommentCrudService, ICommentRecommendationService
         };
     }
 
-    private async Task<IEnumerable<Guid>> GetMoreIds(Guid videoId, Guid userId, Guid sessionId,
+    private async Task<IEnumerable<Guid>> GetMoreIds(Guid videoId, Guid? userId, Guid sessionId,
         GetCommentQueryParameters commentQueryParameters)
     {
         await _dbContext.ApplicationUsers.EnsureExistAsync(userId);

@@ -123,7 +123,12 @@ public class CommentsController : ControllerBase
         [FromRoute] Guid videoId,
         [FromQuery] GetCommentQueryParameters parameters)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        Guid? userId = null;
+        if (Guid.TryParse(nameId, out var guid))
+        {
+            userId = guid;
+        }
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         var result =

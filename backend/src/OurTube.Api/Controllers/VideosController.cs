@@ -13,7 +13,6 @@ namespace OurTube.Api.Controllers;
 /// </summary>
 [Route("[controller]")]
 [ApiController]
-[Authorize] // Если все методы требуют авторизации
 public class VideosController : ControllerBase
 {
     private readonly IVideoService _videoService;
@@ -59,19 +58,18 @@ public class VideosController : ControllerBase
     /// <param name="videoId">Идентификатор видео.</param>
     /// <returns>Полные данные видео.</returns>
     /// <response code="200">Видео найдено и возвращены его данные.</response>
-    /// <response code="401">Пользователь не авторизован.</response>
     /// <response code="404">Видео с указанным идентификатором не найдено.</response>
     /// <response code="500">Ошибка сервера.</response>
     [HttpGet("{videoId:guid}")]
     [ProducesResponseType(typeof(Video), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Video>> Get(Guid videoId)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var video = await _videoService.GetVideoByIdAsync(videoId, userId);
-        return Ok(video);
+        return Guid.TryParse(nameId, out var guid) ?
+            Ok(await _videoService.GetVideoByIdAsync(videoId, guid)) : 
+            Ok(await _videoService.GetVideoByIdAsync(videoId));
     }
 }
