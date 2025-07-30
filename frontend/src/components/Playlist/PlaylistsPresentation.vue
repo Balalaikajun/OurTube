@@ -37,7 +37,7 @@ const props = defineProps({
 
 const emit = defineEmits(["load-more", "rename", "delete"]);
 
-const data = ref([]);
+const playlists = ref([]);
 const isLoading = ref(true);
 
 const container = ref(props.scrollElement);
@@ -116,12 +116,12 @@ const navigateToPlaylist = (playlist) => {
 const fetchMethod = async (after) => {
   // Проверяем авторизацию перед запросом
   if (!isAuthorized.value) {
-    data.value = [];
+    playlists.value = [];
   }
 
   try {
     const response = await api.get(`/users/me/playlists`);
-    data.value = response.data;
+    playlists.value = response.data;
     isLoading.value = false;
   } catch (error) {
     console.error("Ошибка получения плейлистов:", error);
@@ -131,7 +131,7 @@ const fetchMethod = async (after) => {
       router.push("/login");
     }
 
-    data.value = [];
+    playlists.value = [];
   }
 };
 
@@ -211,11 +211,8 @@ defineExpose({
   <div v-if="isAuthorized" v-auth="true" class="container-wrapper">
     <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
       <div v-if="playlists.length === 0" class="empty-results">
-        Ничего не найдено
+        Плейлисты отсутствуют.
       </div>
-    </div>
-    <div v-if="scrollError" class="error-state">
-      {{ scrollError }}
     </div>
     <div
       v-else

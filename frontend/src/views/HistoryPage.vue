@@ -72,7 +72,7 @@ const handleDeleteFromHistory = async (videoId) => {
   if (!isAuthorized.value) return;
   
   try {
-    await api.delete(`History/${videoId}`);
+    await api.delete(`/users/me/watch-history/videos/${videoId}`);
   } catch (error) {
     console.error("History error:", error);
   } finally {
@@ -84,7 +84,7 @@ const clearHistory = async () => {
   if (!isAuthorized.value) return;
   
   try {
-    await api.delete("History");
+    await api.delete("/users/me/watch-history");
   } catch (error) {
     console.error("History error:", error);
   } finally {
@@ -132,8 +132,26 @@ watch(
           <div class="history-menu">
             <div class="enter-query">
               <div class="enter-line">
-                <button class="control-button enter-query-btn" @click="handleSearch" v-auth="true">
-                  <!-- SVG иконка поиска -->
+                <button class="control-button enter-query-btn" @click="handleSearch">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                        <!-- Определяем маску для инвертированного вырезания -->
+                        <defs>
+                            <mask id="circleMask">
+                                <rect x="0" y="0" width="40" height="40" fill="white"/>
+                                <circle cx="19" cy="19" r="11" fill="black"/>
+                            </mask>
+                        </defs>
+
+                        <circle cx="19" cy="19" r="10" stroke="#F3F0E9" stroke-width="1" fill="none"/>
+                        
+                        <path 
+                            d="M 19 19 L 31 31" 
+                            stroke="#F3F0E9"
+                            style="stroke-width: 1px !important;"
+                            mask="url(#circleMask)"
+                            fill="none"
+                        />
+                    </svg>
                 </button>
                 <textarea 
                   class="component-input" 
@@ -144,8 +162,21 @@ watch(
                   wrap="off" 
                   v-auth="true"
                 ></textarea>
-                <button v-if="queryText" class="control-button enter-query-btn" @click="clearSearch" v-auth="true">
-                  <!-- SVG иконка очистки -->
+                <button v-if="queryText" class="control-button enter-query-btn" @click="clearSearch">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"> 
+                        <path 
+                            d="M 10 10 L 30 30" 
+                            stroke="#F3F0E9"
+                            style="stroke-width: 1px !important;"
+                            fill="none"
+                        />
+                        <path 
+                            d="M 10 30 L 30 10" 
+                            stroke="#F3F0E9"
+                            style="stroke-width: 1px !important;"
+                            fill="none"
+                        />
+                    </svg>
                 </button>
               </div>
               <div class="line-container">

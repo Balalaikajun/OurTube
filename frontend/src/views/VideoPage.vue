@@ -67,8 +67,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   const addToHistory = async () => {
     try {
       // console.log(videoId.value);
-      await api.post('History', {
-        videoId: videoId.value,
+      await api.post(`/users/me/watch-history/videos/${videoId.value}`, {
         endTime: "0"
       });
       // console.log('Added to history');
@@ -109,10 +108,10 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
     try {
       // console.log(videoId.value, 1)
-      const response = await api.get(`Video/${videoId.value}`);
+      const response = await api.get(`videos/${videoId.value}`);
       const data = response.data;
 
-      // console.log(data, "Информация о видео");
+      console.log(data, "Информация о видео");
 
       if (!data) {
         throw new Error("Получены пустые данные видео");
@@ -232,7 +231,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     isMobileLayout.value = window.innerWidth < 1000;
     isRow.value = window.innerWidth < 1200 && !isMobileLayout.value;
   
-    videoId.value = Number(route.params.id);
+    videoId.value = route.params.id;
 
     document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('resize', () => {

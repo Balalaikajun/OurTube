@@ -234,7 +234,8 @@
 
     .logo-text {
         position: relative; 
-        color: #F3F0E9; 
+        color: #F3F0E9;
+        top: -0.3rem;
     }
 
     .search-block {
