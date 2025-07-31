@@ -9,7 +9,7 @@ import VideoPlayer from '@/components/Video/VideoPlayer.vue'
 import LoadingState from '@/components/Solid/LoadingState.vue' // Импортируем компонент загрузки
 import ShareOverlay from '@/components/Kebab/ShareOverlay.vue'
 import CreateCommentBlock from '@/components/Comment/CreateCommentBlock.vue'
-import VideoPresentation from '@/components/Video/VideosPresentation.vue'
+import VideosPresentation from '@/components/Video/VideosPresentation.vue'
 import CommentsPresentation from '@/components/Comment/CommentsPresentation.vue'
 import UserAvatar from '@/components/Solid/UserAvatar.vue'
 import ReactionBlock from '@/components/Solid/ReactionBlock.vue'
@@ -111,7 +111,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
       const response = await api.get(`videos/${videoId.value}`);
       const data = response.data;
 
-      console.log(data, "Информация о видео");
+      // console.log(data, "Информация о видео");
 
       if (!data) {
         throw new Error("Получены пустые данные видео");
@@ -317,7 +317,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   />
   <PlaylistOverlay ref="playlistRef" 
   />
-  <!-- :video-id="Number(videoId)" -->
+  <!-- :video-id="String(videoId)" -->
   <ShareOverlay
     v-if="videoId"
     ref="shareRef" 
@@ -406,11 +406,11 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
           </section>
 
           <aside v-if="isMobileLayout">
-            <VideoPresentation
+            <VideosPresentation
               ref="mobileRecommendations"
               request="recomend"
               context="aside-recomend"
-              :video-id="Number(videoId)"
+              :video-id="String(videoId)"
               @add-to-playlist="saveOpen"
               :is-mobile="isMobileLayout"
               :row-layout="isRow"
@@ -431,21 +431,21 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
             </button>
           </aside>
 
-          <CreateCommentBlock :video-id="Number(videoId)" style="margin-top: 40px;" ref="addComment"/>
+          <CreateCommentBlock :video-id="String(videoId)" style="margin-top: 40px;" ref="addComment"/>
           <CommentsPresentation
             v-if="commentsCount !== 0"
             ref="commentsRef"
-            :video-id="Number(videoId)"
+            :video-id="String(videoId)"
             @delete="handleDeleteComment"
           />
         </div>
          
         <aside class="side-recomendation" v-if="!isMobileLayout">
-          <VideoPresentation
+          <VideosPresentation
             ref="desktopRecommendations"
             request="recomend"
             context="aside-recomend"
-            :video-id="Number(videoId)"
+            :video-id="String(videoId)"
             @add-to-playlist="saveOpen"
             :is-mobile="isMobileLayout"
             :row-layout="isRow"

@@ -9,9 +9,9 @@ import useInfiniteScroll from '@/assets/utils/useInfiniteScroll.js'
 
 const props = defineProps({
         videoId: {
-            type: Number,
+            type: String,
             required: true,
-            default: 0
+            default: ''
         },
         initialLimit: {
             type: Number,
