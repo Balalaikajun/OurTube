@@ -50,7 +50,7 @@ public class PlaylistsController : ControllerBase
 
         var result = await _playlistCrudService.CreateAsync(userId, request);
 
-        return CreatedAtAction(nameof(GetByElements), new { id = result.Id }, result);
+        return CreatedAtAction(nameof(GetById), new { playlistId  = result.Id }, result);
     }
 
     /// <summary>
