@@ -15,7 +15,7 @@ import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
 const props = defineProps(
         {
             videoId: {
-                type: Number,
+                type: String,
                 required: true,
                 default: 0
             },
@@ -24,7 +24,7 @@ const props = defineProps(
                 default: 1
             },
             id: {
-                type: [Number, null],
+                type: [String, null],
                 required: true,
                 default: null
             },
