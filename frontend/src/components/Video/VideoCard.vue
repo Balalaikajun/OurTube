@@ -8,7 +8,7 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      id: 0,
+      id: '',
       title: '',
       viewsCount: 0,
       vote: false,

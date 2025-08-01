@@ -28,8 +28,8 @@ const props = defineProps({
     default: ''
   },
   videoId: {
-    type: Number,
-    default: 1
+    type: String,
+    default: ''
   },
   playlistId: {
     type: Number,
@@ -59,7 +59,7 @@ const props = defineProps({
 
 const router = useRouter()
 const route = useRoute()
-const currentVideoId = ref(0)
+const currentVideoId = ref('')
 const parentWidth = ref(0)
 const kebabMenuRef = ref(null)
 const shareRef = ref(null)

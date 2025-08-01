@@ -26,6 +26,7 @@ const seekBarInput = ref(0.2);
 const playerError = ref(null);
 const videoDimensions = ref({ width: 0, height: 0 });
 const aspectRatio = ref(16/9); // Соотношение по умолчанию 16:9
+const isLoadingResolution = ref(false); // Флаг для предотвращения двойной загрузки
 
 // Вычисляемые свойства остаются без изменений
 const progressBarStyle = computed(() => ({
@@ -37,7 +38,7 @@ const volumeBarStyle = computed(() => ({
 }));
 
 const initHls = async () => {
-  console.log('$$Плеер', videoPlayerRef.value, 'hls', Hls.isSupported(), '&&', videoPlayerRef.value && Hls.isSupported());
+  // console.log('$$Плеер', videoPlayerRef.value, 'hls', Hls.isSupported(), '&&', videoPlayerRef.value && Hls.isSupported());
   
   if (!Hls.isSupported()) {
     console.error('HLS is not supported in this browser');
@@ -54,12 +55,13 @@ const initHls = async () => {
     
     hls.value = new Hls({
       enableWorker: true,
-      debug: true, // Включаем логирование
+      // debug: true, // Включаем логирование
     });
 
     // Обработчики событий
     hls.value.on(Hls.Events.MEDIA_ATTACHED, () => {
       console.log('Media attached');
+      // Загружаем начальное разрешение
       loadCurrentResolution();
     });
 
@@ -75,7 +77,26 @@ const initHls = async () => {
 
     hls.value.on(Hls.Events.ERROR, (event, data) => {
       console.error('HLS Error:', data);
+      if (data.fatal) {
+        switch(data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            console.error('Fatal network error encountered, try to recover');
+            hls.value.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            console.error('Fatal media error encountered, try to recover');
+            hls.value.recoverMediaError();
+            break;
+          default:
+            console.error('Cannot recover');
+            break;
+        }
+      }
     });
+
+    // hls.value.on(Hls.Events.ERROR, (event, data) => {
+    //   console.error('HLS Error:', data);
+    // });
 
     console.log('Attaching media...');
     hls.value.attachMedia(videoPlayerRef.value);
@@ -85,31 +106,156 @@ const initHls = async () => {
   }
 };
 
-// В onMounted:
-onMounted(async () => {
-  await nextTick(); // Ждём обновления DOM
-  console.log('Component mounted, initializing HLS');
-  initHls();
-});
+// const loadCurrentResolution = () => {
+//   try {
+//     console.log(videoStore.resolution, props.videoFiles[0].resolution)
+//     const resolution = videoStore.resolution || props.videoFiles[0].resolution;
+//     const videoFile = props.videoFiles.find(f => f.resolution === +resolution);
+    
+//     if (!videoFile) throw new Error('Resolution not found');
+    
+//     const fullUrl = `${import.meta.env.VITE_MINIO_BASE_URL}/${videoFile.bucket}/${videoFile.fileName}`;
+//     console.log('Loading:', fullUrl);
+    
+//     if (hls.value) {
+//       hls.value.loadSource(fullUrl);
+//     } else if (videoPlayerRef.value?.canPlayType('application/vnd.apple.mpegurl')) {
+//       videoPlayerRef.value.src = fullUrl;
+//     }
+//   } catch (error) {
+//     console.error('Error loading resolution:', error);
+//   }
+// };
 
 const loadCurrentResolution = () => {
+  // Предотвращаем двойную загрузку только при смене качества
+  if (isLoadingResolution.value && hls.value && hls.value.media) {
+    console.log('Already loading resolution, skipping...');
+    return;
+  }
+  
   try {
-    console.log(videoStore.resolution, props.videoFiles[0].resolution)
+    isLoadingResolution.value = true;
+    
+    // Сохраняем текущее время воспроизведения и состояние воспроизведения
+    const savedTime = videoPlayerRef.value ? videoPlayerRef.value.currentTime : 0;
+    const wasPlaying = videoPlayerRef.value ? !videoPlayerRef.value.paused : false;
+    
+    console.log('Saving time:', savedTime, 'wasPlaying:', wasPlaying);
+    
+    if (!props.videoFiles || props.videoFiles.length === 0) {
+      console.warn('No video files available');
+      isLoadingResolution.value = false;
+      return;
+    }
+    
     const resolution = videoStore.resolution || props.videoFiles[0].resolution;
     const videoFile = props.videoFiles.find(f => f.resolution === +resolution);
     
-    if (!videoFile) throw new Error('Resolution not found');
+    if (!videoFile) {
+      console.error('Resolution not found:', resolution);
+      isLoadingResolution.value = false;
+      return;
+    }
     
     const fullUrl = `${import.meta.env.VITE_MINIO_BASE_URL}/${videoFile.bucket}/${videoFile.fileName}`;
     console.log('Loading:', fullUrl);
     
     if (hls.value) {
+      // Создаем обработчик для восстановления времени
+      const restoreTimeHandler = () => {
+        console.log('Manifest parsed, restoring time to:', savedTime);
+        
+        // Используем canplay событие для более надежного восстановления времени
+        const canPlayHandler = () => {
+          if (videoPlayerRef.value) {
+            console.log('Can play, setting time to:', savedTime);
+            
+            // Попытка установки времени с повторными попытками
+            const setTimeWithRetry = (attempts = 0) => {
+              if (attempts >= 3) {
+                console.warn('Failed to set time after 3 attempts');
+                isLoadingResolution.value = false; // Сбрасываем флаг
+                return;
+              }
+              
+              videoPlayerRef.value.currentTime = savedTime;
+              
+              // Проверяем, установилось ли время корректно
+              setTimeout(() => {
+                if (Math.abs(videoPlayerRef.value.currentTime - savedTime) > 0.5) {
+                  console.log(`Time not set correctly, attempt ${attempts + 1}`);
+                  setTimeWithRetry(attempts + 1);
+                } else {
+                  console.log('Time set successfully');
+                  // Восстанавливаем воспроизведение если оно было активно
+                  if (wasPlaying) {
+                    videoPlayerRef.value.play().catch(e => console.error('Play error:', e));
+                  }
+                  isLoadingResolution.value = false; // Сбрасываем флаг
+                }
+              }, 100);
+            };
+            
+            setTimeWithRetry();
+          }
+          // Удаляем обработчик после использования
+          videoPlayerRef.value.removeEventListener('canplay', canPlayHandler);
+        };
+        
+        videoPlayerRef.value.addEventListener('canplay', canPlayHandler);
+        
+        // Удаляем обработчик после использования
+        hls.value.off(Hls.Events.MANIFEST_PARSED, restoreTimeHandler);
+      };
+      
+      hls.value.on(Hls.Events.MANIFEST_PARSED, restoreTimeHandler);
       hls.value.loadSource(fullUrl);
     } else if (videoPlayerRef.value?.canPlayType('application/vnd.apple.mpegurl')) {
+      // Для native HLS (Safari)
+      const restoreTimeHandler = () => {
+        console.log('Loaded metadata, restoring time to:', savedTime);
+        
+        if (videoPlayerRef.value) {
+          // Попытка установки времени с повторными попытками
+          const setTimeWithRetry = (attempts = 0) => {
+            if (attempts >= 3) {
+              console.warn('Failed to set time after 3 attempts');
+              isLoadingResolution.value = false; // Сбрасываем флаг
+              return;
+            }
+            
+            videoPlayerRef.value.currentTime = savedTime;
+            
+            // Проверяем, установилось ли время корректно
+            setTimeout(() => {
+              if (Math.abs(videoPlayerRef.value.currentTime - savedTime) > 0.5) {
+                console.log(`Time not set correctly, attempt ${attempts + 1}`);
+                setTimeWithRetry(attempts + 1);
+              } else {
+                console.log('Time set successfully');
+                // Восстанавливаем воспроизведение если оно было активно
+                if (wasPlaying) {
+                  videoPlayerRef.value.play().catch(e => console.error('Play error:', e));
+                }
+                isLoadingResolution.value = false; // Сбрасываем флаг
+              }
+            }, 100);
+          };
+          
+          setTimeWithRetry();
+        }
+        
+        // Удаляем обработчик после использования
+        videoPlayerRef.value.removeEventListener('loadedmetadata', restoreTimeHandler);
+      };
+      
+      videoPlayerRef.value.addEventListener('loadedmetadata', restoreTimeHandler);
       videoPlayerRef.value.src = fullUrl;
     }
   } catch (error) {
     console.error('Error loading resolution:', error);
+    isLoadingResolution.value = false; // Сбрасываем флаг при ошибке
   }
 };
 
@@ -180,7 +326,6 @@ const togglePlay = async () => {
 };
 
 const seek = (event) => {
-  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayerRef
   if (videoPlayerRef.value) {
     videoPlayerRef.value.currentTime = event.target.value;
   }
@@ -188,27 +333,45 @@ const seek = (event) => {
 
 const changeUserInput = (event) => {
   seekBarInput.value = event.target.value;
-  // ИЗМЕНЕНО: Добавлена проверка на существование videoPlayerRef
   if (videoPlayerRef.value) {
     videoPlayerRef.value.volume = seekBarInput.value;
   }
 };
 
 const playerDimensions = () => {
+  if (!videoPlayerRef.value || !videoContainer.value || 
+    videoPlayerRef.value.videoWidth === 0 || videoPlayerRef.value.videoHeight === 0) {
+    return;
+  }
   if (!videoPlayerRef.value || !videoContainer.value) {
     console.log('Элементы еще не доступны');
     return;
   }
-  if (videoContainer.value.width < videoContainer.value.height)
-  {
-    videoDimensions.value.height = videoContainer.value.width / 16 * 9;
-  }
-  else 
-  {
-    videoDimensions.value.height = videoContainer.value.height;
-  }
-  videoDimensions.value.width = videoContainer.value.width;
   
+  // Получаем фактические размеры контейнера
+  const containerWidth = videoContainer.value.clientWidth;
+  const containerHeight = videoContainer.value.clientHeight;
+  
+  // Получаем оригинальные размеры видео
+  const videoWidth = videoPlayerRef.value.videoWidth;
+  const videoHeight = videoPlayerRef.value.videoHeight;
+  
+  if (videoWidth > 0 && videoHeight > 0) {
+    const videoAspectRatio = videoWidth / videoHeight;
+    const containerAspectRatio = containerWidth / containerHeight;
+    
+    if (videoAspectRatio < containerAspectRatio) {
+      // Вертикальное видео - рассчитываем высоту по ширине контейнера
+      videoDimensions.value.height = containerWidth / videoAspectRatio;
+      videoDimensions.value.width = containerWidth;
+    } else {
+      // Горизонтальное видео - используем полную высоту контейнера
+      videoDimensions.value.height = containerHeight;
+      videoDimensions.value.width = containerHeight * videoAspectRatio;
+    }
+    
+    console.log('Video dimensions updated:', videoDimensions.value);
+  }
 }
 
 
@@ -240,9 +403,18 @@ const handleSettingsButtonClick = (event) => {
     settingsMenu.value?.openMenu(event.currentTarget);
 };
 
-watch(() => videoStore.resolution, (newResolution) => {
-  loadCurrentResolution();
-});
+watch(() => videoStore.resolution, (newResolution, oldResolution) => {
+  // Пропускаем первое изменение (инициализацию)
+  if (oldResolution === undefined) {
+    return;
+  }
+  
+  console.log('Resolution changed to:', newResolution);
+  // Небольшая задержка для корректного сохранения времени
+  setTimeout(() => {
+    loadCurrentResolution();
+  }, 50);
+}, { flush: 'post' }); // Используем post flush для предотвращения конфликтов
 
 // Следим за изменением скорости
 watch(() => videoStore.speed, (newSpeed) => {
@@ -254,8 +426,11 @@ watch(() => videoStore.speed, (newSpeed) => {
 // ИЗМЕНЕНО: Полностью переработан хук onMounted
 onMounted(async () => {
   await nextTick();
+  console.log('Component mounted, initializing HLS');
   initHls();
-  playerDimensions();
+  
+  // Установка обработчиков событий
+  window.addEventListener('resize', playerDimensions);
   
   if (videoPlayerRef.value) {
     videoPlayerRef.value.addEventListener('play', () => isPlaying.value = true);
@@ -264,6 +439,10 @@ onMounted(async () => {
     videoPlayerRef.value.addEventListener('durationchange', () => {
       videoDuration.value = videoPlayerRef.value.duration;
     });
+    videoPlayerRef.value.addEventListener('loadedmetadata', () => {
+      playerDimensions();
+    });
+    videoPlayerRef.value.addEventListener('resize', playerDimensions);
   }
   
   document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -278,6 +457,7 @@ onBeforeUnmount(() => {
     videoPlayerRef.value.removeEventListener('timeupdate', updateTime);
   }
   document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  window.removeEventListener('resize', playerDimensions);
 });
 
 defineExpose({
@@ -294,7 +474,11 @@ defineExpose({
 
     <video 
       ref="videoPlayerRef" 
-      class="player"      
+      class="player"
+      :style="{
+        width: `${videoDimensions.width}px`,
+        height: `${videoDimensions.height}px`
+      }"      
       :volume="seekBarInput"
       playsinline
     ></video>
@@ -377,12 +561,19 @@ defineExpose({
 .video-container {
   position: relative;
   width: 100%;
+  aspect-ratio: 16 / 9; /* Фиксируем соотношение контейнера */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #100E0E;
 }
 
 .video-container:fullscreen {
+  aspect-ratio: unset;
   width: 100vw !important;
   height: 100vh !important;
-  background: black;
+  background: #100E0E;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -398,7 +589,8 @@ defineExpose({
 }
 
 .player {
-  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 

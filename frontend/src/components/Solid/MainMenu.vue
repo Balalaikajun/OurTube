@@ -22,7 +22,7 @@ const router = useRouter();
             <!-- <li>Ваши видео</li> -->
             <li @click.stop="pushToPlaylists">Плейлисты</li>
             <li @click.stop="pushToHistory">История</li>
-            <li>Учётная запись</li>
+            <!-- <li>Учётная запись</li> -->
             <!-- <li>Настройки</li> -->
         </ul>
     </div>

@@ -132,8 +132,8 @@ const uploadFiles = async () => {
     const formData = new FormData();
     
     // Добавляем текстовые поля
-    formData.append('VideoPostDto.Title', videoTitle.value);
-    formData.append('VideoPostDto.Description', videoDescription.value);
+    formData.append('Title', videoTitle.value);
+    formData.append('Description', videoDescription.value);
     
     // Добавляем видео файл с указанием типа
     const videoBlob = new Blob([videoFile.value], { type: 'video/mp4' });

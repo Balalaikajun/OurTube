@@ -22,14 +22,13 @@ const confirmRef = ref(null);
         if (playlistsRef.value) {
             playlistsRef.value.deletePlaylist(currentPlaylistId.value);
         }
-  };
+    };
 
     onMounted(async () => {
         // document.title = "Страница пользователя";
     });
 </script>
 <template>
-    <!-- <MasterHead/> -->
     <ConfirmPannel
         ref="confirmRef" 
         :action="confirmContext"
