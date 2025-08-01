@@ -4,7 +4,6 @@
     import { createKeyboardTrap } from '@/assets/utils/keyTrap.js'
     import PlaylistStroke from './PlaylistStroke.vue'
 
-
     const videoId = ref(0);
 
     const playlists = ref([]);
@@ -26,10 +25,10 @@
         if (isOpen.value) {
             await fetchPlaylists();
             document.addEventListener('click', handleClickOutside);
-            keyboardTrap.setup(); // Активируем ловушку клавиатуры
+            keyboardTrap.setup();
         } else {
             document.removeEventListener('click', handleClickOutside);
-            keyboardTrap.teardown(); // Деактивируем ловушку клавиатуры
+            keyboardTrap.teardown();
         }
     };
 
@@ -59,10 +58,21 @@
             try {
                 const response = await api.post('/users/me/playlists', {
                     title: newPlaylistName.value.trim()
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
-                // console.log(response.data.id)
+                console.log(response)
+                console.log(response.data)
+                console.log(response.data.id)
                 if (response.data.id) {
-                    await api.post(`/playlists/${response.data.id}/videos`, videoId.value);
+                    console.log('Добавление')
+                    await api.post(`/playlists/${response.data.id}/videos`, videoId.value, {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
                     await fetchPlaylists();
                 }
                 
@@ -77,10 +87,25 @@
         } else {
             isMain.value = false;
             await nextTick();
-            // Фокусируем textarea после переключения в режим создания
             const textarea = document.querySelector('.playlist-title textarea');
-            if (textarea) textarea.focus();
+            if (textarea) {
+                textarea.focus();
+                adjustTextareaSize(textarea);
+            }
         }
+    };
+
+    const adjustTextareaSize = (textarea) => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    };
+
+    const handleFocus = (event) => {
+        adjustTextareaSize(event.target);
+    };
+
+    const handleBlur = (event) => {
+        adjustTextareaSize(event.target);
     };
 
     const fetchPlaylists = async () =>
@@ -103,8 +128,6 @@
             // console.log(playlists.value)
         }
     };
-
-    // onBeforeUnmount(toggleMenu);
 
     defineExpose({
         toggleMenu
@@ -152,6 +175,7 @@
                         v-model="newPlaylistName"
                         @focus="handleFocus"
                         @blur="handleBlur"
+                        @input="(event) => adjustTextareaSize(event.target)"
                         placeholder="Введите название"
                         maxlength="100"
                         cols="1"
@@ -203,11 +227,8 @@
         flex-direction: column;
         color: #F3F0E9;
         box-sizing: border-box;
-        /* width: 300px; */
-        /* height: 450px; */
-        width: min-content;
-        /* min-height: 450px; */
-        /* height: fit-content; */
+        width: fit-content;
+        min-width: 300px;
         background: #4A4947;
         padding: 20px;
         border-radius: 4px;
@@ -235,26 +256,22 @@
         flex-direction: column;
         gap: 10px;
         flex: 1;
-        overflow-y: auto; /* Добавляем вертикальный скролл */
-        scrollbar-width: thin; /* Для Firefox */
-        scrollbar-color: #F39E60 #4A4947; /* Для Firefox */
-        padding-right: 5px; /* Чтобы контент не прилипал к скроллу */
-        scrollbar-width: thin; /* или 'auto' или 'none' */
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #F39E60 #4A4947;
+        padding-right: 5px;
+        scrollbar-width: thin;
         scrollbar-color: #F39E60 #4A4947;
     }
     .playlist-wrapper::-webkit-scrollbar {
-        width: 8px; /* Ширина скроллбара */
-        height: 8px; /* Высота горизонтального скроллбара (если нужен) */
+        width: 8px;
+        height: 8px;
     }
-    /* .playlist-wrapper::-webkit-scrollbar-track {
-        background: #4A4947;
-        border-radius: 4px;
-    } */
 
     .playlist-wrapper::-webkit-scrollbar-thumb {
         background-color: #F39E60;
         border-radius: 4px;
-        border: 2px solid #4A4947; /* Создает эффект "отступа" */
+        border: 2px solid #4A4947;
     }
 
     .playlist-wrapper::-webkit-scrollbar-thumb:active,
@@ -271,8 +288,23 @@
     .playlist-title {
         width: 100%;
         min-height: fit-content; /* Начальная высота */
-        max-height: 200px; /* Максимальная высота (если нужно ограничить) */
+        max-height: 400px; /* Максимальная высота (если нужно ограничить) */
         border: 1px solid #F3F0E9;
         border-radius: 4px;
+    }
+
+    .playlist-title textarea {
+        width: 100%;
+        min-width: 300px;
+        box-sizing: border-box;
+        resize: none;
+        overflow: hidden;
+    }
+
+    /* Специальные стили для окна создания плейлиста */
+    .overlay-content:has(.playlist-title) {
+        width: auto;
+        min-width: 350px;
+        max-width: 500px;
     }
 </style>

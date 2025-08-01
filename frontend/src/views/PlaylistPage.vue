@@ -1,9 +1,8 @@
 <script setup>
     import { onMounted, ref, watch } from 'vue'
-    import { useRoute, useRouter } from 'vue-router'
+    import { useRoute} from 'vue-router'
     import api from '@/assets/utils/api.js'
 
-    import MasterHead from '../components/Solid/MasterHead.vue'
     import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
     import RenamePlaylistOverlay from '@/components/Playlist/RetitlePlaylistOverlay.vue'
     import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
@@ -20,10 +19,9 @@
     );
 
     const route = useRoute()
-    const router = useRouter()
 
     const playlistData = ref({
-        id: props.id || route.params.id || '', // Берем id из props или route
+        id: props.id || route.params.id || '',
         title: props.title || 'Плейлист',
         count: props.count || 0
     })
@@ -35,27 +33,17 @@
     const retitlePlaylistRef = ref(null);
     const isLoading = ref(true);
     const videosRef = ref(null);
-    const loadingMore = ref(false);
     const errorMessage = ref("");
-    const currentVideoId = ref("");
-    const kebabMenuRef = ref(null);
-    const shareRef = ref(null);
-    const nextAfter = ref(0);
-    const hasMore = ref(true);
-    const isMobile = ref(false);
-    const videosPlace = ref(null);
 
     const setDocumentTitle = (title) => {
-        document.title = `${title} | OurTube`
+        document.title = `${title}`
     }
 
     const fetchPlaylistData = async () => {
         isLoading.value = true
         errorMessage.value = null
         
-        // Проверяем, есть ли данные в state навигации
         try {
-            // Если есть props - обновляем данные
             if (props.id || props.title || props.count) {
                 playlistData.value = {
                 id: props.id || playlistData.value.id,
@@ -68,7 +56,6 @@
                 }
             }
             
-            // Всегда запрашиваем свежие данные с сервера
             const response = await api.get(`/playlists/${playlistData.value.id}`)
             if (response.data) {
             Object.assign(playlistData.value, response.data)
@@ -83,34 +70,13 @@
         }
     }
 
-    const fetchPlaylistPresentation = async () => {
-        isLoading.value = true
-        errorMessage.value = null
-        
-        // Проверяем, есть ли данные в state навигации
-        // console.log(router.currentRoute.value.state?.playlistData)
-        if (router.currentRoute.value.state?.playlistData) {
-            playlistData.value = router.currentRoute.value.state.playlistData
-        }
-        
-        try {
-            const response = await api.get(`Playlist/${currentPlaylistId.value}`)
-            playlistData.value = response.data
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || err.message || 'Ошибка загрузки'
-            console.error('Ошибка:', err)
-        } finally {
-            isLoading.value = false
-        }
-    }
-
     const saveOpen = (videoId) => {
         // console.log("save")
         playlistRef.value.toggleMenu(videoId);
     }
 
     const handleRetitlePlaylist = (event) => {
-        event?.stopPropagation(); // Добавьте проверку на существование event
+        event?.stopPropagation();
         // console.log('handleRetitlePlaylist', playlistData.value);
         retitlePlaylistRef.value?.toggleMenu(playlistData.value.title);
     };
@@ -172,7 +138,6 @@
     })
 </script>
 <template>
-    <!-- <MasterHead/> -->
     <PlaylistOverlay 
         ref="playlistRef" 
     />
@@ -200,7 +165,7 @@
                         </div>
                         <p>{{ playlistData.title }}</p>
                     </div>
-                    <div class="bottom-block">
+                    <div class="bottom-block" v-if="!['Понравившееся', 'Смотреть позже'].includes(props.title)">
                         <button class="control-button short-action-btn" @click="handleDeletePlaylist">
                             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"> 
                                 <path 
@@ -229,7 +194,7 @@
                             </svg>
                         </button>
                     </div>
-
+                    <p class="bottom-block" v-else>Неизменяемый</p>
                 </div>            
             </aside>
             <VideosPresentation
@@ -285,15 +250,15 @@
     }
     .playlist-data p:last-child {
         color: #F3F0E9;
-        margin-top: 10px; /* Добавьте отступ сверху */
+        margin-top: 10px;
         text-indent: 10px;
         font-size: 1.4rem;
     }
     .filler-block {
         display: flex;
         flex-direction: row;
-        justify-content: center; /* Центрирование по горизонтали */
-        align-items: center;     /* Центрирование по вертикали */
+        justify-content: center;
+        align-items: center;
         position: relative;
         width: 100%;
         height: auto;

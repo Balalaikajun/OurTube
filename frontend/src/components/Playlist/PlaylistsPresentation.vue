@@ -296,5 +296,15 @@ defineExpose({
   background: #f39e60;
 }
 
+@media (max-width: 800px) {
+  .container-wrapper {
+      padding: 15px;
+  }
+}
 
+/* @media (max-width: 600px) {
+  .container-wrapper {
+      padding: 10px;
+  }
+} */
 </style>

@@ -4,7 +4,7 @@ import { ref } from 'vue'
 const props = defineProps(
         {
             id: {
-                type: [Number, null],
+                type: [String, null],
                 required: true,
                 default: null
             },

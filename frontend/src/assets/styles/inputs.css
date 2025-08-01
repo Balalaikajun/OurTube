@@ -21,8 +21,8 @@
     padding: 8px;
     overflow-y: hidden;
     width: 100%;
-    min-height: 20px; /* Начальная высота */
-    max-height: 200px; /* Максимальная высота (если нужно ограничить) */
+    min-height: 20px;
+    max-height: 200px;
     background: #100E0E;
     color: #F3F0E9;
     border: none;
