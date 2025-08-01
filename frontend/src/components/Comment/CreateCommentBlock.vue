@@ -26,7 +26,7 @@ const props = defineProps({
     const showButtons = ref(false);
     const errorMessage = ref("");
 
-    const rootParentId = inject('rootParentId', 100000000);
+    const rootParentId = inject('rootParentId', null);
 
     function adjustHeight() {
         if (textareaRef.value) {
@@ -74,17 +74,35 @@ const props = defineProps({
         }
 
         try {
-            const response = await api.post(`/videos/${props.videoId}/comments`, {
-                text: commentText.value,
-                parentId: rootParentId
+            const requestData = {
+                text: commentText.value
+            };
+            
+            // Добавляем parentId только если он не null
+            if (rootParentId !== null) {
+                requestData.parentId = rootParentId;
+            }
+            
+            console.log('Отправляемые данные:', requestData);
+            console.log('VideoId:', props.videoId);
+            console.log('RootParentId:', rootParentId);
+            
+            const response = await api.post(`/videos/${props.videoId}/comments`, requestData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
+            console.log('Ответ сервера:', response.data);
             commentText.value = '';
             showButtons.value = false;
             // emit('comment-created', response.data);
             handleCancel();
             
         } catch (error) {
+            console.log('Полная ошибка:', error);
+            console.log('Данные ошибки:', error.response?.data);
+            console.log('Статус ошибки:', error.response?.status);
             handleCommentError(error);
         }
     };

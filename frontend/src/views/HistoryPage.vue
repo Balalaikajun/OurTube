@@ -260,23 +260,18 @@ watch(
     font-size: 14px;
     outline: none;
     resize: none;
-    /* Запрещаем изменение размера */
     box-sizing: border-box;
     background: transparent;
     border: none;
     white-space: nowrap;
-    /* Запрещаем перенос строк */
     overflow-x: hidden;
-    /* Горизонтальный скролл при переполнении */
     overflow-y: hidden;
-    /* Скрываем вертикальный скролл */
 }
 
 .line-container {
     position: relative;
     width: 100%;
     height: 2px;
-    /* Фиксированная высота контейнера */
 }
 
 .line-decoration {
@@ -360,5 +355,31 @@ watch(
     .history-functional {
         padding-right: 0;
     }
+}
+@media (max-width: 600px) {
+  .main-wrapper {
+    padding: 20px 15px;
+  }
+
+  .columns-wrapper {
+    flex-direction: column-reverse;
+    gap: 6rem;
+  }
+
+  .history-functional {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+  }
+
+  .history-menu {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .delete-btn {
+    width: 30%;
+  }
 }
 </style>

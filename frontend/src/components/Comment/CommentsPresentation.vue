@@ -39,20 +39,22 @@ const props = defineProps({
         fetchMethod: async (after) => {
             try {
                 const response = await api.get(
-                    `video/${props.videoId}?limit=${props.initialLimit}&after=${after}`
+                    `videos/${props.videoId}/comments?limit=${props.initialLimit}&after=${after}`
                 );
-                // console.log(response)
-                // console.log("response hasMore", response.data?.hasMore)
-                if(response.data?.hasMore)
-                {
-                    
-                }
+                console.log('Ответ сервера для комментариев:', response.data);
+                console.log('VideoId:', props.videoId);
+                console.log('After:', after);
+                
+                const comments = response.data?.elements || [];
+                console.log('Комментарии:', comments);
+                
                 return {
-                    items: response.data?.comments || [],
-                    nextAfter: response.data?.comments[response.data?.comments.length - 1]?.id || 0,
-                    hasMore: response.data?.hasMore
+                    items: comments,
+                    nextAfter: comments.length > 0 ? comments[comments.length - 1]?.id || 0 : 0,
+                    hasMore: response.data?.hasMore || false
                 };
             } catch (err) {
+                console.error('Ошибка при загрузке комментариев:', err);
                 throw err;
             }            
         },
