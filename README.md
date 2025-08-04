@@ -2,8 +2,8 @@
 **OurTube** - видеохостинг, разработанный в качестве курсового проекта.
 
 Подробно ознакомиться с проделанной можете в соответствующих разделах:
-1. [Фронтенд и дизайн](./Docs/Frontend.md) - разработал [KrakishMusta](https://github.com/KrakishMusta)
-2. [Бекэнд и развёртывание](./Docs/Backend.md) - разработал [Balalaikajun ](https://github.com/Balalaikajun)
+1. [Фронтенд и дизайн](./Documentation/Frontend.md) - разработал [KrakishMusta](https://github.com/KrakishMusta)
+2. [Бекэнд и развёртывание](./Documentation/Backend.md) - разработал [Balalaikajun ](https://github.com/Balalaikajun)
 
 ## Функционал
 В рамках проекта перед нами стояла задача реализовать минимально жизнеспособный продукт, реализующий базовый функционал подобных видеохостинга, а именно: 
