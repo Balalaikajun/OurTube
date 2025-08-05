@@ -29,4 +29,22 @@ todo: Превратить в красивые логотипы
 ## Демонстрация
 
 ## Установка
-todo: Написать руководство как завершу настройку
+Далее приведена инструкция по развёртыванию локально, с целью тестирования проекта. Инструкции по другим вариантам развёртывания приведена в разделе посвящённому развёртыванию в [отчёте по серверной части](./Docs/Backend.md#развёртывание-). 
+
+1. Клонируйте репозиторий
+```bash
+    git clone https://github.com/Balalaikajun/OurTube/tree/develop
+    cd OutTube
+```
+2. Создайте файл .env в OurTube/infrastructure на основе OurTube/infrastructure/.env.example
+```bash
+    cd infrastructure
+    cp .env.dev.example .env.dev
+```
+3. Запустите процесс развёртывания
+```bash
+    docker-compose -f staging-compose.yml up 
+```
+4. Доступ к приложению
+- Приложение: http://localhost
+- Документация Swagger: http://localhost:8080

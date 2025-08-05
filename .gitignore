@@ -72,7 +72,7 @@ yarn-error.log
 .idea/
 *.sln.iml
 /backend/src/OurTube.Api/appsettings.json
-/infrastructure/.env
+/infrastructure/.env.dev
 /frontend/.env
 
 # Serts

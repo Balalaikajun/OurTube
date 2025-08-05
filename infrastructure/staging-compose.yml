@@ -1,5 +1,5 @@
 version: '3.9'
-
+name: OurTube-staging
 services:
   minio:
     image: quay.io/minio/minio
@@ -60,7 +60,8 @@ services:
       Minio__AccessKey: ${MINIO__ACCESSKEY}
       Minio__SecretKey: ${MINIO__SECRETKEY}
       Minio__Endpoint: ${MINIO__ENDPOINT}
-      FFmpeg__ExecutablesPath: ${FFMPEG__EXECUTABLESPATH}
+      FFMPEG__AUTODOWNLOAD: false
+      FFmpeg__ExecutablesPath: /usr/bin
     volumes:
       - data-protection-keys:/root/.aspnet/DataProtection-Keys
       - ./wait-for-it.sh:/wait-for-it.sh

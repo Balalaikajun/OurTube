@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
@@ -26,8 +27,12 @@ builder.Configuration.AddEnvironmentVariables();
 var configuration = builder.Configuration;
 
 // Infrastructure
+var exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+    ? "ffmpeg.exe"
+    : "ffmpeg";
 var ffmpegPath = configuration["FFmpeg:ExecutablesPath"];
-if (!File.Exists(ffmpegPath + "/ffmpeg.exe"))
+var fullPath = Path.Combine(ffmpegPath, exeName);
+if (!File.Exists(fullPath))
 {
     if(configuration.GetValue<bool>("FFmpeg:AutoDownload"))
     {

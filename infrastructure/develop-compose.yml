@@ -1,5 +1,5 @@
 version: '3.9'
-
+name: OurTube-development
 services:
   minio:
     image: quay.io/minio/minio
@@ -44,4 +44,3 @@ services:
 volumes:
   minio_data:
   postgres_data:
-  data-protection-keys:

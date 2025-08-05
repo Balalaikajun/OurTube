@@ -15,7 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OurTube.Api", "src\OurTube.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{0353F9B4-C9AF-4488-BA0E-D81CEB7B2FD8}"
 	ProjectSection(SolutionItems) = preProject
-		Readme.md = Readme.md
 		..\.gitignore = ..\.gitignore
 		..\infrastructure\.env = ..\infrastructure\.env
 		..\infrastructure\.env.example = ..\infrastructure\.env.example
@@ -26,7 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		..\frontend\conf.d\http.conf = ..\frontend\conf.d\http.conf
 		..\frontend\conf.d\https.conf = ..\frontend\conf.d\https.conf
 		..\frontend\conf.d\nginx.conf = ..\frontend\conf.d\nginx.conf
-		..\infrastructure\production-local-compose.yml = ..\infrastructure\production-local-compose.yml
+		..\infrastructure\staging-compose.yml = ..\infrastructure\staging-compose.yml
 	EndProjectSection
 EndProject
 Global
