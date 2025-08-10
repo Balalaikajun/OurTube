@@ -1,5 +1,6 @@
+# Сборка
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /app
+WORKDIR /src
 
 COPY *.sln ./
 COPY src/OurTube.Api/OurTube.Api.csproj ./src/OurTube.Api/
@@ -11,8 +12,9 @@ RUN dotnet restore
 
 COPY . .
 
-RUN dotnet publish src/OurTube.Api/OurTube.Api.csproj -c Debug -o /app/out
+RUN dotnet publish src/OurTube.Api/OurTube.Api.csproj -c Release -o /app/out
 
+# Рантайм
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
@@ -24,8 +26,4 @@ EXPOSE 8080
 
 COPY --from=build /app/out ./
 
-
-EXPOSE 80
-
 CMD ["dotnet", "OurTube.Api.dll"]
-

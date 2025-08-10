@@ -77,3 +77,7 @@ yarn-error.log
 
 # Serts
 *.pem
+
+# Переменные окружения
+.env*
+!.env.*.example
