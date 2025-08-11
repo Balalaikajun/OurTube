@@ -215,7 +215,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
         c.OAuthClientId("swagger-client-id");
         c.OAuthAppName("Swagger UI");
-        c.RoutePrefix = string.Empty; 
+        c.RoutePrefix = "swagger"; 
     });
 }
 

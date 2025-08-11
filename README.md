@@ -1,50 +1,73 @@
 # OurTube
-**OurTube** - видеохостинг, разработанный в качестве курсового проекта.
+**OurTube** — учебный видеохостинг (курсовой проект).
 
-Подробно ознакомиться с проделанной можете в соответствующих разделах:
-1. [Фронтенд и дизайн](./Documentation/Frontend.md) - разработал [KrakishMusta](https://github.com/KrakishMusta)
-2. [Бекэнд и развёртывание](./Documentation/Backend.md) - разработал [Balalaikajun ](https://github.com/Balalaikajun)
-
-## Функционал
-В рамках проекта перед нами стояла задача реализовать минимально жизнеспособный продукт, реализующий базовый функционал подобных видеохостинга, а именно: 
-1. Авторизация и регистрация пользователей;
-2. Просмотр и загрузка видео;
-3. Комментарии;
-4. Плейлисты;
-5. Реакций для видео и комментариев;
-6. История просмотров;
-7. Механизм рекомендаций.
-
-## Стек технологий и архитектура
-- ASP.NET 8.0
-- Vue.js 3.5.17
-- PostgreSQL
-- MinIO
-- Git/GitHub
-- Docker
-- Nginx
-
-todo: Превратить в красивые логотипы
+Коротко: минимально жизнеспособный продукт (MVP) с базовым функционалом видеохостинга: загрузка и просмотр видео, комментарии, плейлисты, реакции, история просмотров и рекомендации.
 
 ## Демонстрация
 
-## Установка
-Далее приведена инструкция по развёртыванию локально, с целью тестирования проекта. Инструкции по другим вариантам развёртывания приведена в разделе посвящённому развёртыванию в [отчёте по серверной части](./Docs/Backend.md#развёртывание-). 
+## Функционал 
+В рамках проект нашей задачей было реализовать следующий функционал:
+- Регистрация и авторизация пользователей
+- Загрузка и просмотр видео
+- Комментарии к видео
+- Плейлисты
+- Реакции (лайки/дизлайки) для видео и комментариев
+- История просмотров
+- Рекомендации
 
-1. Клонируйте репозиторий
+## Стек технологий
+- Backend: ASP.NET 9.0
+- Frontend: Vue.js 3.5.x
+- База данных: PostgreSQL 17.x
+- Хранение файлов: MinIO
+- Контейнеризация: Docker, Docker Compose
+- Reverse proxy: Nginx
+
+## Архитектура и решения
+Подробнее о решении и выводы о проделанной работе:
+- [Бекэнд и развёртывание](./Documentation/Backend.md)
+- [Фронтенд и дизайн](./Documentation/Frontend.md) 
+
+## Установка
+Далее приведена инструкция по развёртыванию стендовой версии проекта, для тестирования. В данной конфигурации не настроена рассылка почты из-за чего некоторый второстепенный функционал будет недоступен.
+Ознакомится с другими вариантами развёртывания можете по [ссылке](./Documentation/Backend.md#развёртывание).
+
+0. Требования
+- Docker ≥ 27.1.1
+- Docker Compose ≥ 2.29.2
+- Git ≥ 2.46.0
+
+1. Клонируйте и перейдите в папку репозитория
 ```bash
-    git clone https://github.com/Balalaikajun/OurTube/tree/develop
-    cd OutTube
+  git clone https://github.com/Balalaikajun/OurTube.git
+  cd OurTube
+  git checkout develop
 ```
-2. Создайте файл .env в OurTube/infrastructure на основе OurTube/infrastructure/.env.example
+2. Создайте файл стендовых настроек .env.staging в OurTube/infrastructure на основе OurTube/infrastructure/.env.staging.example
 ```bash
     cd infrastructure
-    cp .env.dev.example .env.dev
+    cp .env.staging.example .env.staging
 ```
-3. Запустите процесс развёртывания
+3. Запустить
 ```bash
-    docker-compose -f staging-compose.yml up 
+    docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
 ```
 4. Доступ к приложению
 - Приложение: http://localhost
-- Документация Swagger: http://localhost:8080
+- Документация Swagger: http://localhost:8080/swagger
+- Админка MinIO: http://localhost:9090 
+  - Login: your-minio-access-key
+  - Password: your-minio-secret-key
+- PostgreSQL:
+  - Host: localhost
+  - Port: 5432
+  - Login: postgres
+  - Password: postgres
+5. Остановить
+```bash
+    docker-compose -f docker-compose.yml -f docker-compose.staging.yml down
+```
+
+## Участники
+- [Balalaikajun ](https://github.com/Balalaikajun) - Бэкенд и развёртывание 
+- [KrakishMusta](https://github.com/KrakishMusta) - Фронтенд и дизайн
