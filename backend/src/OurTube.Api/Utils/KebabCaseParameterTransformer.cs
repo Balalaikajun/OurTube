@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace OurTube.Api.Other;
+namespace OurTube.Api.Utils;
 
 public class KebabCaseParameterTransformer: IOutboundParameterTransformer
 {

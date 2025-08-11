@@ -13,20 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OurTube.Infrastructure", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OurTube.Api", "src\OurTube.Api\OurTube.Api.csproj", "{50410001-3918-43A6-925D-AA73D5E52574}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{0353F9B4-C9AF-4488-BA0E-D81CEB7B2FD8}"
-	ProjectSection(SolutionItems) = preProject
-		..\.gitignore = ..\.gitignore
-		..\infrastructure\.env = ..\infrastructure\.env
-		..\infrastructure\.env.example = ..\infrastructure\.env.example
-		..\infrastructure\develop-compose.yml = ..\infrastructure\develop-compose.yml
-		..\infrastructure\production-compose.yml = ..\infrastructure\production-compose.yml
-		..\frontend\Dockerfile = ..\frontend\Dockerfile
-		..\frontend\conf.d\http.conf = ..\frontend\conf.d\http.conf
-		..\frontend\conf.d\https.conf = ..\frontend\conf.d\https.conf
-		..\infrastructure\staging-compose.yml = ..\infrastructure\staging-compose.yml
-		..\frontend\.dockerignore = ..\frontend\.dockerignore
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

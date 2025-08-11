@@ -9,6 +9,15 @@
 
     <ItemGroup>
         <Compile Remove="Migrations\**"/>
+        <Compile Include="Migrations\20250727074636_Initial.cs" />
+        <Compile Include="Migrations\20250727074636_Initial.Designer.cs" />
+        <Compile Include="Migrations\20250727083616_Update.cs" />
+        <Compile Include="Migrations\20250727083616_Update.Designer.cs" />
+        <Compile Include="Migrations\20250727095446_RemoveExtraId.cs" />
+        <Compile Include="Migrations\20250727095446_RemoveExtraId.Designer.cs" />
+        <Compile Include="Migrations\20250727103607_AddIndexes.cs" />
+        <Compile Include="Migrations\20250727103607_AddIndexes.Designer.cs" />
+        <Compile Include="Migrations\ApplicationDbContextModelSnapshot.cs" />
         <EmbeddedResource Remove="Migrations\**"/>
         <None Remove="Migrations\**"/>
     </ItemGroup>
@@ -39,11 +48,6 @@
     <ItemGroup>
         <ProjectReference Include="..\OurTube.Application\OurTube.Application.csproj"/>
         <ProjectReference Include="..\OurTube.Domain\OurTube.Domain.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Data\Migrations\" />
-        <Folder Include="Data\Migrations\ApplicationDb\" />
     </ItemGroup>
 
 </Project>

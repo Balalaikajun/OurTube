@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OurTube.Api.Middlewares;
-using OurTube.Api.Other;
+using OurTube.Api.Utils;
 using OurTube.Application.Handlers;
 using OurTube.Application.Interfaces;
 using OurTube.Application.Mapping;
