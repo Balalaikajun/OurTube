@@ -53,11 +53,11 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./conf.d:/etc/nginx/conf.d:ro
+      - ./conf.d/http.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - backend
     restart: unless-stopped
-    command: [ "-g", "daemon off;", "-c", "/etc/nginx/http.conf" ]
+    command: [ "-g", "daemon off;"]
 
 
 volumes:

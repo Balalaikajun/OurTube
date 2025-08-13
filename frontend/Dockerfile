@@ -17,7 +17,6 @@ FROM nginx:stable-alpine AS production-stage
 RUN apk add --no-cache curl bash
 
 COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY conf.d/ /etc/nginx
 
 EXPOSE 80
 

@@ -55,12 +55,11 @@
         - "443:443"
       volumes:
         - ./certs:/etc/nginx/ssl:ro 
-        - ./conf.d:/etc/nginx/conf.d:ro
+        - ./conf.d/https.conf:/etc/nginx/nginx.conf:ro
       depends_on:
         - backend
       restart: unless-stopped
-      command: [ "-g", "daemon off;", "-c", "/etc/nginx/https.conf" ]
-  
+      command: [ "-g", "daemon off;" ]
   
   volumes:
     data-protection-keys:
