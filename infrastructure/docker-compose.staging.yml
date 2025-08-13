@@ -61,6 +61,4 @@ services:
 
 
 volumes:
-  minio_data:
-  postgres_data:
   data-protection-keys:

@@ -34,7 +34,7 @@ var ffmpegPath = configuration["FFmpeg:ExecutablesPath"];
 var fullPath = Path.Combine(ffmpegPath, exeName);
 if (!File.Exists(fullPath))
 {
-    if(configuration.GetValue<bool>("FFmpeg:AutoDownload"))
+    if (configuration.GetValue<bool>("FFmpeg:AutoDownload"))
     {
         Console.WriteLine("Исполняемые файлы ffmpeg не найдены");
         await FfmpegProcessor.DownloadAndExtractFFmpegAsync(ffmpegPath);
@@ -44,6 +44,7 @@ if (!File.Exists(fullPath))
         throw new FileNotFoundException("ffmpeg.exe not found");
     }
 }
+
 FFmpeg.SetExecutablesPath(configuration["FFmpeg:ExecutablesPath"]);
 
 
@@ -75,7 +76,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = PathString.Empty;
     options.AccessDeniedPath = PathString.Empty;
-    
+
     options.Events.OnRedirectToLogin = context =>
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -157,20 +158,17 @@ services.Configure<FormOptions>(options => { options.MultipartBodyLengthLimit = 
 
 // Controllers & Swagger
 services.AddEndpointsApiExplorer();
-if (builder.Environment.IsDevelopment())
+services.AddSwaggerGen(c =>
 {
-    services.AddSwaggerGen(c =>
-    {
-        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
-        
-        var xmlDtoPath = Path.Combine(AppContext.BaseDirectory, "OurTube.Application.xml");
-        c.IncludeXmlComments(xmlDtoPath);
-        
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
-    });
-}
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+
+    var xmlDtoPath = Path.Combine(AppContext.BaseDirectory, "OurTube.Application.xml");
+    c.IncludeXmlComments(xmlDtoPath);
+
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "OurTube API", Version = "v1" });
+});
 
 services.AddControllers();
 
@@ -206,18 +204,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Middleware
-
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
-        c.OAuthClientId("swagger-client-id");
-        c.OAuthAppName("Swagger UI");
-        c.RoutePrefix = "swagger"; 
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+    c.OAuthClientId("swagger-client-id");
+    c.OAuthAppName("Swagger UI");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseMiddleware<ErrorHendlingMiddlware>();
 
