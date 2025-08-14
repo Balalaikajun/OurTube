@@ -5,7 +5,7 @@ namespace OurTube.Application.Requests.Common;
 /// <summary>
 ///     Базовый запрос для получения элементов с параметрами пагинации и фильтрации.
 /// </summary>
-public class GetQuaryParameters
+public class GetQueryParameters
 {
     /// <summary>
     ///     Максимальное количество комментариев, возвращаемых за один запрос. (По умолчанию 10)

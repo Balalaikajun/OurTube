@@ -26,7 +26,7 @@ public class RecommendationService : IRecomendationService
         _videoService = videoService;
     }
 
-    public async Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId,  GetQuaryParameters parameters)
+    public async Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId,  GetQueryParameters parameters)
     {
         var cacheKey = GetRecommendationsCacheKey(sessionId);
 
@@ -55,9 +55,9 @@ public class RecommendationService : IRecomendationService
 
         if (cachedRecommendations.Count <= parameters.After + parameters.Limit && cachedRecommendations.Count < totalVideoCount)
         {
-            if (!string.IsNullOrEmpty(userId.ToString()))
+            if (userId.HasValue)
                 cachedRecommendations.AddRange(
-                    await LoadAuthorizedRecommendationsAsync(userId!.Value, sessionId, RecommendationPullCount));
+                    await LoadAuthorizedRecommendationsAsync(userId.Value, sessionId, RecommendationPullCount));
             else
                 cachedRecommendations.AddRange(
                     await LoadAnAuthorizedRecommendationsAsync(sessionId, RecommendationPullCount));
@@ -75,24 +75,36 @@ public class RecommendationService : IRecomendationService
         };
     }
 
-    public async Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,  GetQuaryParameters parameters)
+    public async Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,  GetQueryParameters parameters)
     {
-        var result = await GetRecommendationsAsync(userId, sessionId, parameters);
-
-        if (result.Elements.Any(v => v.Id == videoId))
+        await GetRecommendationsAsync(userId, sessionId, new GetQueryParameters
         {
-            var oneMore = await GetRecommendationsAsync(userId, sessionId, parameters);
+            After = parameters.After,
+            Limit = Math.Max(parameters.Limit, 1),
+            Reload = false
+        });
 
-            var videos = result.Elements.ToList();
-            videos.Remove(videos.First(v => v.Id == videoId));
-            var newVideo = oneMore.Elements.FirstOrDefault();
-            if(newVideo != null)
-                videos.Add(newVideo);
-            result.Elements = videos;
-            result.NextAfter = oneMore.NextAfter;
+        _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<Guid>? cached);
+        cached ??= new List<Guid>();
+
+        var resultIds = new List<Guid>(parameters.Limit);
+        int index = Math.Max(0, parameters.After);
+
+        while (resultIds.Count < parameters.Limit && index < cached.Count)
+        {
+            var id = cached[index++];
+            if (id == videoId) continue;
+            resultIds.Add(id);
         }
-        
-        return result;
+
+        var videos = await _videoService.GetVideosByIdAsync(resultIds);
+
+        return new ListReply<MinVideo>
+        {
+            Elements = videos,
+            NextAfter = index,                       // важный момент: NextAfter — позиция в cachedRecommendations
+            HasMore = cached.Count > index
+        };
     }
 
     private async Task<IEnumerable<Guid>> LoadAuthorizedRecommendationsAsync(Guid userId, Guid sessionId, int limit)
