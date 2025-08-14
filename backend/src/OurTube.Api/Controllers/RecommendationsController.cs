@@ -36,7 +36,7 @@ public class RecommendationsController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> Get(
-        [FromQuery] GetQuaryParameters parameters)
+        [FromQuery] GetQueryParameters parameters)
     {
         var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         Guid? userId = null;
@@ -72,7 +72,7 @@ public class RecommendationsController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> GetForVideo(
         Guid videoId,
-        [FromQuery] GetQuaryParameters parameters)
+        [FromQuery] GetQueryParameters parameters)
     {
         var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         Guid? userId = null;

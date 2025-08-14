@@ -81,7 +81,7 @@ public class RecommendationService : IRecomendationService
         {
             After = parameters.After,
             Limit = Math.Max(parameters.Limit, 1),
-            Reload = false
+            Reload = parameters.Reload
         });
 
         _cache.TryGetValue(GetRecommendationsCacheKey(sessionId), out List<Guid>? cached);
@@ -102,7 +102,7 @@ public class RecommendationService : IRecomendationService
         return new ListReply<MinVideo>
         {
             Elements = videos,
-            NextAfter = index,                       // важный момент: NextAfter — позиция в cachedRecommendations
+            NextAfter = index,                    
             HasMore = cached.Count > index
         };
     }
