@@ -2,7 +2,6 @@
 import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/assets/utils/api.js'
-import MasterHead from '../components/Solid/MasterHead.vue'
 import ConfirmPannel from '@/components/Solid/ConfirmPannel.vue'
 import PlaylistOverlay from '@/components/Playlist/PlaylistsOverlay.vue'
 import VideoPlayer from '@/components/Video/VideoPlayer.vue'
@@ -19,394 +18,398 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
 // const userStore = useUserStore();
 
-  const route = useRoute();
-  const videoPage = ref(null);
-  const videoId = ref(null);
-  const Player = ref(null);
-  const addComment = ref(null);
-  const videoData = ref(null);
-  const hlsUrlFiles = ref([]);
-  const isLoading = ref(true);
-  const error = ref(null);
+const route = useRoute()
+const videoPage = ref(null)
+const videoId = ref(null)
+const Player = ref(null)
+const addComment = ref(null)
+const videoData = ref(null)
+const hlsUrlFiles = ref([])
+const isLoading = ref(true)
+const error = ref(null)
 
-  const desktopRecommendations = ref(null);
-  const mobileRecommendations = ref(null);
-  const isMobileLayout = ref(window.innerWidth < 1000);
-  const isRow = ref(false);
-  const contentWrapper = ref(null);
-  const resizeObserver = ref(null);
+const desktopRecommendations = ref(null)
+const mobileRecommendations = ref(null)
+const isMobileLayout = ref(window.innerWidth < 1000)
+const isRow = ref(false)
+const contentWrapper = ref(null)
+const resizeObserver = ref(null)
 
-  const shareRef = ref(null);
-  const confirmRef = ref(null);
-  const commentsRef = ref(null);
-  const playlistRef = ref(null);
+const shareRef = ref(null)
+const confirmRef = ref(null)
+const commentsRef = ref(null)
+const playlistRef = ref(null)
 
-  const confirmContext = ref("")
+const confirmContext = ref('')
 
-  const userData = JSON.parse(localStorage.getItem('userData'));
-  const userVideoOwnerData = ref({});
-  const currentUserId = ref(userData?.id);
+const userData = JSON.parse(localStorage.getItem('userData'))
+const userVideoOwnerData = ref({})
+const currentUserId = ref(userData?.id)
 
-  const isVideoOwner = computed(() => {
-    return videoData.value?.user?.id && currentUserId.value === videoData.value.user.id;
-  });
+const isVideoOwner = computed(() => {
+  return videoData.value?.user?.id && currentUserId.value === videoData.value.user.id
+})
 
-  provide('videoId', videoId);
+provide('videoId', videoId)
 
-  const showFullDescription = ref(false);
-  const { isClamped: isDescriptionClamped, checkTextOverflow } = useTextOverflow()
-  const descriptionElement = ref(null); 
+const showFullDescription = ref(false)
+const { isClamped: isDescriptionClamped, checkTextOverflow } = useTextOverflow()
+const descriptionElement = ref(null)
 
-  const { focusedElement } = useFocusEngine();
+const { focusedElement } = useFocusEngine()
 
-  const ensureHttpUrl = (url) => {
-    if (!url) return '';
-    return url.startsWith('http') ? url : `http://${url}`;
-  };
+const ensureHttpUrl = (url) => {
+  if (!url) return ''
+  return url.startsWith('http') ? url : `http://${url}`
+}
 
-  const addToHistory = async () => {
-    try {
-      // console.log(videoId.value);
-      await api.post(`/users/me/watch-history/videos/${videoId.value}`, {
-        endTime: "0"
-      });
-      // console.log('Added to history');
-    } catch (error) {
-      console.error('History error:', error);
-    }
-  };
+const addToHistory = async () => {
+  try {
+    // console.log(videoId.value);
+    await api.post(`/users/me/watch-history/videos/${videoId.value}`, {
+      endTime: '0'
+    })
+    // console.log('Added to history');
+  } catch (error) {
+    console.error('History error:', error)
+  }
+}
 
-  const handleKeyDown = (e) => {
-    if (focusedElement.value || !Player.value) return;
+const handleKeyDown = (e) => {
+  if (focusedElement.value || !Player.value) return
 
-    if (e.code === 'KeyF') {
-      e.preventDefault();
-      Player.value.toggleFullscreen();
-    } else if (e.code === 'Space') {
-      e.preventDefault();
-      if (Player.value.videoPlayerRef) {
-        Player.value.videoPlayerRef.paused
+  if (e.code === 'KeyF') {
+    e.preventDefault()
+    Player.value.toggleFullscreen()
+  } else if (e.code === 'Space') {
+    e.preventDefault()
+    if (Player.value.videoPlayerRef) {
+      Player.value.videoPlayerRef.paused
           ? Player.value.videoPlayerRef.play()
-          : Player.value.videoPlayerRef.pause();
-      }
+          : Player.value.videoPlayerRef.pause()
     }
-  };
+  }
+}
 
-  const fetchVideoData = async () => {
-    isLoading.value = true;
-    error.value = null;
-    videoData.value = null;
-    hlsUrlFiles.value = [];
+const fetchVideoData = async () => {
+  isLoading.value = true
+  error.value = null
+  videoData.value = null
+  hlsUrlFiles.value = []
 
-    // console.log("Fetching video data for ID:", videoId.value);
+  // console.log("Fetching video data for ID:", videoId.value);
 
-    if (!videoId.value) {
-      error.value = "Идентификатор видео не предоставлен.";
-      isLoading.value = false;
-      return;
-    }
-
-    try {
-      // console.log(videoId.value, 1)
-      const response = await api.get(`videos/${videoId.value}`);
-      const data = response.data;
-
-      // console.log(data, "Информация о видео");
-
-      if (!data) {
-        throw new Error("Получены пустые данные видео");
-      }
-
-      if (!data.files || data.files.length === 0) {
-        console.warn(`Видео ${videoId.value} не содержит файлов.`);
-      }
-
-      videoData.value = data;
-
-      if (data.files?.length) {
-        const file = data.files[0];
-        if (file.fileName) {
-          // console.log()
-          // hlsUrlFiles.value = ensureHttpUrl(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${file.fileName}`);
-          hlsUrlFiles.value = data.files
-          // console.log(hlsUrlFiles.value)
-          // console.log("HLS URL:", hlsUrlFiles.value);
-        } else {
-          console.warn(`Файл для видео ${videoId.value} не имеет fileName.`);
-          hlsUrlFiles.value = [];
-        }
-      } else {
-        hlsUrlFiles.value = [];
-      }
-
-      document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp';
-
-      nextTick(() => {
-        checkTextOverflow(descriptionElement.value, "Описание к видео");
-      });
-    } catch (err) {
-      if (err.response) {
-        error.value = err.response.data?.title || 'Ошибка загрузки видео';
-        console.error("Ошибка API:", err.response);
-      } else {
-        error.value = err.message || 'Ошибка при загрузке видео';
-        console.error("Ошибка при загрузке видео:", err);
-      }
-      videoData.value = null;
-      hlsUrlFiles.value = [];
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  const handleShareClick = () => {
-    if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
-      shareRef.value.openMenu();
-    } else {
-      console.error('ShareOverlay ref is not properly set or missing openMenu method');
-    }
-  };
-
-  const handleDeleteComment = () => {
-      confirmContext.value = "Удаление комментария";
-      confirmRef.value.openMenu();
-  };
-
-  const handleConfirmDelete = () => {
-      if (commentsRef.value) {
-          commentsRef.value.deleteComment();
-      }
-  };
-
-  const saveOpen = (videoId) => {
-      playlistRef.value.toggleMenu(videoId);
+  if (!videoId.value) {
+    error.value = 'Идентификатор видео не предоставлен.'
+    isLoading.value = false
+    return
   }
 
-  const debounce = (fn, delay) => {
-    let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => fn.apply(this, args), delay);
-    };
-  };
+  try {
+    // console.log(videoId.value, 1)
+    const response = await api.get(`videos/${videoId.value}`)
+    const data = response.data
 
-  const checkLayout = debounce(() => {
-    if (!contentWrapper.value) {
-      console.warn("Content wrapper not available");
-      return;
-    }
-    
-    const width = contentWrapper.value.offsetWidth;
-    
-    if (width !== lastWidth.value) {
-      isRow.value = width < 1200 && !isMobileLayout.value;
-      isMobileLayout.value = width < 1000; // Например, для экранов уже 768px
-      lastWidth.value = width;
-    }
-  }, 100);
+    // console.log(data, "Информация о видео");
 
-  const lastWidth = ref(0);
-
-  const initResizeObserver = async () => {
-    await nextTick();
-    
-    if (!contentWrapper.value) {
-      console.error("Content wrapper element not found!");
-      return;
+    if (!data) {
+      throw new Error('Получены пустые данные видео')
     }
 
-    if (resizeObserver.value) {
-      resizeObserver.value.disconnect();
+    if (!data.files || data.files.length === 0) {
+      console.warn(`Видео ${videoId.value} не содержит файлов.`)
     }
 
-    resizeObserver.value = new ResizeObserver(checkLayout);
-    resizeObserver.value.observe(contentWrapper.value);
-    
-    const width = contentWrapper.value.offsetWidth;
-    isRow.value = 1200 < width;
-    lastWidth.value = width;
-  };
+    videoData.value = data
 
-  onMounted(async () => {    
-    isMobileLayout.value = window.innerWidth < 1000;
-    isRow.value = window.innerWidth < 1200 && !isMobileLayout.value;
-  
-    videoId.value = route.params.id;
-
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('resize', () => {
-      checkTextOverflow(descriptionElement.value, "Описание к видео");
-    });
-
-    await initResizeObserver();
-  });
-  onUnmounted( async () => {
-    // console.log("Размонтирование VideoPage");
-    await addToHistory();
-    document.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, "Описание к видео")); // Удаляем при размонтировании
-
-    if (Player.value) {
-      // console.log("Player ref существует, попытка очистки");
-      if (typeof Player.value.destroyPlayer === 'function') {
-        // console.log("Вызов destroyPlayer");
-        Player.value.destroyPlayer();
-      }
-      if (Player.value.videoPlayerRef) {
-          // console.log("Ручная очистка video элемента");
-          try {
-              Player.value.videoPlayerRef.pause();
-              // Важно: удаляем src, а не устанавливаем null или пустую строку,
-              // чтобы полностью отсоединить ресурс. load() затем очистит буфер.
-              Player.value.videoPlayerRef.removeAttribute('src');
-              Player.value.videoPlayerRef.load();
-          } catch (e) {
-              console.error("Ошибка при ручной очистке video элемента:", e);
-          }
+    if (data.files?.length) {
+      const file = data.files[0]
+      if (file.fileName) {
+        // console.log()
+        // hlsUrlFiles.value = ensureHttpUrl(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${file.fileName}`);
+        hlsUrlFiles.value = data.files
+        // console.log(hlsUrlFiles.value)
+        // console.log("HLS URL:", hlsUrlFiles.value);
+      } else {
+        console.warn(`Файл для видео ${videoId.value} не имеет fileName.`)
+        hlsUrlFiles.value = []
       }
     } else {
-      // console.log("Player ref уже null или недоступен, очистка не требуется");
-    }
-    if (window.controlPanelTimeout) {
-      clearTimeout(window.controlPanelTimeout);
+      hlsUrlFiles.value = []
     }
 
-    if (resizeObserver.value && contentWrapper.value) {
-      resizeObserver.value.unobserve(contentWrapper.value);
+    document.title = videoData.value.title ? `${videoData.value.title}` : 'MyApp'
+
+    nextTick(() => {
+      checkTextOverflow(descriptionElement.value, 'Описание к видео')
+    })
+  } catch (err) {
+    if (err.response) {
+      error.value = err.response.data?.title || 'Ошибка загрузки видео'
+      console.error('Ошибка API:', err.response)
+    } else {
+      error.value = err.message || 'Ошибка при загрузке видео'
+      console.error('Ошибка при загрузке видео:', err)
     }
+    videoData.value = null
+    hlsUrlFiles.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
 
-    videoData.value = null;
-    hlsUrlFiles.value = [];
-  });
-  const commentsCount = computed(() => {
-    // console.log(videoData.value?.commentsCount || 0)
-    return videoData.value?.commentsCount || 0;
-  });
+const handleShareClick = () => {
+  if (shareRef.value && typeof shareRef.value.openMenu === 'function') {
+    shareRef.value.openMenu()
+  } else {
+    console.error('ShareOverlay ref is not properly set or missing openMenu method')
+  }
+}
 
-  // Добавляем watcher для videoId
-  watch(videoId, (newVideoId, oldVideoId) => {
-      // console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
-      // Если новый videoId отличается от старого и не пустой, загружаем новые данные
-      if (newVideoId && newVideoId !== oldVideoId) {
-          fetchVideoData();
-      } else if (!newVideoId) {
-          // Обработка случая, когда videoId становится пустым (например, при ошибке маршрутизации)
-          videoData.value = null;
-          hlsUrlFiles.value = [];
-          isLoading.value = false;
-          error.value = "Идентификатор видео отсутствует.";
+const handleDeleteComment = () => {
+  confirmContext.value = 'Удаление комментария'
+  confirmRef.value.openMenu()
+}
+
+const handleConfirmDelete = () => {
+  if (commentsRef.value) {
+    commentsRef.value.deleteComment()
+  }
+}
+
+const saveOpen = (videoId) => {
+  playlistRef.value.toggleMenu(videoId)
+}
+
+const debounce = (fn, delay) => {
+  let timeoutId
+  return (...args) => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => fn.apply(this, args), delay)
+  }
+}
+
+const checkLayout = debounce(() => {
+  if (!contentWrapper.value) {
+    console.warn('Content wrapper not available')
+    return
+  }
+
+  const width = contentWrapper.value.offsetWidth
+
+  if (width !== lastWidth.value) {
+    isRow.value = width < 1200 && !isMobileLayout.value
+    isMobileLayout.value = width < 1000 // Например, для экранов уже 768px
+    lastWidth.value = width
+  }
+}, 100)
+
+const lastWidth = ref(0)
+
+const initResizeObserver = async () => {
+  await nextTick()
+
+  if (!contentWrapper.value) {
+    console.error('Content wrapper element not found!')
+    return
+  }
+
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect()
+  }
+
+  resizeObserver.value = new ResizeObserver(checkLayout)
+  resizeObserver.value.observe(contentWrapper.value)
+
+  const width = contentWrapper.value.offsetWidth
+  isRow.value = 1200 < width
+  lastWidth.value = width
+}
+
+onMounted(async () => {
+  isMobileLayout.value = window.innerWidth < 1000
+  isRow.value = window.innerWidth < 1200 && !isMobileLayout.value
+
+  videoId.value = route.params.id
+
+  document.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('resize', () => {
+    checkTextOverflow(descriptionElement.value, 'Описание к видео')
+  })
+
+  await initResizeObserver()
+})
+onUnmounted(async () => {
+  // console.log("Размонтирование VideoPage");
+  await addToHistory()
+  document.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('resize', checkTextOverflow(descriptionElement.value, 'Описание к видео')) // Удаляем при размонтировании
+
+  if (Player.value) {
+    // console.log("Player ref существует, попытка очистки");
+    if (typeof Player.value.destroyPlayer === 'function') {
+      // console.log("Вызов destroyPlayer");
+      Player.value.destroyPlayer()
+    }
+    if (Player.value.videoPlayerRef) {
+      // console.log("Ручная очистка video элемента");
+      try {
+        Player.value.videoPlayerRef.pause()
+        // Важно: удаляем src, а не устанавливаем null или пустую строку,
+        // чтобы полностью отсоединить ресурс. load() затем очистит буфер.
+        Player.value.videoPlayerRef.removeAttribute('src')
+        Player.value.videoPlayerRef.load()
+      } catch (e) {
+        console.error('Ошибка при ручной очистке video элемента:', e)
       }
-  });
+    }
+  } else {
+    // console.log("Player ref уже null или недоступен, очистка не требуется");
+  }
+  if (window.controlPanelTimeout) {
+    clearTimeout(window.controlPanelTimeout)
+  }
 
-  // Дополнительный watcher для videoData, чтобы обновить описание после загрузки
-  watch(videoData, (newData) => {
-      if (newData) {
-          nextTick(() => {
-              checkTextOverflow(descriptionElement.value, "Описание к видео");
-          });
-      }
-  });
+  if (resizeObserver.value && contentWrapper.value) {
+    resizeObserver.value.unobserve(contentWrapper.value)
+  }
+
+  videoData.value = null
+  hlsUrlFiles.value = []
+})
+const commentsCount = computed(() => {
+  // console.log(videoData.value?.commentsCount || 0)
+  return videoData.value?.commentsCount || 0
+})
+
+// Добавляем watcher для videoId
+watch(videoId, (newVideoId, oldVideoId) => {
+  // console.log(`videoId changed from ${oldVideoId} to ${newVideoId}`);
+  // Если новый videoId отличается от старого и не пустой, загружаем новые данные
+  if (newVideoId && newVideoId !== oldVideoId) {
+    fetchVideoData()
+  } else if (!newVideoId) {
+    // Обработка случая, когда videoId становится пустым (например, при ошибке маршрутизации)
+    videoData.value = null
+    hlsUrlFiles.value = []
+    isLoading.value = false
+    error.value = 'Идентификатор видео отсутствует.'
+  }
+})
+
+// Дополнительный watcher для videoData, чтобы обновить описание после загрузки
+watch(videoData, (newData) => {
+  if (newData) {
+    nextTick(() => {
+      checkTextOverflow(descriptionElement.value, 'Описание к видео')
+    })
+  }
+})
 </script>
 
 <template ref="videoPage">
   <!-- <MasterHead /> -->
-  <ConfirmPannel 
-    ref="confirmRef" 
-    :action="confirmContext"
-    @confirm="handleConfirmDelete"
+  <ConfirmPannel
+      ref="confirmRef"
+      :action="confirmContext"
+      @confirm="handleConfirmDelete"
   />
-  <PlaylistOverlay ref="playlistRef" 
+  <PlaylistOverlay ref="playlistRef"
   />
   <!-- :video-id="String(videoId)" -->
   <ShareOverlay
-    v-if="videoId"
-    ref="shareRef" 
-    :video-id="videoId"
+      v-if="videoId"
+      ref="shareRef"
+      :video-id="videoId"
   >
   </ShareOverlay>
   <main class="video-page" ref="contentWrapper">
     <LoadingState v-if="isLoading"></LoadingState>
-    
+
     <div v-else-if="error" class="error-message">
       {{ error }}
     </div>
-    
+
     <template v-else-if="videoData">
       <!-- <div class="video-page"> -->
-        <div class="content-wrapper">
-          <section>
-            <VideoPlayer
+      <div class="content-wrapper">
+        <section>
+          <VideoPlayer
               ref="Player"
-              v-if="hlsUrlFiles.length" 
-              :video-files="hlsUrlFiles" 
+              v-if="hlsUrlFiles.length"
+              :video-files="hlsUrlFiles"
               :poster="videoData?.thumbnailUrl"
               :key="hlsUrlFiles"
-            />
-            <div v-else class="no-video">
-              Видео недоступно
-            </div>
-          </section>
-          <section 
-            v-if="videoData" 
+          />
+          <div v-else class="no-video">
+            Видео недоступно
+          </div>
+        </section>
+        <section
+            v-if="videoData"
             class="video-info"
-          >
-            <h1 class="video-title">{{ videoData.title }}</h1>
-            <section class="channel-row">
-              <div class="channel-block">
-                <UserAvatar :user-info="videoData.user" />
-                <div class="channel-data">
-                  <p>{{videoData.user?.userName}}</p>
-                  <p class="subscribers-count">{{formatter.countFormatter(videoData.user?.subscribersCount, 'subs')}}</p>
-                </div>
-                <button v-auth="true" v-if="!isVideoOwner"  style="color: #100E0E; font-size: 0.9rem; cursor: default;" :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
-                  {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}
-                </button>
+        >
+          <h1 class="video-title">{{ videoData.title }}</h1>
+          <section class="channel-row">
+            <div class="channel-block">
+              <UserAvatar :user-info="videoData.user"/>
+              <div class="channel-data">
+                <p>{{ videoData.user?.userName }}</p>
+                <p class="subscribers-count">
+                  {{ formatter.countFormatter(videoData.user?.subscribersCount, 'subs') }}</p>
               </div>
-              <div class="actions-wrapper">
-                <ReactionBlock
-                  :context="'video'"
-                  :reaction-status="videoData?.vote"
-                  :likes-count="videoData?.likesCount" 
-                  :dislikes-count="videoData?.dislikesCount"
-                />
-                  <!-- @update-reaction="updateReaction" -->
-                <div class="secondary-actions">
-                  <button class="control-button" @click.stop="handleShareClick">
-                    Поделиться
-                  </button>
-                  <button class="control-button" @click.stop="saveOpen(videoId)">
-                    Сохранить
-                  </button>
-                </div>
-
-              </div>
-            </section>
-            <div class="video-meta">
-              <div class="video-statistic">
-                <span v-if="videoData.viewsCount != null">{{formatter.countFormatter(videoData.viewsCount, 'views')}}</span>
-                <span v-if="videoData.created">{{formatter.formatRussianDate(videoData.created)}}</span>
-              </div>
-              <p 
-                class="video-description" 
-                :class="{ 'clamped': !showFullDescription}"
-                ref="descriptionElement"
-              >
-                {{ videoData.description }}
-              </p>            
-              <button 
-                  v-if="isDescriptionClamped" 
-                  @click="showFullDescription = !showFullDescription"
-                  class="show-more-button"
-                >
-                  {{ showFullDescription ? 'Скрыть' : 'Показать больше' }}
+              <button v-auth="true" v-if="!isVideoOwner" style="color: #100E0E; font-size: 0.9rem; cursor: default;"
+                      :class="[videoData.user.isSubscribed ? 'unsub-button' : 'sub-button', 'control-button']">
+                {{ videoData.user.isSubscribed ? 'Отписаться' : 'Подписаться' }}
               </button>
             </div>
+            <div class="actions-wrapper">
+              <ReactionBlock
+                  :context="'video'"
+                  :reaction-status="videoData?.vote"
+                  :likes-count="videoData?.likesCount"
+                  :dislikes-count="videoData?.dislikesCount"
+              />
+              <!-- @update-reaction="updateReaction" -->
+              <div class="secondary-actions">
+                <button class="control-button" @click.stop="handleShareClick">
+                  Поделиться
+                </button>
+                <button class="control-button" @click.stop="saveOpen(videoId)">
+                  Сохранить
+                </button>
+              </div>
 
-            <p style="font-size: 20px; line-height: initial;">{{formatter.countFormatter(videoData.commentsCount, 'comments')}}</p>          
+            </div>
           </section>
+          <div class="video-meta">
+            <div class="video-statistic">
+              <span
+                  v-if="videoData.viewsCount != null">{{ formatter.countFormatter(videoData.viewsCount, 'views') }}</span>
+              <span v-if="videoData.created">{{ formatter.formatRussianDate(videoData.created) }}</span>
+            </div>
+            <p
+                class="video-description"
+                :class="{ 'clamped': !showFullDescription}"
+                ref="descriptionElement"
+            >
+              {{ videoData.description }}
+            </p>
+            <button
+                v-if="isDescriptionClamped"
+                @click="showFullDescription = !showFullDescription"
+                class="show-more-button"
+            >
+              {{ showFullDescription ? 'Скрыть' : 'Показать больше' }}
+            </button>
+          </div>
 
-          <aside v-if="isMobileLayout">
-            <VideosPresentation
+          <p style="font-size: 20px; line-height: initial;">
+            {{ formatter.countFormatter(videoData.commentsCount, 'comments') }}</p>
+        </section>
+
+        <aside v-if="isMobileLayout">
+          <VideosPresentation
               ref="mobileRecommendations"
               request="recomend"
               context="aside-recomend"
@@ -418,30 +421,30 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
               style="
                 padding: 2rem 0;
               "
-            />
-            <button 
-              v-if="isMobileLayout && mobileRecommendations?.hasMore" 
+          />
+          <button
+              v-if="isMobileLayout && mobileRecommendations?.hasMore"
               @click="mobileRecommendations.loadMore()"
               class="reusable-button"
               style="
                 background-color: #2D2D2D;
               "
-            >
-              Загрузить еще
-            </button>
-          </aside>
+          >
+            Загрузить еще
+          </button>
+        </aside>
 
-          <CreateCommentBlock :video-id="String(videoId)" style="margin-top: 40px;" ref="addComment"/>
-          <CommentsPresentation
+        <CreateCommentBlock :video-id="String(videoId)" style="margin-top: 40px;" ref="addComment"/>
+        <CommentsPresentation
             v-if="commentsCount !== 0"
             ref="commentsRef"
             :video-id="String(videoId)"
             @delete="handleDeleteComment"
-          />
-        </div>
-         
-        <aside class="side-recomendation" v-if="!isMobileLayout">
-          <VideosPresentation
+        />
+      </div>
+
+      <aside class="side-recomendation" v-if="!isMobileLayout">
+        <VideosPresentation
             ref="desktopRecommendations"
             request="recomend"
             context="aside-recomend"
@@ -450,8 +453,8 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
             :is-mobile="isMobileLayout"
             :row-layout="isRow"
             :is-infinite-scroll="true"
-          />
-        </aside>
+        />
+      </aside>
       <!-- </div> -->
 
     </template>
@@ -460,36 +463,36 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
 
 <style scoped>
 
- /* @media (min-width: 1920px) {
-    .video-page {
-      width: 200px;
-    }
-  }
+/* @media (min-width: 1920px) {
+   .video-page {
+     width: 200px;
+   }
+ }
 
-  @media (min-width: 1200px) and (max-width: 1920px) {
-    .video-card {
-      width: 24%;
-    }
-  }
+ @media (min-width: 1200px) and (max-width: 1920px) {
+   .video-card {
+     width: 24%;
+   }
+ }
 
-  @media (max-width: 1200px) {
-    .video-card {
-      width: 32%;
-    }
-  }
+ @media (max-width: 1200px) {
+   .video-card {
+     width: 32%;
+   }
+ }
 
-  @media (max-width: 800px) {
-    .video-card {
-      width: 49%;
-    }
-  } */
+ @media (max-width: 800px) {
+   .video-card {
+     width: 49%;
+   }
+ } */
 
 .video-page {
   display: flex;
   flex-direction: row;
   gap: 1vw;
   box-sizing: border-box;
-  width: 100%;  
+  width: 100%;
   margin-top: 70px;
   padding: 20px 100px;
 }
@@ -534,7 +537,7 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex: 1 1 auto; 
+  flex: 1 1 auto;
   min-width: min-content;
 }
 
@@ -668,15 +671,15 @@ import useTextOverflow from '@/assets/utils/useTextOverflow.js'
     flex-direction: column;
     padding: 20px;
   }
-  
+
   .content-wrapper, .side-recomendation, .mobile-recomendation {
     width: 100% !important;
   }
-  
+
   .side-recomendation {
     display: none;
   }
-  
+
   .mobile-recomendation {
     display: block;
     margin-top: 20px;

@@ -82,7 +82,7 @@
     opacity: 0;
 }
 
-.auth-form__input:focus, 
+.auth-form__input:focus,
 .auth-form__input:disabled {
     background-color: #F39E60;
     border-radius: 0px;
@@ -155,19 +155,24 @@
     .auth-page {
         flex-direction: column;
     }
+
     .auth-page__enter {
         width: 50vw;
         height: 49vh;
     }
+
     .auth-form {
         height: 100%;
     }
+
     .auth-form__input {
         width: 40vw;
     }
+
     .auth-form__submit {
         margin-bottom: 0;
     }
+
     .info-text {
         width: 100%;
     }
@@ -183,11 +188,13 @@
         width: 50vw;
     }
 }
+
 @media (max-width: 400px) {
     .auth-page__enter {
         width: 100vw;
         height: 49vh;
     }
+
     .auth-form__input {
         width: 70vw;
     }

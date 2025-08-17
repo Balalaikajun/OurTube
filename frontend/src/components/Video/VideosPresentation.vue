@@ -113,105 +113,105 @@ const navigateToVideo = (video) => {
 
 // Логика бесконечной прокрутки
 const fetchMethods = {
-    async recomend(after) {
-        const limit = computedBlocksInRow.value * 4;
+  async recomend (after) {
+    const limit = computedBlocksInRow.value * 4
 
-        try {
-            const endpoint = props.context === 'aside-recomend' 
-                ? `/recommendations/videos/${props.videoId}`
-                : '/recommendations';
+    try {
+      const endpoint = props.context === 'aside-recomend'
+          ? `/recommendations/videos/${props.videoId}`
+          : '/recommendations'
 
-            const response = await api.get(endpoint, {
-                params: {
-                    Limit: limit,
-                    After: after || 0,
-                    Reload: false
-                }
-            });
-
-            return {
-                items: response.data?.elements || [],
-                nextAfter: response.data?.nextAfter || 0,
-                hasMore: response.data?.hasMore || false
-            };
-            
-        } catch (error) {
-            console.error('Ошибка при получении рекомендаций:', error);
-            if (error.response?.status === 401) router.push('/login');
-            return {
-                items: [],
-                nextAfter: 0,
-                hasMore: false
-            };
+      const response = await api.get(endpoint, {
+        params: {
+          Limit: limit,
+          After: after || 0,
+          Reload: false
         }
-    },
+      })
 
-    async search(after) {
-        if (!props.searchQuery.trim()) return { items: [], nextAfter: 0, hasMore: false };
-        const limit = computedBlocksInRow.value * 4;
-        try {
-            const response = await api.get(`/search`, {
-                params: {
-                    query: props.searchQuery,
-                    limit: limit,
-                    after: after || 0
-                }
-            });
-            return {
-                items: response.data?.elements || response.data?.videos || [],
-                nextAfter: response.data?.nextAfter || 0,
-                hasMore: response.data?.hasMore || false
-            };
-        } catch (error) {
-            console.error('Ошибка при выполнении поиска:', error);
-            return { items: [], nextAfter: 0, hasMore: false };
-        }
-    },
+      return {
+        items: response.data?.elements || [],
+        nextAfter: response.data?.nextAfter || 0,
+        hasMore: response.data?.hasMore || false
+      }
 
-    async history(after) {
-        const limit = computedBlocksInRow.value * 4;
-        try {
-            const response = await api.get(`/users/me/watch-history`, {
-                params: {
-                    query: props.searchQuery,
-                    limit: limit,
-                    after: after || 0
-                }
-            });
-            return {
-                items: response.data?.elements || response.data?.videos || [],
-                nextAfter: response.data?.nextAfter || 0,
-                hasMore: response.data?.hasMore || false
-            };
-        } catch (error) {
-            console.error('Ошибка при получении истории:', error);
-            return { items: [], nextAfter: 0, hasMore: false };
-        }
-    },
-
-    async playlist(after) {
-        const playlistId = route.params.id;
-        if (!playlistId) return { items: [], nextAfter: 0, hasMore: false };
-
-        const limit = computedBlocksInRow.value * 4;
-
-        try {
-            const response = await api.get(`/playlists/${playlistId}/elements`, {
-                params: { limit, after: after || 0 }
-            });
-
-            const items = response.data.elements.map(el => el.video);
-            return {
-                items,
-                nextAfter: response.data.nextAfter,
-                hasMore: items.length >= limit && response.data.nextAfter !== 0
-            };
-        } catch (error) {
-            console.error('Playlist load error:', error);
-            if (error.response?.status === 401) router.push('/login');
-            return { items: [], nextAfter: 0, hasMore: false };
-        }
+    } catch (error) {
+      console.error('Ошибка при получении рекомендаций:', error)
+      if (error.response?.status === 401) router.push('/login')
+      return {
+        items: [],
+        nextAfter: 0,
+        hasMore: false
+      }
     }
+  },
+
+  async search (after) {
+    if (!props.searchQuery.trim()) return { items: [], nextAfter: 0, hasMore: false }
+    const limit = computedBlocksInRow.value * 4
+    try {
+      const response = await api.get(`/search`, {
+        params: {
+          query: props.searchQuery,
+          limit: limit,
+          after: after || 0
+        }
+      })
+      return {
+        items: response.data?.elements || response.data?.videos || [],
+        nextAfter: response.data?.nextAfter || 0,
+        hasMore: response.data?.hasMore || false
+      }
+    } catch (error) {
+      console.error('Ошибка при выполнении поиска:', error)
+      return { items: [], nextAfter: 0, hasMore: false }
+    }
+  },
+
+  async history (after) {
+    const limit = computedBlocksInRow.value * 4
+    try {
+      const response = await api.get(`/users/me/watch-history`, {
+        params: {
+          query: props.searchQuery,
+          limit: limit,
+          after: after || 0
+        }
+      })
+      return {
+        items: response.data?.elements || response.data?.videos || [],
+        nextAfter: response.data?.nextAfter || 0,
+        hasMore: response.data?.hasMore || false
+      }
+    } catch (error) {
+      console.error('Ошибка при получении истории:', error)
+      return { items: [], nextAfter: 0, hasMore: false }
+    }
+  },
+
+  async playlist (after) {
+    const playlistId = route.params.id
+    if (!playlistId) return { items: [], nextAfter: 0, hasMore: false }
+
+    const limit = computedBlocksInRow.value * 4
+
+    try {
+      const response = await api.get(`/playlists/${playlistId}/elements`, {
+        params: { limit, after: after || 0 }
+      })
+
+      const items = response.data.elements.map(el => el.video)
+      return {
+        items,
+        nextAfter: response.data.nextAfter,
+        hasMore: items.length >= limit && response.data.nextAfter !== 0
+      }
+    } catch (error) {
+      console.error('Playlist load error:', error)
+      if (error.response?.status === 401) router.push('/login')
+      return { items: [], nextAfter: 0, hasMore: false }
+    }
+  }
 }
 
 const updateDimensions = () => {
@@ -221,16 +221,16 @@ const updateDimensions = () => {
 }
 
 const adaptiveView = async () => {
-  await nextTick();
-  updateDimensions();
+  await nextTick()
+  updateDimensions()
 
-  if (!container.value) return;
+  if (!container.value) return
 
   const gap = computedBlocksInRow.value > 1
       ? Math.max(10, Math.floor((parentWidth.value - (parseFloat(computedBlockWidth.value) * computedBlocksInRow.value)) / (computedBlocksInRow.value - 1)))
-      : 0;
+      : 0
 
-  container.value.style.gap = `30px ${Math.floor(gap)}px`;
+  container.value.style.gap = `30px ${Math.floor(gap)}px`
 }
 
 const computedBlocksInRow = computed(() => {
@@ -252,8 +252,8 @@ const computedBlockWidth = computed(() => {
 })
 
 onMounted(async () => {
-  await nextTick();
-  await adaptiveView();
+  await nextTick()
+  await adaptiveView()
   window.addEventListener('resize', adaptiveView)
 })
 
@@ -270,7 +270,7 @@ defineExpose({
   resetPlaylist,
   loadMore,
   hasMore
-});
+})
 </script>
 
 <template>
@@ -284,9 +284,9 @@ defineExpose({
         ref="shareRef"
         :videoId="currentVideoId"
     />
-    <div 
-      class="container-wrapper" 
-      :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`, 
+    <div
+        class="container-wrapper"
+        :class="[context == 'recomend' || context == 'search' ? 'standart-recomend' : `aside-recomend`,
       { 'row-layout': rowLayout || context == 'aside-recomend' }]">
       <div v-if="!isLoading && errorMessage.length > 0" class="results-grid">
         <div v-if="videos.length === 0" class="empty-results">
@@ -382,6 +382,6 @@ defineExpose({
   .container-wrapper.standart-recomend {
     padding: 20px;
   }
-  
+
 }
 </style>

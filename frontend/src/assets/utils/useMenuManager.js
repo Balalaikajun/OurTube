@@ -1,22 +1,22 @@
 // useMenuManager.js
 import { ref } from 'vue'
 
-const activeMenu = ref(null);
+const activeMenu = ref(null)
 
-export function useMenuManager() {
+export function useMenuManager () {
   const registerMenu = (menuInstance) => {
     if (activeMenu.value && activeMenu.value !== menuInstance) {
       // console.log(activeMenu.value, menuInstance, 'регистрация меню', 1)
-      activeMenu.value.closeMenu();
+      activeMenu.value.closeMenu()
     }
-    activeMenu.value = menuInstance;
+    activeMenu.value = menuInstance
     // console.log(activeMenu.value, menuInstance, 'регистрация меню')
-  };
+  }
 
   const unregisterMenu = (menuInstance) => {
-    activeMenu.value = null;
+    activeMenu.value = null
     // console.log(activeMenu.value, menuInstance, 'РАЗрегистрация меню')
-  };
+  }
 
-  return { registerMenu, unregisterMenu };
+  return { registerMenu, unregisterMenu }
 }

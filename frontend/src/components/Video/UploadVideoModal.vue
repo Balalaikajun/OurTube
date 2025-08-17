@@ -1,176 +1,176 @@
 <script setup>
-import api from "@/assets/utils/api.js";
-import { createKeyboardTrap } from "@/assets/utils/keyTrap.js";
-import { nextTick, onBeforeUnmount, ref, provide } from "vue";
+import api from '@/assets/utils/api.js'
+import { createKeyboardTrap } from '@/assets/utils/keyTrap.js'
+import { nextTick, onBeforeUnmount, ref } from 'vue'
 
-const isOpen = ref(false);
-const overlayContentRef = ref(null);
-const videoInputRef = ref(null);
-const previewInputRef = ref(null);
-const loadFieldRef = ref(null);
-const previewFieldRef = ref(null);
+const isOpen = ref(false)
+const overlayContentRef = ref(null)
+const videoInputRef = ref(null)
+const previewInputRef = ref(null)
+const loadFieldRef = ref(null)
+const previewFieldRef = ref(null)
 
-const uploadResult = ref();
+const uploadResult = ref()
 
-const videoTitle = ref("");
-const videoDescription = ref(null);
-const videoFile = ref(null);
-const previewFile = ref(null);
-const isDraggingVideo = ref(false);
-const isDraggingPreview = ref(false);
+const videoTitle = ref('')
+const videoDescription = ref(null)
+const videoFile = ref(null)
+const previewFile = ref(null)
+const isDraggingVideo = ref(false)
+const isDraggingPreview = ref(false)
 
-const keyboardTrap = createKeyboardTrap(overlayContentRef);
+const keyboardTrap = createKeyboardTrap(overlayContentRef)
 
 const openMenu = async () => {
   try {
     if (isOpen.value) {
-      await closeMenu();
+      await closeMenu()
     }
 
-    isOpen.value = true;
+    isOpen.value = true
 
-    await nextTick();
+    await nextTick()
 
-    document.addEventListener("click", handleClickOutside);
-    keyboardTrap.setup(); // Активируем ловушку клавиатуры
+    document.addEventListener('click', handleClickOutside)
+    keyboardTrap.setup() // Активируем ловушку клавиатуры
   } catch (error) {
-    console.error("Error opening menu:", error);
+    console.error('Error opening menu:', error)
   }
-};
+}
 
 const closeMenu = () => {
-  isOpen.value = false;
-  document.removeEventListener("click", handleClickOutside);
-  resetForm();
-  keyboardTrap.teardown(); // Деактивируем ловушку клавиатуры
-};
+  isOpen.value = false
+  document.removeEventListener('click', handleClickOutside)
+  resetForm()
+  keyboardTrap.teardown() // Деактивируем ловушку клавиатуры
+}
 
 const handleClickOutside = (event) => {
   if (
-    overlayContentRef.value &&
-    !overlayContentRef.value.contains(event.target)
+      overlayContentRef.value &&
+      !overlayContentRef.value.contains(event.target)
   ) {
-    closeMenu();
+    closeMenu()
   }
-};
+}
 
 const resetForm = () => {
-  videoTitle.value = "";
-  videoDescription.value = "";
-  videoFile.value = null;
-  previewFile.value = null;
-  uploadResult.value = null;
-};
+  videoTitle.value = ''
+  videoDescription.value = ''
+  videoFile.value = null
+  previewFile.value = null
+  uploadResult.value = null
+}
 
 const handleVideoInput = (e) => {
-  const file = e.target.files[0];
-  if (file && file.type.startsWith("video/")) {
-    videoFile.value = file;
-    updateVideoFieldDisplay();
+  const file = e.target.files[0]
+  if (file && file.type.startsWith('video/')) {
+    videoFile.value = file
+    updateVideoFieldDisplay()
   }
-};
+}
 
 const handleVideoDrop = (e) => {
-  e.preventDefault();
-  isDraggingVideo.value = false;
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("video/")) {
-    videoFile.value = file;
-    updateVideoFieldDisplay();
+  e.preventDefault()
+  isDraggingVideo.value = false
+  const file = e.dataTransfer.files[0]
+  if (file && file.type.startsWith('video/')) {
+    videoFile.value = file
+    updateVideoFieldDisplay()
   }
-};
+}
 
 const handlePreviewInput = (e) => {
-  const file = e.target.files[0];
-  if (file && file.type.startsWith("image/")) {
-    previewFile.value = file;
-    updatePreviewFieldDisplay();
+  const file = e.target.files[0]
+  if (file && file.type.startsWith('image/')) {
+    previewFile.value = file
+    updatePreviewFieldDisplay()
   }
-};
+}
 
 const handlePreviewDrop = (e) => {
-  e.preventDefault();
-  isDraggingPreview.value = false;
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
-    previewFile.value = file;
-    updatePreviewFieldDisplay();
+  e.preventDefault()
+  isDraggingPreview.value = false
+  const file = e.dataTransfer.files[0]
+  if (file && file.type.startsWith('image/')) {
+    previewFile.value = file
+    updatePreviewFieldDisplay()
   }
-};
+}
 
 const updateVideoFieldDisplay = () => {
   if (loadFieldRef.value && videoFile.value) {
     loadFieldRef.value.innerHTML = `
                 <p>${
-                  videoFile.value.name
-                }</p>
+        videoFile.value.name
+    }</p>
                 <p>
                     (${(videoFile.value.size / (1024 * 1024)).toFixed(2)} MB)
                 </p>
-            `;
+            `
   }
-};
+}
 
 const updatePreviewFieldDisplay = () => {
   if (previewFieldRef.value && previewFile.value) {
     previewFieldRef.value.innerHTML = `
                 <p style="color: #F3F0E9; margin: 0;">${
-                  previewFile.value.name
-                }</p>
+        previewFile.value.name
+    }</p>
                 <p style="color: #F3F0E9; margin: 5px 0 0; font-size: 0.8em;">
                     (${(previewFile.value.size / (1024 * 1024)).toFixed(2)} MB)
                 </p>
-            `;
+            `
   }
-};
+}
 
-const triggerVideoInput = () => videoInputRef.value.click();
-const triggerPreviewInput = () => previewInputRef.value.click();
+const triggerVideoInput = () => videoInputRef.value.click()
+const triggerPreviewInput = () => previewInputRef.value.click()
 
 const uploadFiles = async () => {
   try {
-    const formData = new FormData();
-    
+    const formData = new FormData()
+
     // Добавляем текстовые поля
-    formData.append('Title', videoTitle.value);
-    formData.append('Description', videoDescription.value);
-    
+    formData.append('Title', videoTitle.value)
+    formData.append('Description', videoDescription.value)
+
     // Добавляем видео файл с указанием типа
-    const videoBlob = new Blob([videoFile.value], { type: 'video/mp4' });
-    formData.append('VideoFile', videoBlob, 'video.mp4');
-    
+    const videoBlob = new Blob([videoFile.value], { type: 'video/mp4' })
+    formData.append('VideoFile', videoBlob, 'video.mp4')
+
     // Добавляем превью файл с указанием типа
-    const previewBlob = new Blob([previewFile.value], { type: 'image/jpeg' });
-    formData.append('PreviewFile', previewBlob, 'preview.jpg');
+    const previewBlob = new Blob([previewFile.value], { type: 'image/jpeg' })
+    formData.append('PreviewFile', previewBlob, 'preview.jpg')
 
     const response = await api.post('/videos', formData, {
       headers: {
         'accept': 'text/plain',
         'Content-Type': 'multipart/form-data'
       }
-    });
+    })
 
     if (response.status === 201) {
-      uploadResult.value = "Видео загружено успешно!";
-      closeMenu();
+      uploadResult.value = 'Видео загружено успешно!'
+      closeMenu()
     }
   } catch (error) {
-    console.error('Upload error:', error);
-    uploadResult.value = `Ошибка: ${error.response?.data || error.message}`;
+    console.error('Upload error:', error)
+    uploadResult.value = `Ошибка: ${error.response?.data || error.message}`
   }
-};
+}
 
 onBeforeUnmount(() => {
-  document.removeEventListener("click", handleClickOutside);
-  resetForm(); // Очищаем данные формы
-  keyboardTrap.teardown();
-});
+  document.removeEventListener('click', handleClickOutside)
+  resetForm() // Очищаем данные формы
+  keyboardTrap.teardown()
+})
 
 defineExpose({
   openMenu,
   closeMenu,
   isOpen,
-});
+})
 </script>
 <template>
   <div v-if="isOpen" class="overlay">
@@ -181,29 +181,29 @@ defineExpose({
       <!-- <input type="text" :value="`https://localhost:5173/video/${videoId}`" readonly /> -->
 
       <input
-        type="file"
-        ref="videoInputRef"
-        @change="handleVideoInput"
-        accept="video/*"
-        hidden
+          type="file"
+          ref="videoInputRef"
+          @change="handleVideoInput"
+          accept="video/*"
+          hidden
       />
       <input
-        type="file"
-        ref="previewInputRef"
-        @change="handlePreviewInput"
-        accept="image/*"
-        hidden
+          type="file"
+          ref="previewInputRef"
+          @change="handlePreviewInput"
+          accept="image/*"
+          hidden
       />
 
       <div class="files-wrapper" v-if="!uploadResult">
         <div
-          ref="loadFieldRef"
-          class="load-field"
-          @click="triggerVideoInput"
-          @dragover.prevent="isDraggingVideo = true"
-          @dragleave.prevent="isDraggingVideo = false"
-          @drop="handleVideoDrop"
-          :style="{ borderColor: isDraggingVideo ? '#F39E60' : '#F3F0E9' }"
+            ref="loadFieldRef"
+            class="load-field"
+            @click="triggerVideoInput"
+            @dragover.prevent="isDraggingVideo = true"
+            @dragleave.prevent="isDraggingVideo = false"
+            @drop="handleVideoDrop"
+            :style="{ borderColor: isDraggingVideo ? '#F39E60' : '#F3F0E9' }"
         >
           <div class="field-content">
             <p v-if="!videoFile">Перетащите видео или кликните для выбора</p>
@@ -216,13 +216,13 @@ defineExpose({
           </div>
         </div>
         <div
-          ref="previewFieldRef"
-          class="load-field"
-          @click="triggerPreviewInput"
-          @dragover.prevent="isDraggingPreview = true"
-          @dragleave.prevent="isDraggingPreview = false"
-          @drop="handlePreviewDrop"
-          :style="{ borderColor: isDraggingPreview ? '#F39E60' : '#F3F0E9' }"
+            ref="previewFieldRef"
+            class="load-field"
+            @click="triggerPreviewInput"
+            @dragover.prevent="isDraggingPreview = true"
+            @dragleave.prevent="isDraggingPreview = false"
+            @drop="handlePreviewDrop"
+            :style="{ borderColor: isDraggingPreview ? '#F39E60' : '#F3F0E9' }"
         >
           <div class="field-content">
             <p v-if="!previewFile">
@@ -242,18 +242,18 @@ defineExpose({
       </div>
 
       <textarea
-        class="standart-input"
-        ref="textareaRef"
-        v-model="videoTitle"
-        placeholder="Заголовок"
-        rows="1"
+          class="standart-input"
+          ref="textareaRef"
+          v-model="videoTitle"
+          placeholder="Заголовок"
+          rows="1"
       ></textarea>
       <textarea
-        class="standart-input"
-        ref="textareaRef"
-        v-model="videoDescription"
-        placeholder="Описание (опционально)"
-        rows="3"
+          class="standart-input"
+          ref="textareaRef"
+          v-model="videoDescription"
+          placeholder="Описание (опционально)"
+          rows="3"
       ></textarea>
       <div class="buttons-wrapper" style="width: 100%">
         <button
@@ -264,8 +264,8 @@ defineExpose({
                 'isFilled': videoTitle.trim() && videoFile
             }"
             :disabled="!videoTitle.trim() || !videoFile"
-            >
-            <span>Загрузить</span>
+        >
+          <span>Загрузить</span>
         </button>
         <button class="reusable-button fit" @click.stop="closeMenu">
           <span>Закрыть</span>

@@ -11,9 +11,9 @@
     font-weight: 400;
     font-style: normal;
     src: local("Corsa Grotesk Regular"),
-         local("CorsaGrotesk-Regular"),
-         url("../fonts/TypedepotCorsaGroteskRegular.woff") format("woff"),
-         url("../fonts/TypedepotCorsaGroteskRegular.otf") format("opentype");
+    local("CorsaGrotesk-Regular"),
+    url("../fonts/TypedepotCorsaGroteskRegular.woff") format("woff"),
+    url("../fonts/TypedepotCorsaGroteskRegular.otf") format("opentype");
     font-display: swap;
 }
 
@@ -26,7 +26,6 @@ html {
 }
 
 
-
 /* main {
     padding: 20px 100px;
 } */
@@ -35,7 +34,7 @@ html {
         font-size: 14px;
     }
 }
-  
+
 @media (max-width: 800px) {
     html {
         font-size: 12px;
@@ -47,7 +46,7 @@ html {
         font-size: 10px;
     }
 }
-  
+
 /* @media (max-width: 480px) {
     html {
         font-size: 12px;
@@ -64,9 +63,6 @@ p, span, h3, h1, input, button, a, li, textarea, ::placeholder {
     font-style: normal;
     color: #F3F0E9;
 }
-
-
-
 
 
 /* .user-avatar {

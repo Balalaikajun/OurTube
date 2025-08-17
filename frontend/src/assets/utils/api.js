@@ -15,11 +15,11 @@ const api = axios.create({
 
 (async () => {
   try {
-    const resp = await api.get("/health");
-    console.log(resp);
+    const resp = await api.get('/health')
+    console.log(resp)
   } catch (error) {
-    console.error(error);
+    console.error(error)
   }
-})();
+})()
 
-export default api;
+export default api

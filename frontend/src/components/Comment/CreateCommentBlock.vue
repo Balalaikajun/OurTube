@@ -6,209 +6,214 @@ import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
 import UserAvatar from '../Solid/UserAvatar.vue'
 
 const props = defineProps({
-        videoId: {
-            type: String,
-            required: true,
-            default: ''
-        }
+  videoId: {
+    type: String,
+    required: true,
+    default: ''
+  }
+})
+
+const router = useRouter()
+
+const emit = defineEmits(['close'])
+
+const { register, unregister } = injectFocusEngine()
+
+const userData = computed(() => JSON.parse(localStorage.getItem('userData'))) //правки
+const isAuthenticated = computed(() => !!userData.value)
+const commentText = ref('')
+const textareaRef = ref(null)
+const showButtons = ref(false)
+const errorMessage = ref('')
+
+const rootParentId = inject('rootParentId', null)
+
+function adjustHeight () {
+  if (textareaRef.value) {
+    textareaRef.value.style.height = 'auto'
+    textareaRef.value.style.height = `${textareaRef.value.scrollHeight + 1}px`
+  }
+}
+
+const handleFocus = () => {
+  register('commentBlock', () => {
+    showButtons.value = true
+  })
+}
+
+const handleBlur = () => {
+  setTimeout(() => {
+    if (!document.activeElement?.closest('.comment-create')) {
+      unregister('commentBlock')
+    }
+  }, 100)
+}
+
+const handleCancel = () => {
+  commentText.value = ''
+  textareaRef.value.blur()
+  textareaRef.value.style.height = 'auto'
+  showButtons.value = false
+  if (rootParentId != null) {
+    handleBlur()
+    emit('close')
+  }
+}
+
+const handleComment = async () => {
+  errorMessage.value = ''
+
+  if (!commentText.value.trim()) {
+    errorMessage.value = 'Комментарий не может быть пустым'
+    return
+  }
+
+  if (!isAuthenticated.value) {
+    router.push('/login')
+    return
+  }
+
+  try {
+    const requestData = {
+      text: commentText.value
+    }
+
+    // Добавляем parentId только если он не null
+    if (rootParentId !== null) {
+      requestData.parentId = rootParentId
+    }
+
+    console.log('Отправляемые данные:', requestData)
+    console.log('VideoId:', props.videoId)
+    console.log('RootParentId:', rootParentId)
+
+    const response = await api.post(`/videos/${props.videoId}/comments`, requestData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
 
-    const router = useRouter();
+    console.log('Ответ сервера:', response.data)
+    commentText.value = ''
+    showButtons.value = false
+    // emit('comment-created', response.data);
+    handleCancel()
 
-    const emit = defineEmits(['close']);
+  } catch (error) {
+    console.log('Полная ошибка:', error)
+    console.log('Данные ошибки:', error.response?.data)
+    console.log('Статус ошибки:', error.response?.status)
+    handleCommentError(error)
+  }
+}
 
-    const { register, unregister } = injectFocusEngine();
-
-    const userData = computed(() => JSON.parse(localStorage.getItem('userData'))); //правки
-    const isAuthenticated = computed(() => !!userData.value);
-    const commentText = ref('');
-    const textareaRef = ref(null);
-    const showButtons = ref(false);
-    const errorMessage = ref("");
-
-    const rootParentId = inject('rootParentId', null);
-
-    function adjustHeight() {
-        if (textareaRef.value) {
-            textareaRef.value.style.height = 'auto';
-            textareaRef.value.style.height = `${textareaRef.value.scrollHeight + 1}px`;
-        }
+const handleCommentError = (error) => {
+  if (error.response) {
+    if (error.response.status === 401) {
+      errorMessage.value = 'Сессия истекла. Пожалуйста, войдите снова'
+      localStorage.removeItem('userData')
+      localStorage.removeItem('token')
+      router.push('/login')
+    } else {
+      errorMessage.value = error.response.data?.message || 'Ошибка сервера'
     }
-    const handleFocus = () => {
-        register('commentBlock', () => {
-            showButtons.value = true;
-        });
-    };
+  } else {
+    errorMessage.value = 'Ошибка соединения'
+  }
+  console.error('Ошибка:', error)
+}
 
-    const handleBlur = () => {
-        setTimeout(() => {
-            if (!document.activeElement?.closest('.comment-create')) {
-            unregister('commentBlock');
-            }
-        }, 100);        
-    };
-
-    const handleCancel = () => {
-        commentText.value = '';
-        textareaRef.value.blur();
-        textareaRef.value.style.height = 'auto';
-        showButtons.value = false;
-        if (rootParentId != null)
-        {
-            handleBlur();
-            emit('close');
-        }
-    };
-
-    const handleComment = async () => {
-        errorMessage.value = "";
-        
-        if (!commentText.value.trim()) {
-            errorMessage.value = "Комментарий не может быть пустым";
-            return;
-        }
-
-        if (!isAuthenticated.value) {
-            router.push('/login');
-            return;
-        }
-
-        try {
-            const requestData = {
-                text: commentText.value
-            };
-            
-            // Добавляем parentId только если он не null
-            if (rootParentId !== null) {
-                requestData.parentId = rootParentId;
-            }
-            
-            console.log('Отправляемые данные:', requestData);
-            console.log('VideoId:', props.videoId);
-            console.log('RootParentId:', rootParentId);
-            
-            const response = await api.post(`/videos/${props.videoId}/comments`, requestData, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            console.log('Ответ сервера:', response.data);
-            commentText.value = '';
-            showButtons.value = false;
-            // emit('comment-created', response.data);
-            handleCancel();
-            
-        } catch (error) {
-            console.log('Полная ошибка:', error);
-            console.log('Данные ошибки:', error.response?.data);
-            console.log('Статус ошибки:', error.response?.status);
-            handleCommentError(error);
-        }
-    };
-
-    const handleCommentError = (error) => {
-        if (error.response) {
-            if (error.response.status === 401) {
-                errorMessage.value = "Сессия истекла. Пожалуйста, войдите снова";
-                localStorage.removeItem('userData');
-                localStorage.removeItem('token');
-                router.push('/login');
-            } else {
-                errorMessage.value = error.response.data?.message || "Ошибка сервера";
-            }
-        } else {
-            errorMessage.value = "Ошибка соединения";
-        }
-        console.error('Ошибка:', error);
-    };
-
-    onMounted(() => {
-        adjustHeight();
-    });
+onMounted(() => {
+  adjustHeight()
+})
 </script>
 
 <template>
-    <div class="comment-create" v-if="isAuthenticated">
-        <UserAvatar :user-info="userData || {}" />
-        <div class="comment-container">
-            <textarea  
+  <div class="comment-create" v-if="isAuthenticated">
+    <UserAvatar :user-info="userData || {}"/>
+    <div class="comment-container">
+            <textarea
                 ref="textareaRef"
                 @focus="handleFocus"
                 @blur="handleBlur"
-                @input="adjustHeight" 
-                v-model="commentText" 
-                class="component-input" 
-                placeholder="Комментарий" 
+                @input="adjustHeight"
+                v-model="commentText"
+                class="component-input"
+                placeholder="Комментарий"
                 rows="1"
             ></textarea>
-            <div v-if="showButtons" class="functional-buttons-block">
-                <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-                <button 
-                    @click="handleCancel" 
-                    @mousedown.prevent
-                    class="reusable-button fit"
-                >
-                    Отмена
-                </button>
-                <button 
-                    class="reusable-button fit"
-                    :class="{ 
+      <div v-if="showButtons" class="functional-buttons-block">
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <button
+            @click="handleCancel"
+            @mousedown.prevent
+            class="reusable-button fit"
+        >
+          Отмена
+        </button>
+        <button
+            class="reusable-button fit"
+            :class="{
                         'disabled': !commentText.trim(), 
                         'isFilled': commentText.trim() 
                     }"
-                    :disabled="!commentText.trim()"
-                    @click="handleComment" 
-                >
-                    Комментировать
-                </button>
-            </div>
-        </div>
+            :disabled="!commentText.trim()"
+            @click="handleComment"
+        >
+          Комментировать
+        </button>
+      </div>
     </div>
-    <div v-else class="auth-prompt">
-        <p>Чтобы оставить комментарий, <router-link to="/login">войдите</router-link> в аккаунт</p>
-    </div>
+  </div>
+  <div v-else class="auth-prompt">
+    <p>Чтобы оставить комментарий,
+      <router-link to="/login">войдите</router-link>
+      в аккаунт
+    </p>
+  </div>
 </template>
 
 <style scoped>
-    .comment-create {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        width: 100%;
-    }
-    .comment-container {
-        width: 100%;
-    }
-    .functional-buttons-block {
-        display: flex;
-        gap: 10px;
-        flex-direction: row;
-        justify-content: end;
-    }   
+.comment-create {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+}
 
-    .functional-buttons-block button:first-child:hover {
-        background-color: #4A4947;
-    }
+.comment-container {
+  width: 100%;
+}
 
-    .error-message {
-        color: #ff4d4f;
-        margin-top: 8px;
-        font-size: 0.875rem;
-    }
+.functional-buttons-block {
+  display: flex;
+  gap: 10px;
+  flex-direction: row;
+  justify-content: end;
+}
 
-    .auth-prompt {
-        padding: 16px;
-        text-align: center;
-        color: #F3F0E9;
-    }
+.functional-buttons-block button:first-child:hover {
+  background-color: #4A4947;
+}
 
-    .auth-prompt a {
-        color: #F39E60;
-        text-decoration: none;
-    }
+.error-message {
+  color: #ff4d4f;
+  margin-top: 8px;
+  font-size: 0.875rem;
+}
 
-    .auth-prompt a:hover {
-        text-decoration: underline;
-    }
+.auth-prompt {
+  padding: 16px;
+  text-align: center;
+  color: #F3F0E9;
+}
+
+.auth-prompt a {
+  color: #F39E60;
+  text-decoration: none;
+}
+
+.auth-prompt a:hover {
+  text-decoration: underline;
+}
 </style>

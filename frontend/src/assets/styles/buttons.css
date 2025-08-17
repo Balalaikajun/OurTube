@@ -12,7 +12,7 @@
     cursor: pointer;
     background: transparent;
     transition: background 1s ease;
-    border-radius: 50% !important; 
+    border-radius: 50% !important;
     margin-top: 1vh;
 }
 
@@ -45,11 +45,10 @@
 }
 
 .control-button svg path {
-    fill: none; 
-    stroke: #f3f0e9; 
+    fill: none;
+    stroke: #f3f0e9;
     stroke-width: 2;
 }
-
 
 
 .reusable-button {
@@ -85,6 +84,7 @@
     background-color: #100E0E !important;
     border: 1px dotted #F3F0E9;
 }
+
 .reusable-button.isFilled:hover {
     cursor: pointer !important;
 }

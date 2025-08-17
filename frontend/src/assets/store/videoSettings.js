@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
 export const useVideoStore = defineStore('video', {
   state: () => ({
@@ -6,11 +6,11 @@ export const useVideoStore = defineStore('video', {
     speed: 1.0,
   }),
   actions: {
-    setResolution(newResolution) {
-      this.resolution = newResolution;
+    setResolution (newResolution) {
+      this.resolution = newResolution
     },
-    setSpeed(newSpeed) {
-      this.speed = newSpeed;
+    setSpeed (newSpeed) {
+      this.speed = newSpeed
     },
   },
-});
+})
