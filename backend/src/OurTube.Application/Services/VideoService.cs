@@ -111,7 +111,7 @@ public class VideoService : IVideoService
     {
         _validator.ValidateVideo(request);
 
-        var guid = Guid.NewGuid().ToString();
+        var guid = Guid.CreateVersion7().ToString();
         var tempVideoDir = Path.Combine(Path.GetTempPath(), guid);
         var storagePrefix = guid;
 

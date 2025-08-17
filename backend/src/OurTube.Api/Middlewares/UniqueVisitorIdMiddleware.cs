@@ -14,7 +14,7 @@ public class UniqueVisitorIdMiddleware
     {
         if (!context.Request.Cookies.ContainsKey(SessionIdCookieField))
         {
-            var anonId = Guid.NewGuid().ToString();
+            var anonId = Guid.CreateVersion7().ToString();
             context.Response.Cookies.Append(SessionIdCookieField, anonId, new CookieOptions
             {
                 Expires = DateTimeOffset.UtcNow.AddYears(1),
