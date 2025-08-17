@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 
 export const useVideoStore = defineStore('video', {
   state: () => ({
-    resolution: '240',
+    resolution: '1080',
     speed: 1.0,
   }),
   actions: {
