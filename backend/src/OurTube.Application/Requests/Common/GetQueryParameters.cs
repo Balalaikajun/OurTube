@@ -8,7 +8,7 @@ namespace OurTube.Application.Requests.Common;
 public class GetQueryParameters
 {
     /// <summary>
-    ///     Максимальное количество комментариев, возвращаемых за один запрос. (По умолчанию 10)
+    ///     Максимальное количество комментариев, возвращаемых за один запрос.
     /// </summary>
     [DefaultValue(10)]
     public int Limit { get; set; } = 10;

@@ -98,9 +98,9 @@ public class ViewService : IViewService
         var queryable = _dbContext.Views
             .Where(v => v.ApplicationUserId == userId);
 
-        if (!string.IsNullOrEmpty(parameter.SearchQuery))
+        if (!string.IsNullOrEmpty(parameter.Query))
             queryable = queryable.Where(v => EF.Property<NpgsqlTsVector>(v, "SearchVector")
-                .Matches(EF.Functions.PlainToTsQuery("simple", parameter.SearchQuery)));
+                .Matches(EF.Functions.PlainToTsQuery("simple", parameter.Query)));
 
         queryable = queryable.OrderByDescending(v => v.UpdatedDate)
             .Skip(parameter.After)
