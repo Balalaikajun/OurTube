@@ -31,7 +31,7 @@ import { onMounted, ref, computed, watch } from 'vue'
         // Если есть userInfo и userAvatar
         if (props.userInfo?.userAvatar) {
             console.log('$$userInfo', props.userInfo)
-            avatarUrl.value = `${import.meta.env.VITE_MINIO_BASE_URL}/preview/${props.userInfo.userAvatar.fileName}`
+            avatarUrl.value = `${import.meta.env.VITE_MINIO_BASE_URL}/${props.userInfo.userAvatar.bucket}/${props.userInfo.userAvatar.fileName}`
             return
         }
         

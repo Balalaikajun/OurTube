@@ -69,18 +69,18 @@ const handleImageError = (event) => {
   event.target.src = '/path/to/default-thumbnail.jpg';
 };
 
-const getPreviewUrl = (fileName) => {
-  console.log(fileName)
-  if (!fileName) return '';
-  console.log(`${import.meta.env.VITE_MINIO_BASE_URL}/videos/${fileName}}`)
-  return `${import.meta.env.VITE_MINIO_BASE_URL}/videos/${fileName}`;
+const getPreviewUrl = (previewInfo) => {
+  console.log(previewInfo)
+  if (!previewInfo) return '';
+  console.log(`${import.meta.env.VITE_MINIO_BASE_URL}/${previewInfo.bucket}/${previewInfo.fileName}}`)
+  return `${import.meta.env.VITE_MINIO_BASE_URL}/${previewInfo.bucket}/${previewInfo.fileName}`;
 };
 
 </script>
 
 <template>
-  <div 
-    class="video-card" 
+  <div
+    class="video-card"
     :class="{ 'row-layout': rowLayout }"
     @click="handleCardClick"
   >
@@ -88,48 +88,48 @@ const getPreviewUrl = (fileName) => {
       <div class="thumbnail-overlay-badge">
         <div class="badge-text">{{ formatter.formatDuration(video.duration) }}</div>
       </div>
-      <img 
-          class="video-thumbnail" 
-          :src="getPreviewUrl(video.preview?.fileName)" 
+      <img
+          class="video-thumbnail"
+          :src="getPreviewUrl(video.preview)"
           :alt="video.title"
         />
         <!-- @error="handleImageError"  -->
     </div>
-    
+
     <div class="bottom-block">
       <div class="video-info">
         <h3 class="video-title">{{ video.title }}</h3>
-        
+
         <div v-if="rowLayout" class="video-stats">
           <span class="views-count">{{ formatter.countFormatter(props.video.viewsCount,'views')}}</span>
           <span class="upload-time">{{ formatter.formatRussianDate(props.video.created)}}</span>
         </div>
-        
+
         <div v-if="rowLayout" class="channel-info">
           <UserAvatar :user-info="video.user || {}" />
           <span class="channel-name">{{video.user.userName}}</span>
         </div>
-        
+
         <p v-else class="channel-name">{{video.user.userName}}</p>
       </div>
-      
+
       <button v-if="isShortDelete" class="control-button kebab-button-type" @click="handleShortDelete">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"> 
-            <path 
-                d="M 10 10 L 30 30" 
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+            <path
+                d="M 10 10 L 30 30"
                 stroke="#F3F0E9"
                 style="stroke-width: 1px !important;"
                 fill="none"
             />
-            <path 
-                d="M 10 30 L 30 10" 
+            <path
+                d="M 10 30 L 30 10"
                 stroke="#F3F0E9"
                 style="stroke-width: 1px !important;"
                 fill="none"
             />
         </svg>
       </button>
-      <KebabButton @kebab-click="handleKebabButtonClick"/>        
+      <KebabButton @kebab-click="handleKebabButtonClick"/>
     </div>
   </div>
 </template>
@@ -157,14 +157,14 @@ const getPreviewUrl = (fileName) => {
       min-height: 0; /* Важно для корректного расчета flex-размеров */
   }
 
-  
+
   .video-card.row-layout .video-block {
       /* flex: 1 1 1; */
       width: 40%;
       min-width: 0;
       min-height: 0;
   }
-  
+
   .bottom-block {
       display: flex;
       justify-content: space-between;
@@ -278,7 +278,7 @@ const getPreviewUrl = (fileName) => {
       width: 40%;
     }
   }
-  
+
   @container recommendations-container (max-width: 800px) {
     .video-card.row-layout .video-block{
       width: 50%;
@@ -292,6 +292,6 @@ const getPreviewUrl = (fileName) => {
   }
 
   @media (max-width: 480px) {
-    
+
   }
 </style>
