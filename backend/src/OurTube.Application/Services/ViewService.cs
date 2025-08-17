@@ -90,7 +90,7 @@ public class ViewService : IViewService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, GetQueryParametersWithSearch parameter)
+    public async Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, PaginationQueryParametersWithSearch parameter)
     {
         await _dbContext.ApplicationUsers
             .EnsureExistAsync(userId);

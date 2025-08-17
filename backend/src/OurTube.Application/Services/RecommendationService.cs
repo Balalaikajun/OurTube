@@ -26,7 +26,7 @@ public class RecommendationService : IRecomendationService
         _videoService = videoService;
     }
 
-    public async Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId,  GetQueryParameters parameters)
+    public async Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId,  PaginaionQueryParametersWithReload parameters)
     {
         var cacheKey = GetRecommendationsCacheKey(sessionId);
 
@@ -75,9 +75,9 @@ public class RecommendationService : IRecomendationService
         };
     }
 
-    public async Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,  GetQueryParameters parameters)
+    public async Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,  PaginaionQueryParametersWithReload parameters)
     {
-        await GetRecommendationsAsync(userId, sessionId, new GetQueryParameters
+        await GetRecommendationsAsync(userId, sessionId, new PaginaionQueryParametersWithReload
         {
             After = parameters.After,
             Limit = Math.Max(parameters.Limit, 1),

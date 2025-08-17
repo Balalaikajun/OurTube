@@ -111,7 +111,7 @@ public class HistoryController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> Get(
-        [FromQuery] GetQueryParametersWithSearch parameters)
+        [FromQuery] PaginationQueryParametersWithSearch parameters)
     {
         var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 

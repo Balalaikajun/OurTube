@@ -6,8 +6,9 @@ namespace OurTube.Application.Interfaces;
 
 public interface IRecomendationService
 {
-    Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId, GetQueryParameters parameters);
+    Task<ListReply<MinVideo>> GetRecommendationsAsync(Guid? userId, Guid sessionId,
+        PaginaionQueryParametersWithReload parametersWithReload);
 
     Task<ListReply<MinVideo>> GetRecommendationsForVideoAsync(Guid videoId, Guid? userId, Guid sessionId,
-        GetQueryParameters parameters);
+        PaginaionQueryParametersWithReload parameters);
 }

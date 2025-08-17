@@ -39,7 +39,7 @@ public class SearchController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> Get(
-        [FromQuery] GetQueryParametersWithSearch parameters)
+        [FromQuery] PaginationQueryParametersWithSearch parameters)
     {
         var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         Guid? userId = null;

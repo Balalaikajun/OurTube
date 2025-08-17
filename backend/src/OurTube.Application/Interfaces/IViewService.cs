@@ -10,5 +10,5 @@ public interface IViewService
     Task AddVideoAsync(Guid userId, Guid videoId, PostViewsRequest request);
     Task RemoveVideoAsync(Guid videoId, Guid userId);
     Task ClearHistoryAsync(Guid userId);
-    Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, GetQueryParametersWithSearch parameter);
+    Task<ListReply<MinVideo>> GetWithLimitAsync(Guid userId, PaginationQueryParametersWithSearch parameter);
 }

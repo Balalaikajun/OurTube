@@ -27,7 +27,7 @@ public class SearchService : ISearchService
     }
 
     public async Task<ListReply<MinVideo>> SearchVideos(Guid? userId, Guid sessionId,
-        GetQueryParametersWithSearch parameters)
+        PaginationQueryParametersWithSearch parameters)
     {
         var cacheKey = GetCacheKey(sessionId);
 

@@ -6,5 +6,5 @@ namespace OurTube.Application.Interfaces;
 
 public interface ISearchService
 {
-    Task<ListReply<MinVideo>> SearchVideos(Guid? userId, Guid sessionId, GetQueryParametersWithSearch parameters);
+    Task<ListReply<MinVideo>> SearchVideos(Guid? userId, Guid sessionId, PaginationQueryParametersWithSearch parameters);
 }

@@ -36,7 +36,7 @@ public class RecommendationsController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> Get(
-        [FromQuery] GetQueryParameters parameters)
+        [FromQuery] PaginaionQueryParametersWithReload parameters)
     {
         var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         Guid? userId = null;
@@ -44,7 +44,7 @@ public class RecommendationsController : ControllerBase
         {
             userId = guid;
         }
-        
+
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         var result = await _recommendationService.GetRecommendationsAsync(
@@ -72,7 +72,7 @@ public class RecommendationsController : ControllerBase
     [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ListReply<MinVideo>>> GetForVideo(
         Guid videoId,
-        [FromQuery] GetQueryParameters parameters)
+        [FromQuery] PaginaionQueryParametersWithReload parameters)
     {
         var nameId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         Guid? userId = null;
@@ -80,6 +80,7 @@ public class RecommendationsController : ControllerBase
         {
             userId = guid;
         }
+
         var sessionId = Guid.Parse(Request.Cookies["SessionId"]);
 
         var result = await _recommendationService.GetRecommendationsForVideoAsync(
