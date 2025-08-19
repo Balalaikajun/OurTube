@@ -128,7 +128,7 @@ services.AddScoped<ISubscriptionService, SubscriptionService>();
 services.AddScoped<ISearchService, SearchService>();
 services.AddScoped<ITagService, TagService>();
 services.AddScoped<IUserAvatarService, UserAvatarService>();
-services.AddScoped<IAccessChecker, AccessChacker>();
+services.AddScoped<IAccessChecker, AccessChecker>();
 
 // Infrastructure
 services.AddScoped<IStorageClient, MinioClient>();

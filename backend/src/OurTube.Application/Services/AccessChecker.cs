@@ -5,7 +5,7 @@ using OurTube.Domain.Entities;
 namespace OurTube.Application.Services;
 
 ///<inheritdoc cref="IAccessChecker"/> 
-public class AccessChacker : IAccessChecker
+public class AccessChecker : IAccessChecker
 {
     private readonly IApplicationDbContext _context;
 
@@ -21,7 +21,7 @@ public class AccessChacker : IAccessChecker
             await ctx.Playlists.AnyAsync(p => p.Id == id && p.ApplicationUserId == userId),
     };
 
-    public AccessChacker(IApplicationDbContext context)
+    public AccessChecker(IApplicationDbContext context)
     {
         _context = context;
     }
