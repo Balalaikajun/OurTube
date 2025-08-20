@@ -6,6 +6,7 @@
 
 Проект разрабатывался двумя студентами третьего курса, за некоторым исключением разработка проекта заняла порядка 6
 месяцев. С принятыми решениями и нашими выводами о проделанной работе можете ознакомиться по ссылкам:
+
 - [Бэкенд](./documentation/backend_review.md)
 - [Фронтенд и дизайн](./documentation/frontend.md)
 
@@ -38,7 +39,8 @@
 ![img.png](./documentation/assets/Architecture.png)
 
 Приложение состоит из SPA фронтенда на Vue.js, который раздаётся Nginx и через него же проксирует API-запросы
-к бэкенду. Бэкенд — монолит, по чистой архитектуре на ASP.NET — реализует всю бизнес-логику, аутентификацию и работу с данными: структурные
+к бэкенду. Бэкенд — монолит, по чистой архитектуре на ASP.NET — реализует всю бизнес-логику, аутентификацию и работу с
+данными: структурные
 данные хранятся в PostgreSQL, файлы и blob — в MinIO (S3-совместимое объектное хранилище). Всё запускается через
 docker-compose для удобного развёртывания.
 
@@ -53,13 +55,13 @@ docker-compose для удобного развёртывания.
 настроена рассылка почты из-за чего некоторый второстепенный функционал будет недоступен.
 Ознакомится с другими вариантами развёртывания можете по [ссылке](./documentation/deployment.md).
 
-0. Требования
+#### 0. Требования
 
 - Docker ≥ 27.1.1
 - Docker Compose ≥ 2.29.2
 - Git ≥ 2.46.0
 
-1. Клонируйте и перейдите в папку репозитория
+#### 1. Клонируйте и перейдите в папку репозитория
 
 ```bash
   git clone https://github.com/Balalaikajun/OurTube.git
@@ -67,40 +69,36 @@ docker-compose для удобного развёртывания.
   git checkout develop
 ```
 
-2. Создайте файл стендовых настроек .env.staging в OurTube/infrastructure на основе
-   OurTube/infrastructure/.env.staging.example
+#### 2. Создайте переменных окружения при помощи команды
 
 ```bash
     cd infrastructure
     cp .env.staging.example .env.staging
 ```
 
-3. Запустите из OurTube/infrastructure
+#### 3. Запустите приложение
 
 ```bash
+    cd infrastructure
     docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
 ```
 
-4. Доступ к приложению
+#### 4. Доступ к приложению
 
 - Приложение: http://localhost
 - Документация Swagger: http://localhost:8080/swagger
 - Админка MinIO: http://localhost:9090
     - Login: minio
-    - Password: minio
+    - Password: minio1234
 - PostgreSQL:
     - Host: localhost
     - Port: 5432
     - Login: postgres
     - Password: postgres
 
-5. Остановите из OurTube/infrastructure
+#### 5. Остановите приложение
 
 ```bash
+    cd infrastructure
     docker-compose -f docker-compose.yml -f docker-compose.staging.yml down
 ```
-
-## Участники
-
-- [Balalaikajun ](https://github.com/Balalaikajun) - Бэкенд и развёртывание
-- [KrakishMusta](https://github.com/KrakishMusta) - Фронтенд и дизайн
