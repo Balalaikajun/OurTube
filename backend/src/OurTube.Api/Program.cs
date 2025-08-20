@@ -17,7 +17,7 @@ using OurTube.Application.Mapping.AutoMapper;
 using OurTube.Application.Services;
 using OurTube.Application.Validators;
 using OurTube.Infrastructure.Data;
-using OurTube.Infrastructure.Other;
+using OurTube.Infrastructure.Services;
 using Xabe.FFmpeg;
 using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
@@ -187,14 +187,6 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var storageClient = scope.ServiceProvider.GetRequiredService<IStorageClient>();
-    var videoBucket = configuration["MinIO:VideoBucket"];
-    var userBucket = configuration["MinIO:UserBucket"];
-    await storageClient.EnsureBucketsExistAsync(videoBucket, userBucket);
-}
 
 // Migration
 using (var scope = app.Services.CreateScope())

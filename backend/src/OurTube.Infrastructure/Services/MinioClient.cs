@@ -4,7 +4,7 @@ using Minio;
 using Minio.DataModel.Args;
 using OurTube.Application.Interfaces;
 
-namespace OurTube.Infrastructure.Other;
+namespace OurTube.Infrastructure.Services;
 
 public class MinioClient : IStorageClient
 {
@@ -15,7 +15,7 @@ public class MinioClient : IStorageClient
         var accessKey = configuration["MinIO:AccessKey"];
         var secretKey = configuration["MinIO:SecretKey"];
         var endpoint = configuration["MinIO:Endpoint"];
-        
+
         _minioClient = new Minio.MinioClient()
             .WithEndpoint(endpoint)
             .WithCredentials(accessKey, secretKey)
@@ -90,45 +90,5 @@ public class MinioClient : IStorageClient
         await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
             .WithBucket(bucketName)
             .WithObject(objectName));
-    }
-
-    public async Task EnsureBucketsExistAsync(params string[] bucketNames)
-    {
-        var existed = (await _minioClient.ListBucketsAsync())
-            .Buckets.Select(b => b.Name)
-            .ToHashSet();
-
-
-        foreach (var bucket in bucketNames.Where(b => !existed.Contains(b)))
-        {
-            await _minioClient.MakeBucketAsync(
-                new MakeBucketArgs()
-                    .WithBucket(bucket));
-
-            var policy = @"
-        {
-          ""Version"": ""2012-10-17"",
-          ""Statement"": [
-            {
-              ""Action"": [""s3:GetBucketLocation"", ""s3:ListBucket""],
-              ""Effect"": ""Allow"",
-              ""Principal"": { ""AWS"": [""*""] },
-              ""Resource"": [""arn:aws:s3:::" + bucket + @"""]
-            },
-            {
-              ""Action"": [""s3:GetObject""],
-              ""Effect"": ""Allow"",
-              ""Principal"": { ""AWS"": [""*""] },
-              ""Resource"": [""arn:aws:s3:::" + bucket + @"/*""]
-            }
-          ]
-        }";
-
-
-            await _minioClient.SetPolicyAsync(
-                new SetPolicyArgs()
-                    .WithBucket(bucket)
-                    .WithPolicy(policy));
-        }
     }
 }

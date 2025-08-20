@@ -6,6 +6,10 @@ services:
     ports:
       - "9000:9000"
       - "9090:9090"
+  
+  minio-init:
+    env_file:
+      - .env.staging
 
   postgres:
     env_file:
@@ -21,6 +25,10 @@ services:
       - "8080:8080"
     env_file:
       - .env.staging
+    environment:
+      DATAPROTECTION__KEYSPATH: /root/.aspnet/DataProtection-Keys
+      FFMPEG__AUTODOWNLOAD: "false"
+      FFMPEG__EXECUTABLESPATH: /usr/bin
     volumes:
       - data-protection-keys:/root/.aspnet/DataProtection-Keys
       - ./wait-for-it.sh:/wait-for-it.sh
@@ -57,8 +65,7 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-    command: [ "-g", "daemon off;"]
-
+    command: [ "-g", "daemon off;" ]
 
 volumes:
   data-protection-keys:

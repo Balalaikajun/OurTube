@@ -1,21 +1,20 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.Extensions.Configuration;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
-namespace OurTube.Infrastructure.Other;
+namespace OurTube.Infrastructure.Services;
 
 public class EmailSender : IEmailSender
 {
+    private static bool? _smptEnabled;
     private readonly string _fromEmail;
+    private readonly ILogger<EmailSender> _logger;
     private readonly string _password;
     private readonly int _port;
     private readonly string _smtpServer;
-    private readonly ILogger<EmailSender> _logger;
-
-    private static bool? _smptEnabled = null;
 
     public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger)
     {
@@ -37,21 +36,21 @@ public class EmailSender : IEmailSender
             _logger.LogWarning("SMTP was not configured");
             return;
         }
-        
+
         var emailMessage = new MimeMessage();
 
         emailMessage.From.Add(MailboxAddress.Parse(_fromEmail));
         emailMessage.To.Add(MailboxAddress.Parse(email));
         emailMessage.Subject = subject;
 
-        emailMessage.Body = new TextPart("plain") 
+        emailMessage.Body = new TextPart("plain")
         {
             Text = message
         };
 
         using var client = new SmtpClient();
 
-        await client.ConnectAsync(_smtpServer, _port, SecureSocketOptions.StartTlsWhenAvailable); 
+        await client.ConnectAsync(_smtpServer, _port, SecureSocketOptions.StartTlsWhenAvailable);
 
         await client.AuthenticateAsync(_fromEmail, _password);
 
@@ -59,7 +58,7 @@ public class EmailSender : IEmailSender
 
         await client.DisconnectAsync(true);
     }
-    
+
     public async Task<bool> CheckSmtpConnectionAsync()
     {
         try
@@ -73,9 +72,7 @@ public class EmailSender : IEmailSender
 
             // Аутентификация
             if (!string.IsNullOrWhiteSpace(_fromEmail) && !string.IsNullOrWhiteSpace(_password))
-            {
                 await client.AuthenticateAsync(_fromEmail, _password);
-            }
 
             await client.DisconnectAsync(true);
 
@@ -87,5 +84,4 @@ public class EmailSender : IEmailSender
             return false;
         }
     }
-
 }

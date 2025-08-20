@@ -6,7 +6,7 @@ using OurTube.Domain.Entities;
 using OurTube.Infrastructure.Data;
 using IdentityUser = OurTube.Domain.Entities.IdentityUser;
 
-namespace OurTube.Infrastructure.Other;
+namespace OurTube.Infrastructure.Services;
 
 public class ApplicationUserManager : UserManager<IdentityUser>
 {
@@ -49,7 +49,7 @@ public class ApplicationUserManager : UserManager<IdentityUser>
                 Title = "Понравившееся",
                 IsSystem = true
             });
-        
+
         ApplicationDbContext.Playlists.Add(
             new Playlist
             {

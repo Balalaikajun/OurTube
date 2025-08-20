@@ -10,6 +10,15 @@ services:
       timeout: 5s
       retries: 5
 
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: [ "/bin/sh", "-c", "./init-minio.sh" ]
+    volumes:
+      - ./init-minio.sh:/init-minio.sh
+
   postgres:
     image: postgres:17.4
     volumes:

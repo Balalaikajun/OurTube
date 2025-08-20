@@ -7,6 +7,10 @@ services:
     ports:
       - "9000:9000"
       - "9090:9090"
+        
+  minio-init:
+    env_file:
+      - .env.development
 
   postgres:
     env_file:
