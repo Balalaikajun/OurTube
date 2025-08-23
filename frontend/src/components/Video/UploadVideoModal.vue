@@ -1,5 +1,6 @@
 <script setup>
 import api from '@/assets/utils/api.js'
+import LoadingState from '../Solid/LoadingState.vue'
 import { createKeyboardTrap } from '@/assets/utils/keyTrap.js'
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 
@@ -18,6 +19,8 @@ const videoFile = ref(null)
 const previewFile = ref(null)
 const isDraggingVideo = ref(false)
 const isDraggingPreview = ref(false)
+
+const isLoading = ref(false)
 
 const keyboardTrap = createKeyboardTrap(overlayContentRef)
 
@@ -143,6 +146,7 @@ const uploadFiles = async () => {
     const previewBlob = new Blob([previewFile.value], { type: 'image/jpeg' })
     formData.append('PreviewFile', previewBlob, 'preview.jpg')
 
+    isLoading.value = true
     const response = await api.post('/videos', formData, {
       headers: {
         'accept': 'text/plain',
@@ -151,8 +155,9 @@ const uploadFiles = async () => {
     })
 
     if (response.status === 201) {
-      uploadResult.value = 'Видео загружено успешно!'
-      closeMenu()
+      uploadResult.value = 'Видео загружено успешно! Можете закрыть окно.'
+      isLoading.value = false;
+      // closeMenu()
     }
   } catch (error) {
     console.error('Upload error:', error)
@@ -178,8 +183,7 @@ defineExpose({
       <h1 style="color: #f3f0e9; margin: 0; text-align: start; width: 100%">
         Загрузка видео
       </h1>
-      <!-- <input type="text" :value="`https://localhost:5173/video/${videoId}`" readonly /> -->
-
+      
       <input
           type="file"
           ref="videoInputRef"
@@ -238,7 +242,10 @@ defineExpose({
         </div>
       </div>
       <div class="files-wrapper" v-else>
-        {{ uploadResult }}
+        <p style="color: #F39E60;">{{ uploadResult }}</p>
+      </div>
+      <div class="files-wrapper" v-show="isLoading">
+        <LoadingState/>
       </div>
 
       <textarea
@@ -305,6 +312,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   width: 100%;
+  color: #F39E60;
 }
 
 .load-field {

@@ -2,9 +2,9 @@
 import api from '@/assets/utils/api.js'
 import UserAvatar from '../Solid/UserAvatar.vue'
 import { createKeyboardTrap } from '@/assets/utils/keyTrap.js'
-import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { watch, nextTick, onBeforeUnmount, ref, onMounted } from 'vue'
 
-const userData = computed(() => JSON.parse(localStorage.getItem('userData'))) //правки
+const userData = ref(JSON.parse(localStorage.getItem('userData')) || {})
 
 const isOpen = ref(false)
 const overlayContentRef = ref(null)
@@ -17,6 +17,8 @@ const avatarPreview = ref(null)
 const alias = ref(null)
 const newAlias = ref(null)
 
+const saveMessage = ref(null)
+
 const isDragging = ref(false)
 
 const keyboardTrap = createKeyboardTrap(overlayContentRef)
@@ -24,7 +26,7 @@ const initUserData = () => {
   alias.value = userData.value?.userName || ''
   newAlias.value = userData.value?.userName || ''
   avatar.value = userData.value?.userAvatar || null
-  newAvatarFile.value = null // Сбрасываем файл при инициализации
+  newAvatarFile.value = null
 }
 
 const openMenu = async () => {
@@ -91,6 +93,7 @@ const handleFileSelect = (file) => {
   }
 
   newAvatarFile.value = file
+  console.log(newAvatarFile.value)
 
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -115,28 +118,21 @@ const postAvatar = async () => {
     const formData = new FormData()
     formData.append('Image', newAvatarFile.value)
 
-    console.log('$$avatar', avatar.value)
-    if (avatar.value == null) {
-
-    }
-
     const response = await api.post(`/users/me`, formData, {
       headers: {
         'accept': 'text/plain',
         'Content-Type': 'multipart/form-data'
       }
     })
-    console.log(response)
 
-    // Обновляем аватар в локальном хранилище
-    const updatedUserData = { ...userData.value }
-    updatedUserData.userAvatar = response.data.fileName // или полный URL, в зависимости от API
-    localStorage.setItem('userData', JSON.stringify(updatedUserData))
+    userData.value = {
+      ...userData.value,
+      userAvatar: response.data
+    }
 
-    // Сбрасываем файл после успешной отправки
     newAvatarFile.value = null
+    saveMessage.value = 'Изменения применены.'
 
-    console.log('Аватар успешно обновлен:', response.data)
   } catch (error) {
     console.error('Ошибка изменения аватара:', error)
   }
@@ -144,29 +140,45 @@ const postAvatar = async () => {
 
 const patchAlias = async () => {
   try {
-    const response = await api.patch(`/users/me`, {
+    await api.patch(`/users/me`, { userName: newAlias.value })
+
+    userData.value = {
+      ...userData.value,
       userName: newAlias.value
-    })
+    }
 
-    // Обновляем имя в локальном хранилище
-    const updatedUserData = { ...userData.value }
-    updatedUserData.userName = newAlias.value
-    localStorage.setItem('userData', JSON.stringify(updatedUserData))
-
-    // Обновляем текущее имя
     alias.value = newAlias.value
+    saveMessage.value = 'Изменения применены.'
 
-    window.dispatchEvent(new Event('storage'))
-
-    console.log('Псевдоним успешно обновлен:', response.data)
   } catch (error) {
     console.error('Ошибка изменения псевдонима:', error)
   }
 }
 
+const refreshUserData = () => {
+  userData.value = JSON.parse(localStorage.getItem('userData')) || {}
+}
+
+watch(userData, (newVal) => {
+  if (newVal && Object.keys(newVal).length > 0) {
+    console.log(newVal)
+    localStorage.setItem('userData', JSON.stringify(newVal))
+    console.log(localStorage.getItem('userData'))
+  } else {
+    localStorage.removeItem('userData')
+  }
+})
+
+onMounted(() => {
+  window.addEventListener('storage', refreshUserData)
+  window.addEventListener('auth-update', refreshUserData)
+})
 onBeforeUnmount(() => {
+  window.removeEventListener('storage', refreshUserData)
+  window.removeEventListener('auth-update', refreshUserData)
   document.removeEventListener('click', handleClickOutside)
   keyboardTrap.teardown()
+  saveMessage.value = null;
 })
 
 defineExpose({
@@ -194,7 +206,7 @@ defineExpose({
         >
           <UserAvatar
               v-if="newAvatarFile == null"
-              :user-info="{ userAvatar: avatar }"
+              :user-info="userData"
               :context-use="'profile'"
           />
           <div v-if="newAvatarFile !== null">
@@ -208,31 +220,23 @@ defineExpose({
               style="display: none;"
           />
         </div>
-
-        <!-- Скрытый input для выбора файла -->
         <div class="input-group">
-                    <textarea
-                        class="standart-input"
-                        ref="textareaRef"
-                        v-model="newAlias"
-                        maxlength="100"
-                        rows="1"
-                    ></textarea>
+          <p>Это ваш псевдоним.</p>
+          <textarea
+              class="standart-input"
+              ref="textareaRef"
+              v-model="newAlias"
+              maxlength="100"
+              rows="1"
+          ></textarea>
         </div>
       </div>
 
+      <div class="save-message" v-if="saveMessage != null">
+        <p>{{ saveMessage }}</p>
+      </div>
+
       <div class="buttons-wrapper" style="width: 100%">
-        <!-- <button
-            class="reusable-button fit"
-            @click.stop="uploadFiles"
-            :class="{
-                'disabled': !videoTitle.trim() || !videoFile,
-                'isFilled': videoTitle.trim() && videoFile
-            }"
-            :disabled="!videoTitle.trim() || !videoFile"
-            >
-            <span>Загрузить</span>
-        </button> -->
         <button
             class="reusable-button fit"
             :class="{ disabled: newAlias === alias && newAvatarFile === null}"
@@ -283,7 +287,8 @@ defineExpose({
 
 .input-group {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  gap: 1rem;
   align-content: center;
   width: 100%;
   height: fit-content;

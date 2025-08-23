@@ -22,20 +22,18 @@ const props = defineProps({
 const avatarUrl = ref(null)
 
 const updateAvatarUrl = () => {
-  // Если передан явный путь - используем его
+  console.log('Изменение аватара из UserAvatar')
   if (props.userAvatarPath) {
     avatarUrl.value = props.userAvatarPath
     return
   }
 
-  // Если есть userInfo и userAvatar
   if (props.userInfo?.userAvatar) {
     console.log('$$userInfo', props.userInfo)
     avatarUrl.value = `${import.meta.env.VITE_MINIO_BASE_URL}/${props.userInfo.userAvatar.bucket}/${props.userInfo.userAvatar.fileName}`
     return
   }
 
-  // В остальных случаях показываем заглушку
   avatarUrl.value = null
 }
 
