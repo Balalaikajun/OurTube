@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OurTube.Application.Extensions;
 using OurTube.Application.Interfaces;
@@ -33,22 +34,19 @@ public class UserAvatarService : IUserAvatarService
 
     public async Task<Replies.UserAvatar.UserAvatar> CreateOrUpdateUserAvatarAsync(IFormFile image, Guid userId)
     {
-        await _dbContext.ApplicationUsers
-            .EnsureExistAsync(userId);
-
         if (image.Length == 0)
             throw new ArgumentException("Avatar cannot be empty");
 
         Console.WriteLine(image.ContentType);
+
         if (image.ContentType != "image/png" && image.ContentType != "image/jpeg")
             throw new ArgumentException("Avatar content type is not supported");
 
-        var userAvatar = await _dbContext.UserAvatars.FindAsync(userId);
+        var userAvatar = await _dbContext.UserAvatars.FirstOrDefaultAsync(x => x.UserId == userId);
 
 
-        if (userAvatar != null)
-            await _storageClient.DeleteFileAsync(userAvatar.FileName, userAvatar.FileName);
-        else
+        if (userAvatar == null)
+        {
             userAvatar = new UserAvatar
             {
                 UserId = userId,
@@ -56,12 +54,19 @@ public class UserAvatarService : IUserAvatarService
                 Bucket = _bucket
             };
 
-        await _storageClient.UploadFileAsync(
-            image,
-            userAvatar.FileName,
-            userAvatar.Bucket);
+            _dbContext.UserAvatars.Add(userAvatar);
+        }
+        else
+        {
+            await _storageClient.DeleteFileAsync(userAvatar.FileName, userAvatar.Bucket);
 
-        _dbContext.UserAvatars.Add(userAvatar);
+            userAvatar.Update();
+        }
+
+        await _storageClient.UploadFileAsync(
+                image,
+                userAvatar.FileName,
+                userAvatar.Bucket);
 
         await _dbContext.SaveChangesAsync();
 

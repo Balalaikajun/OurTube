@@ -80,7 +80,7 @@ public class MinioClient : IStorageClient
         await _minioClient.PutObjectAsync(args);
     }
 
-    public async Task DeleteFileAsync(string bucketName, string objectName)
+    public async Task DeleteFileAsync(string objectName, string bucketName)
     {
         if (string.IsNullOrEmpty(bucketName))
             throw new ArgumentException("Имя бакета не задано", nameof(bucketName));
