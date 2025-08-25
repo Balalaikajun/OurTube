@@ -1,5 +1,3 @@
-// @/assets/utils/keyboardTrap.js
-
 export const createKeyboardTrap = (overlayContentRef) => {
   const handleKeyDown = (event) => {
     // Останавливаем распространение события

@@ -1,4 +1,3 @@
-// authDirective.js
 export const authDirective = {
   mounted (el, binding) {
     const checkAuth = () => {

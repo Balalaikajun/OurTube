@@ -7,6 +7,7 @@ import ShareOverlay from '../Kebab/ShareOverlay.vue'
 import LoadingState from '@/components/Solid/LoadingState.vue'
 import useInfiniteScroll from '@/assets/utils/useInfiniteScroll.js'
 import api from '@/assets/utils/api.js'
+import { getScrollbarWidth } from "@/assets/utils/dom.js"
 
 const props = defineProps({
   errorMessage: {
@@ -60,7 +61,9 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const currentVideoId = ref('')
+
 const parentWidth = ref(0)
+const scrollbarWidth = ref(0)
 const kebabMenuRef = ref(null)
 const shareRef = ref(null)
 
@@ -217,7 +220,7 @@ const fetchMethods = {
 const updateDimensions = () => {
   if (!container.value) return
   const rect = container.value.getBoundingClientRect()
-  parentWidth.value = rect.width
+  parentWidth.value = rect.width - scrollbarWidth.value;
 }
 
 const adaptiveView = async () => {
@@ -253,8 +256,9 @@ const computedBlockWidth = computed(() => {
 
 onMounted(async () => {
   await nextTick()
+  scrollbarWidth.value = getScrollbarWidth()
   await adaptiveView()
-  window.addEventListener('resize', adaptiveView)
+  window.addEventListener("resize", adaptiveView)
 })
 
 onUnmounted(() => {
