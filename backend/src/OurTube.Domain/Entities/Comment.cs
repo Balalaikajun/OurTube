@@ -1,28 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace OurTube.Domain.Entities;
 
-namespace OurTube.Domain.Entities
+public class Comment : Base
 {
-    public class Comment
-    {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public int VideoId { get; set; }
-        [Required]
-        public string ApplicationUserId { get; set; }
-        [MaxLength(5000)]
-        [Required]
-        public string Text { get; set; }
-        [Required]
-        public DateTime Created { get; set; } = DateTime.Now;
-        [Required]
-        public DateTime Updated { get; set; } = DateTime.Now;
-        public int? CommentId { get; set; }
-
-        //Navigation
-        public ApplicationUser User { get; set; }
-        public Comment? Parent { get; set; }
-        public ICollection<Comment> Childs { get; set; }
-
-    }
+    public Guid VideoId { get; set; }
+    public Guid ApplicationUserId { get; set; }
+    public string Text { get; set; }
+    public Guid? ParentId { get; set; }
+    public int LikesCount { get; set; } = 0;
+    public int ChildsCount { get; set; } = 0;
+    public int DislikesCount { get; set; } = 0;
+    
+    //Navigation
+    public ApplicationUser User { get; set; }
+    public Comment? Parent { get; set; }
+    public ICollection<Comment> Childs { get; set; }
+    public ICollection<CommentVote> Votes { get; set; }
 }

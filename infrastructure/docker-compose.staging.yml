@@ -1,0 +1,71 @@
+name: OurTube-staging
+services:
+  minio:
+    env_file:
+      - .env.staging
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+  
+  minio-init:
+    env_file:
+      - .env.staging
+
+  postgres:
+    env_file:
+      - .env.staging
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ../backend/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.staging
+    environment:
+      DATAPROTECTION__KEYSPATH: /root/.aspnet/DataProtection-Keys
+      FFMPEG__AUTODOWNLOAD: "false"
+      FFMPEG__EXECUTABLESPATH: /usr/bin
+    volumes:
+      - data-protection-keys:/root/.aspnet/DataProtection-Keys
+      - ./wait-for-it.sh:/wait-for-it.sh
+    entrypoint: /bin/sh
+    command: >
+      -c "chmod +x /wait-for-it.sh &&
+          /wait-for-it.sh postgres:5432 -- /wait-for-it.sh minio:9000 -- 
+          dotnet OurTube.Api.dll"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/Health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ../frontend/
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_MINIO_BASE_URL: /storage
+    env_file:
+      - .env.staging
+    ports:
+      - "80:80"
+    volumes:
+      - ./conf.d/http.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    command: [ "-g", "daemon off;" ]
+
+volumes:
+  data-protection-keys:

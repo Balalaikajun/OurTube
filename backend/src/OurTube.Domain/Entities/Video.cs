@@ -1,47 +1,59 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using NpgsqlTypes;
 
-namespace OurTube.Domain.Entities
+namespace OurTube.Domain.Entities;
+
+public class Video : Base
 {
-    public class Video
+    public Video()
     {
-        [Key]
-        public int Id { get; set; }
+    }
 
-        [MaxLength(150)]
-        [Required]
-        public string Title { get; set; }
+    public Video(
+        string title,
+        string description,
+        VideoPreview preview,
+        VideoSource source,
+        Guid applicationUserId,
+        ICollection<VideoPlaylist> files,
+        ICollection<VideoTags> tags,
+        TimeSpan duration)
+    {
+        Title = title;
+        Description = description;
+        ApplicationUserId = applicationUserId;
+        Duration = duration;
+        Preview = preview;
+        Source = source;
+        Files = files;
+        Tags = tags;
+    }
 
-        [MaxLength(5000)]
-        [Required]
-        public string Description { get; set; } = string.Empty;
+    public string Title { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public int LikesCount { get; private set; }
+    public int DislikesCount { get; private set; }
+    public int CommentsCount { get; set; } = 0;
+    public int ViewsCount { get; set; } = 0;
+    public Guid ApplicationUserId { get; private set; }
+    public ApplicationUser User { get; }
+    public VideoPreview Preview { get; private set; }
+    public VideoSource Source { get; private set; }
+    public TimeSpan Duration { get; private set; }
+    public NpgsqlTsVector SearchVector { get; private set; }
 
-        [Required]
-        public int LikesCount { get; set; } = 0;
+    public ICollection<VideoPlaylist> Files { get; private set; }
+    public ICollection<VideoVote> Votes { get; }
+    public ICollection<Comment> Comments { get; }
+    public ICollection<VideoView> Views { get; }
+    public ICollection<VideoTags> Tags { get; private set; }
 
-        [Required]
-        public int DeslikeCount { get; set; } = 0;
+    public void UpdateLikesCount(int delta)
+    {
+        LikesCount = Math.Max(0, LikesCount + delta);
+    }
 
-        [Required]
-        public int CommentsCount { get; set; } = 0;
-
-        [Required]
-        public int ViewsCount { get; set; } = 0;
-
-        [Required]
-        public DateTime Created { get; set; } = DateTime.UtcNow;
-        [MaxLength(125)]
-        [Required]
-        public string PreviewPath { get; set; }
-        [MaxLength(125)]
-        [Required]
-        public string SourcePath { get; set; }
-        [Required]
-        public string ApplicationUserId { get; set; }
-
-        //Navigation
-        public ApplicationUser ApplicationUser { get; set; }
-        public ICollection<VideoFile> Files { get; set; }
-        public ICollection<Comment> Comments { get; set; }
-        public ICollection<PlaylistElement> Playlists { get; set;}
+    public void UpdateDislikesCount(int delta)
+    {
+        DislikesCount = Math.Max(0, DislikesCount + delta);
     }
 }

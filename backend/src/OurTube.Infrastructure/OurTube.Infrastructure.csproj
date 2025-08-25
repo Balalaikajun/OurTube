@@ -1,35 +1,53 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>13</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.12" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.2" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Migrations\**"/>
+        <Compile Include="Migrations\20250727074636_Initial.cs" />
+        <Compile Include="Migrations\20250727074636_Initial.Designer.cs" />
+        <Compile Include="Migrations\20250727083616_Update.cs" />
+        <Compile Include="Migrations\20250727083616_Update.Designer.cs" />
+        <Compile Include="Migrations\20250727095446_RemoveExtraId.cs" />
+        <Compile Include="Migrations\20250727095446_RemoveExtraId.Designer.cs" />
+        <Compile Include="Migrations\20250727103607_AddIndexes.cs" />
+        <Compile Include="Migrations\20250727103607_AddIndexes.Designer.cs" />
+        <Compile Include="Migrations\ApplicationDbContextModelSnapshot.cs" />
+        <EmbeddedResource Remove="Migrations\**"/>
+        <None Remove="Migrations\**"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\OurTube.Domain\OurTube.Domain.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="MailKit" Version="4.13.0" />
+        <PackageReference Include="MediatR" Version="13.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.7" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.7">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.7" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
+        <PackageReference Include="Minio" Version="6.0.5" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+        <PackageReference Include="SharpCompress" Version="0.40.0" />
+        <PackageReference Include="Xabe.FFmpeg" Version="6.0.1"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\ApplicationDb\" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\OurTube.Application\OurTube.Application.csproj"/>
+        <ProjectReference Include="..\OurTube.Domain\OurTube.Domain.csproj"/>
+    </ItemGroup>
 
 </Project>

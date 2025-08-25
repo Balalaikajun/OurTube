@@ -1,22 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace OurTube.Domain.Entities;
 
-namespace OurTube.Domain.Entities
+public class Playlist : Base
 {
-    public class Playlist
-    {
-        [Key]
-        public int Id { get; set; }
-        [MaxLength(150)]
-        [Required]
-        public string Title { get; set; }
-        [MaxLength(5000)]
-        [Required]
-        public string Description { get; set; }
-        [Required]
-        public string ApplicationUserId { get; set; }
-
-        //Navigation
-        public ApplicationUser ApplicationUser { get; set; }
-        public ICollection<PlaylistElement> Videos { get; set; }
-    }
+    public string Title { get; set; }
+    public int Count { get; set; }
+    public Guid ApplicationUserId { get; set; }
+    public bool IsSystem { get; set; } = false;
+    
+    //Navigation
+    public ApplicationUser ApplicationUser { get; set; }
+    public ICollection<PlaylistElement> PlaylistElements { get; set; }
 }
