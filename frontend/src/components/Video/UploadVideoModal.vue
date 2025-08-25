@@ -252,6 +252,7 @@ defineExpose({
           class="standart-input"
           ref="textareaRef"
           v-model="videoTitle"
+          required
           placeholder="Заголовок"
           rows="1"
       ></textarea>
@@ -259,7 +260,8 @@ defineExpose({
           class="standart-input"
           ref="textareaRef"
           v-model="videoDescription"
-          placeholder="Описание (опционально)"
+          required
+          placeholder="Описание"
           rows="3"
       ></textarea>
       <div class="buttons-wrapper" style="width: 100%">

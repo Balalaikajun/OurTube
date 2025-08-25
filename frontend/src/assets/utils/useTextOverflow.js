@@ -13,7 +13,6 @@ export default function useTextOverflow () {
 
     nextTick(() => {
       try {
-        // Временно убираем clamped-стиль для точного измерения
         const wasClamped = element.classList.contains('clamped')
         element.classList.remove('clamped')
 

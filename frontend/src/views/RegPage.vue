@@ -81,7 +81,7 @@ const submitForm = async () => {
       </form>
     </div>
     <div class="auth-page__actions">
-      <router-link to="/register" custom v-slot="{ navigate }">
+      <router-link to="/login" custom v-slot="{ navigate }">
         <button
             class="auth-page__action"
             @click="navigate">Вход
