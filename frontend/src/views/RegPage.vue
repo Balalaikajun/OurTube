@@ -45,7 +45,7 @@ const submitForm = async () => {
       <form @submit.prevent="submitForm" class="auth-form">
         <h1 class="auth-form__title">Регистрация</h1>
         <div class="auth-form__fields">
-          <input
+          <!-- <input
               class="auth-form__input"
               type="text"
               v-model="username"
@@ -54,7 +54,7 @@ const submitForm = async () => {
               required
               disabled
               autocomplete="off"
-          /> <!--Пока нет возможности-->
+          /> Пока нет возможности -->
           <input
               class="auth-form__input"
               type="email"
@@ -84,7 +84,7 @@ const submitForm = async () => {
       <router-link to="/register" custom v-slot="{ navigate }">
         <button
             class="auth-page__action"
-            @click="navigate">Регистрация
+            @click="navigate">Вход
         </button>
       </router-link>
       <router-link to="/forgot-password" custom v-slot="{ navigate }">

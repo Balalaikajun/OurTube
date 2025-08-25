@@ -1,8 +1,7 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-import MainMenu from './MainMenu.vue' // Импортируем компонент бокового меню
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+import MainMenu from './MainMenu.vue'
 import UserAvatar from './UserAvatar.vue'
-
 import { useRoute, useRouter } from 'vue-router'
 import { injectFocusEngine } from '@/assets/utils/focusEngine.js'
 import api from '@/assets/utils/api.js'
@@ -13,9 +12,9 @@ const { register, unregister } = injectFocusEngine()
 
 const emit = defineEmits(['open-upload', 'open-account'])
 
-const userData = ref(JSON.parse(localStorage.getItem('userData'))) //правки
+const userData = ref(JSON.parse(localStorage.getItem('userData')))
 
-const activeMenu = ref(null) // 'side' | 'account' | null
+const activeMenu = ref(null)
 const searchQuery = ref('')
 const isLoading = ref(false)
 
@@ -37,34 +36,15 @@ const logout = async () => {
     })
 
     localStorage.removeItem('userData')
-
-    // Добавьте эту строку
     window.dispatchEvent(new CustomEvent('auth-update'))
 
     activeMenu.value = null
-
     router.push('/')
   }
 }
 
-// const handleFocus = () => {
-//     register('searchInput');
-// };
-
-// const handleBlur = () => {
-//     setTimeout(() => {
-//         if (!document.activeElement?.closest('.search-block')) {
-//         unregister('searchInput');
-//         }
-//     }, 100);
-// };
-
 const toggleMenu = (menuType) => {
-  if (activeMenu.value === menuType) {
-    activeMenu.value = null
-  } else {
-    activeMenu.value = menuType
-  }
+  activeMenu.value = activeMenu.value === menuType ? null : menuType
 }
 
 const handleClickOutside = (event) => {
@@ -77,28 +57,34 @@ const handleClickOutside = (event) => {
   }
 }
 
-// const pushToMain = () => {
-//     router.push(`/`);
-// }
-
 const handleSearch = async (event) => {
   event.preventDefault()
   const query = searchQuery.value.trim()
   if (query) {
-    // Если уже на странице поиска с тем же запросом - не навигируем
-    if (route.path === '/search' && route.query.q === query) {
-      return
-    }
+    if (route.path === '/search' && route.query.q === query) return
     await router.push({ path: '/search', query: { q: query } })
   }
 }
-const handleStorageChange = () => {
+
+// 🔹 универсальная функция для обновления userData из localStorage
+const refreshUserData = () => {
   userData.value = JSON.parse(localStorage.getItem('userData')) || {}
 }
 
+// 🔹 watch: любые изменения userData → localStorage
+watch(userData, (newVal) => {
+  if (newVal && Object.keys(newVal).length > 0) {
+    localStorage.setItem('userData', JSON.stringify(newVal))
+  } else {
+    localStorage.removeItem('userData')
+  }
+})
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-  window.addEventListener('storage', handleStorageChange) // Изменили здесь
+  window.addEventListener('storage', refreshUserData)   // из других вкладок
+  window.addEventListener('auth-update', refreshUserData) // после login/logout
+
   if (route.path === '/search' && route.query.q) {
     searchQuery.value = route.query.q
   }
@@ -106,9 +92,11 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('storage', handleStorageChange) // И здесь
+  window.removeEventListener('storage', refreshUserData)
+  window.removeEventListener('auth-update', refreshUserData)
 })
 </script>
+
 
 <template>
   <header class="top-head">
@@ -185,7 +173,7 @@ onUnmounted(() => {
 
 <style scoped>
 input[type="search"]::-webkit-search-cancel-button {
-  -webkit-appearance: none; /* Убираем стандартный стиль */
+  -webkit-appearance: none;
   height: 1em;
   width: 1em;
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23F3F0E9"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>') no-repeat;
@@ -390,7 +378,7 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .comment-text {
   display: -webkit-box;
-  -webkit-line-clamp: 1; /* Количество строк до обрезки */
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
