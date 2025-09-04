@@ -10,10 +10,6 @@
 - [Бэкенд](./documentation/backend_review.md)
 - [Фронтенд и дизайн](./documentation/frontend.md)
 
-## Демонстрация
-
-![](./documentation/assets/example.gif)
-
 ## Функционал
 
 В рамках проекта нашей задачей было реализовать следующий функционал:
